@@ -1,0 +1,16 @@
+{
+  "name": "Kasir Mami - POS UMKM",
+  "short_name": "Kasir Mami",
+  "description": "Aplikasi Kasir POS Sederhana & Ramah Lansia untuk UMKM",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#006A67",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
