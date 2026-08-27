@@ -1,9 +1,18 @@
-const CACHE_NAME = 'kasir-mami-v2';
+const CACHE_NAME = 'kasir-mami-v3';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icon.svg',
+  './css/style.css',
+  './js/app.js',
+  './js/config.js',
+  './js/state.js',
+  './js/utils.js',
+  './js/modules/pos.js',
+  './js/modules/payment.js',
+  './js/modules/admin.js',
+  './js/modules/report.js',
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap',
   'https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24..48,400..700,0..1,-50..200'
@@ -13,8 +22,22 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(PRECACHE_ASSETS).catch((err) => {
-        // Fallback if cross-origin fails during install
-        return cache.addAll(['./', './index.html', './manifest.json', './icon.svg']);
+        // Fallback for local assets if external CDNs encounter CORS during precache
+        return cache.addAll([
+          './',
+          './index.html',
+          './manifest.json',
+          './icon.svg',
+          './css/style.css',
+          './js/app.js',
+          './js/config.js',
+          './js/state.js',
+          './js/utils.js',
+          './js/modules/pos.js',
+          './js/modules/payment.js',
+          './js/modules/admin.js',
+          './js/modules/report.js'
+        ]);
       });
     })
   );
