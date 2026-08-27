@@ -12,9 +12,9 @@ export function setReportPeriod(period) {
     const btn = document.getElementById(`period-${p}`);
     if (btn) {
       if (p === period) {
-        btn.className = 'period-btn px-3 py-1.5 rounded-lg font-extrabold text-xs sm:text-sm bg-m3-primary text-white shadow-sm transition';
+        btn.className = 'period-btn px-3 py-1.5 rounded-lg font-black text-xs sm:text-sm bg-m3-primary text-stone-950 shadow-sm transition';
       } else {
-        btn.className = 'period-btn px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-slate-600 hover:text-slate-800 transition';
+        btn.className = 'period-btn px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-slate-600 hover:text-slate-900 transition';
       }
     }
   });
@@ -96,18 +96,18 @@ export function renderFinancialReport() {
       topList.innerHTML = `<div class="col-span-full text-center text-slate-400 text-xs py-2 font-bold">Belum ada penjualan menu pada periode ini</div>`;
     } else {
       topList.innerHTML = sortedItems.map(([name, qty], idx) => `
-        <div class="bg-amber-50/70 border border-amber-200/80 p-2 rounded-xl flex items-center justify-between">
+        <div class="bg-amber-50/80 border border-amber-300/80 p-2 rounded-xl flex items-center justify-between shadow-sm">
           <div class="truncate">
-            <span class="text-[10px] font-black text-amber-800">#${idx + 1}</span>
+            <span class="text-[10px] font-black text-amber-900">#${idx + 1}</span>
             <p class="font-extrabold text-slate-800 text-xs truncate">${escapeHtml(name)}</p>
           </div>
-          <span class="px-2 py-0.5 bg-amber-200 text-amber-900 font-black text-xs rounded-lg">${qty}x</span>
+          <span class="px-2 py-0.5 bg-amber-300 text-stone-900 font-black text-xs rounded-lg">${qty}x</span>
         </div>
       `).join('');
     }
   }
 
-  // 3. Render Riwayat Penjualan
+  // 3. Render Riwayat Penjualan dengan Tombol Cetak & Hapus Satuan
   const txContainer = document.getElementById('txHistoryCardList');
   if (txContainer) {
     if (filteredTx.length === 0) {
@@ -118,18 +118,23 @@ export function renderFinancialReport() {
         const summaryItems = tx.items.map(i => `${i.qty}x ${escapeHtml(i.name)}`).join(', ');
 
         return `
-          <div class="py-2 flex items-center justify-between gap-1.5 hover:bg-slate-50">
+          <div class="py-2.5 flex items-center justify-between gap-1.5 hover:bg-slate-50 transition border-b border-slate-100 last:border-0">
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="font-black text-slate-800 text-xs sm:text-sm">${formatRp(tx.total)}</span>
-                <span class="text-[10px] text-slate-400 font-bold">${dateStr}</span>
-                <span class="text-[9px] ${tx.method === 'QRIS' ? 'bg-teal-100 text-teal-800' : 'bg-slate-100 text-slate-600'} font-black px-1.5 py-0.2 rounded">${tx.method || 'TUNAI'}</span>
+                <span class="font-black text-slate-900 text-xs sm:text-sm">${formatRp(tx.total)}</span>
+                <span class="text-[10px] text-slate-500 font-bold">${dateStr}</span>
+                <span class="text-[9px] ${tx.method === 'QRIS' ? 'bg-rose-100 text-m3-secondary font-black' : 'bg-amber-100 text-amber-900 font-black'} px-1.5 py-0.2 rounded">${tx.method || 'TUNAI'}</span>
               </div>
-              <p class="text-[11px] text-slate-500 truncate mt-0.5">${summaryItems}</p>
+              <p class="text-[11px] text-slate-600 truncate mt-0.5">${summaryItems}</p>
             </div>
-            <button onclick='window.KasirApp.reprintTx("${tx.id}")' class="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition shrink-0 touch-target-large" title="Lihat/Cetak Struk">
-              <span class="material-symbols-rounded text-base">receipt</span>
-            </button>
+            <div class="flex items-center gap-1 shrink-0">
+              <button onclick='window.KasirApp.reprintTx("${tx.id}")' class="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition touch-target-large" title="Lihat / Cetak Struk">
+                <span class="material-symbols-rounded text-base">receipt</span>
+              </button>
+              <button onclick='window.KasirApp.deleteTransaction("${tx.id}")' class="p-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold transition touch-target-large" title="Hapus transaksi ini (koreksi kesalahan input)">
+                <span class="material-symbols-rounded text-base">delete</span>
+              </button>
+            </div>
           </div>
         `;
       }).join('');
@@ -145,15 +150,15 @@ export function renderFinancialReport() {
       expContainer.innerHTML = filteredExp.map(exp => {
         const dateStr = formatDateShort(exp.date);
         return `
-          <div class="py-2 flex items-center justify-between gap-1.5 hover:bg-slate-50">
+          <div class="py-2.5 flex items-center justify-between gap-1.5 hover:bg-slate-50 transition border-b border-slate-100 last:border-0">
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5">
                 <span class="font-black text-red-600 text-xs sm:text-sm">- ${formatRp(exp.amount)}</span>
-                <span class="text-[10px] text-slate-400 font-bold">${dateStr}</span>
+                <span class="text-[10px] text-slate-500 font-bold">${dateStr}</span>
               </div>
               <p class="text-[11px] font-bold text-slate-700 truncate mt-0.5">${escapeHtml(exp.name)} <span class="text-[10px] text-slate-400 font-normal">(${escapeHtml(exp.category)})</span></p>
             </div>
-            <button onclick="window.KasirApp.deleteExpense('${exp.id}')" class="p-1 rounded-lg text-red-500 hover:bg-red-50 font-bold transition" title="Hapus catatan">
+            <button onclick="window.KasirApp.deleteExpense('${exp.id}')" class="p-1.5 rounded-xl text-red-500 hover:bg-red-50 font-bold transition touch-target-large" title="Hapus catatan">
               <span class="material-symbols-rounded text-base">delete</span>
             </button>
           </div>
@@ -167,6 +172,50 @@ export function reprintTx(txId) {
   const tx = state.transactions.find(t => t.id === txId);
   if (tx) {
     showReceipt(tx);
+  }
+}
+
+/**
+ * HAPUS DATA HARI INI (Transaksi Penjualan & Pengeluaran Hari Ini Saja)
+ */
+export function clearTodayData() {
+  const now = new Date();
+  const todayStr = now.toDateString();
+
+  const todayTxCount = state.transactions.filter(t => new Date(t.date).toDateString() === todayStr).length;
+  const todayExpCount = state.expenses.filter(e => new Date(e.date).toDateString() === todayStr).length;
+
+  if (todayTxCount === 0 && todayExpCount === 0) {
+    alert('Tidak ada catatan transaksi penjualan atau pengeluaran pada hari ini.');
+    return;
+  }
+
+  const confirmMsg = `⚠️ HAPUS DATA HARI INI?\n\n• ${todayTxCount} Transaksi Penjualan Hari Ini\n• ${todayExpCount} Catatan Pengeluaran Hari Ini\n\n(Catatan hari kemarin & hari-hari sebelumnya TETAP AMAN tersimpan).\n\nLanjutkan hapus data hari ini?`;
+
+  if (confirm(confirmMsg)) {
+    state.transactions = state.transactions.filter(t => new Date(t.date).toDateString() !== todayStr);
+    state.expenses = state.expenses.filter(e => new Date(e.date).toDateString() !== todayStr);
+    saveHistory();
+    saveExpenses();
+    renderFinancialReport();
+    alert('✓ Data penjualan dan pengeluaran hari ini berhasil dihapus!');
+  }
+}
+
+/**
+ * HAPUS SATU TRANSAKSI SPESIFIK (Untuk koreksi jika salah input)
+ */
+export function deleteTransaction(txId) {
+  const tx = state.transactions.find(t => t.id === txId);
+  if (!tx) return;
+
+  const itemSummary = tx.items.map(i => `${i.qty}x ${i.name}`).join(', ');
+  const confirmMsg = `Hapus transaksi ${tx.orderName || 'Pesanan'} senilai ${formatRp(tx.total)}?\n\nItem: ${itemSummary}\n\nData transaksi ini akan dihapus dari laporan.`;
+
+  if (confirm(confirmMsg)) {
+    state.transactions = state.transactions.filter(t => t.id !== txId);
+    saveHistory();
+    renderFinancialReport();
   }
 }
 
@@ -208,7 +257,9 @@ export function saveExpense(e) {
 }
 
 export function deleteExpense(id) {
-  if (confirm('Hapus catatan pengeluaran ini?')) {
+  const exp = state.expenses.find(e => e.id === id);
+  const expName = exp ? `${exp.name} (${formatRp(exp.amount)})` : 'ini';
+  if (confirm(`Hapus catatan pengeluaran ${expName}?`)) {
     state.expenses = state.expenses.filter(e => e.id !== id);
     saveExpenses();
     renderFinancialReport();
@@ -273,10 +324,20 @@ export function exportReportCSV() {
 }
 
 export function clearTransactionHistory() {
-  if (state.transactions.length === 0) return;
-  if (confirm('Hapus seluruh riwayat penjualan?')) {
+  clearAllHistory();
+}
+
+export function clearAllHistory() {
+  if (state.transactions.length === 0 && state.expenses.length === 0) {
+    alert('Riwayat transaksi dan pengeluaran sudah kosong.');
+    return;
+  }
+  if (confirm('PERINGATAN: Hapus SELURUH riwayat transaksi penjualan & pengeluaran (Semua Periode)?\n\nData yang telah dihapus tidak dapat dipulihkan kembali kecuali Anda memiliki file backup.')) {
     state.transactions = [];
+    state.expenses = [];
     saveHistory();
+    saveExpenses();
     renderFinancialReport();
+    alert('✓ Seluruh riwayat penjualan & pengeluaran telah dikosongkan.');
   }
 }

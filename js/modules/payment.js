@@ -53,14 +53,14 @@ export function setPaymentMethod(method) {
   const btnFinish = document.getElementById('btnFinishPayment');
 
   if (method === 'cash') {
-    if (btnCash) btnCash.className = 'py-2.5 px-3 rounded-2xl border-2 border-m3-primary bg-teal-50 text-m3-primary font-black text-sm flex items-center justify-center gap-2 transition touch-target-large';
-    if (btnQris) btnQris.className = 'py-2.5 px-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-700 font-black text-sm flex items-center justify-center gap-2 transition touch-target-large';
+    if (btnCash) btnCash.className = 'py-2.5 px-3 rounded-2xl border-2 border-m3-secondary bg-rose-50 text-m3-secondary font-black text-sm flex items-center justify-center gap-2 transition touch-target-large shadow-sm';
+    if (btnQris) btnQris.className = 'py-2.5 px-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-sm flex items-center justify-center gap-2 transition touch-target-large';
     if (cashSection) cashSection.classList.remove('hidden');
     if (qrisSection) qrisSection.classList.add('hidden');
     updateChangeDisplay();
   } else {
-    if (btnQris) btnQris.className = 'py-2.5 px-3 rounded-2xl border-2 border-m3-primary bg-teal-50 text-m3-primary font-black text-sm flex items-center justify-center gap-2 transition touch-target-large';
-    if (btnCash) btnCash.className = 'py-2.5 px-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-700 font-black text-sm flex items-center justify-center gap-2 transition touch-target-large';
+    if (btnQris) btnQris.className = 'py-2.5 px-3 rounded-2xl border-2 border-m3-secondary bg-rose-50 text-m3-secondary font-black text-sm flex items-center justify-center gap-2 transition touch-target-large shadow-sm';
+    if (btnCash) btnCash.className = 'py-2.5 px-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-sm flex items-center justify-center gap-2 transition touch-target-large';
     if (cashSection) cashSection.classList.add('hidden');
     if (qrisSection) qrisSection.classList.remove('hidden');
     if (btnFinish) btnFinish.disabled = false; // QRIS is instantly marked paid
@@ -75,9 +75,9 @@ export function calculateSplitBill(persons) {
 
   if (banner) {
     banner.innerHTML = `
-      <div class="flex items-center justify-between text-amber-900">
+      <div class="flex items-center justify-between text-amber-950">
         <span>${persons} Orang:</span>
-        <span class="text-sm font-black text-teal-800">${formatRp(perPerson)} / orang</span>
+        <span class="text-sm font-black text-m3-secondary">${formatRp(perPerson)} / orang</span>
       </div>
     `;
     banner.classList.remove('hidden');
@@ -196,7 +196,7 @@ export function updateChangeDisplay() {
   if (cashGiven >= total && total > 0) {
     if (changeDisplay) {
       changeDisplay.innerText = formatRp(change);
-      changeDisplay.className = 'text-xl sm:text-3xl font-black text-m3-success';
+      changeDisplay.className = 'text-xl sm:text-3xl font-black text-emerald-700';
     }
     if (changeNotice) {
       changeNotice.innerText = change === 0 ? '✓ Uang pas, tidak ada kembalian' : `Kembalikan ${formatRp(change)}`;

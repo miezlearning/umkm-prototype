@@ -11,19 +11,19 @@ export function renderAdminTable() {
   if (!container) return;
 
   container.innerHTML = state.products.map(p => `
-    <div class="p-2.5 sm:p-4 flex items-center justify-between gap-2 hover:bg-slate-50">
-      <div class="flex items-center gap-2 min-w-0">
-        <span class="material-symbols-rounded text-xl sm:text-2xl text-m3-primary p-1.5 sm:p-2 bg-teal-50 rounded-xl shrink-0">${p.icon || 'lunch_dining'}</span>
+    <div class="p-2.5 sm:p-4 flex items-center justify-between gap-2 hover:bg-slate-50 transition border-b border-slate-100 last:border-0">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <span class="material-symbols-rounded text-xl sm:text-2xl text-stone-950 p-2 bg-amber-100/80 rounded-xl shrink-0 border border-amber-200">${p.icon || 'lunch_dining'}</span>
         <div class="truncate">
-          <h4 class="font-extrabold text-slate-800 text-xs sm:text-base truncate">${escapeHtml(p.name)}</h4>
-          <p class="font-black text-m3-primary text-xs sm:text-base">${formatRp(p.price)} <span class="text-[10px] text-slate-400 font-normal">(${escapeHtml(p.category)})</span></p>
+          <h4 class="font-extrabold text-slate-900 text-xs sm:text-base truncate">${escapeHtml(p.name)}</h4>
+          <p class="font-black text-m3-secondary text-xs sm:text-base">${formatRp(p.price)} <span class="text-[10px] text-slate-400 font-normal">(${escapeHtml(p.category)})</span></p>
         </div>
       </div>
       <div class="flex items-center gap-1 shrink-0">
-        <button onclick="window.KasirApp.openEditProductModal('${p.id}')" class="p-1.5 rounded-xl bg-teal-50 text-m3-primary hover:bg-teal-100 font-bold touch-target-large">
+        <button onclick="window.KasirApp.openEditProductModal('${p.id}')" class="p-1.5 rounded-xl bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200 font-bold touch-target-large" title="Ubah menu">
           <span class="material-symbols-rounded text-base">edit</span>
         </button>
-        <button onclick="window.KasirApp.deleteProduct('${p.id}')" class="p-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 font-bold touch-target-large">
+        <button onclick="window.KasirApp.deleteProduct('${p.id}')" class="p-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 font-bold touch-target-large" title="Hapus menu">
           <span class="material-symbols-rounded text-base">delete</span>
         </button>
       </div>
@@ -108,7 +108,9 @@ export function saveProduct(e) {
 }
 
 export function deleteProduct(id) {
-  if (confirm('Hapus menu ini dari kasir?')) {
+  const p = state.products.find(prod => prod.id === id);
+  const prodName = p ? p.name : 'ini';
+  if (confirm(`Hapus menu "${prodName}" dari kasir?`)) {
     state.products = state.products.filter(p => p.id !== id);
     state.orderQueues.forEach(q => delete q.cart[id]);
     saveProducts();
@@ -164,7 +166,7 @@ export function importDataBackup(event) {
         state.activeQueueId = data.orderQueues[0]?.id || 'q_1';
         saveQueues();
       }
-      alert('Data Kasir Mami berhasil dipulihkan dari file backup!');
+      alert('✓ Data Kasir Mami berhasil dipulihkan dari file backup!');
       renderProducts();
       renderCart();
       renderAdminTable();

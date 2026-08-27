@@ -22,14 +22,14 @@ export function switchView(viewName) {
     const deskBtn = document.getElementById(`btnNav${v.charAt(0).toUpperCase() + v.slice(1)}Desktop`);
     if (deskBtn) {
       deskBtn.className = (v === viewName)
-        ? 'px-4 py-2 rounded-xl bg-white/30 text-white font-bold flex items-center gap-2 transition touch-target-large shadow-inner'
-        : 'px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold flex items-center gap-2 transition touch-target-large';
+        ? 'px-4 py-2 rounded-xl bg-stone-950/20 text-stone-950 font-black flex items-center gap-2 transition touch-target-large shadow-inner'
+        : 'px-4 py-2 rounded-xl bg-stone-950/10 hover:bg-stone-950/15 text-stone-900 font-bold flex items-center gap-2 transition touch-target-large';
     }
     
     const mobBtn = document.getElementById(`btnNav${v.charAt(0).toUpperCase() + v.slice(1)}Mobile`);
     if (mobBtn) {
       mobBtn.className = (v === viewName)
-        ? 'flex flex-col items-center justify-center flex-1 py-1 text-m3-primary font-bold text-[11px] touch-target-large'
+        ? 'flex flex-col items-center justify-center flex-1 py-1 text-m3-secondary font-black text-[11px] touch-target-large'
         : 'flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-slate-600 font-medium text-[11px] touch-target-large';
     }
   });
@@ -101,7 +101,7 @@ const KasirApp = {
   exportDataBackup: admin.exportDataBackup,
   importDataBackup: admin.importDataBackup,
 
-  // Reports
+  // Reports & Data Deletion
   setReportPeriod: report.setReportPeriod,
   renderFinancialReport: report.renderFinancialReport,
   openExpenseModal: report.openExpenseModal,
@@ -111,6 +111,9 @@ const KasirApp = {
   shareReportWhatsApp: report.shareReportWhatsApp,
   exportReportCSV: report.exportReportCSV,
   clearTransactionHistory: report.clearTransactionHistory,
+  clearTodayData: report.clearTodayData,
+  deleteTransaction: report.deleteTransaction,
+  clearAllHistory: report.clearAllHistory,
   reprintTx: report.reprintTx
 };
 
