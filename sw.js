@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kasir-mami-v4';
+const CACHE_NAME = 'kasir-mami-v7';
 const PRECACHE_ASSETS = [
   './',
   './index.html',

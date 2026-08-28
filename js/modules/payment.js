@@ -53,14 +53,14 @@ export function setPaymentMethod(method) {
   const btnFinish = document.getElementById('btnFinishPayment');
 
   if (method === 'cash') {
-    if (btnCash) btnCash.className = 'py-2.5 px-3 rounded-2xl border-2 border-m3-secondary bg-rose-50 text-m3-secondary font-black text-sm flex items-center justify-center gap-2 transition touch-target-large shadow-sm';
-    if (btnQris) btnQris.className = 'py-2.5 px-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-sm flex items-center justify-center gap-2 transition touch-target-large';
+    if (btnCash) btnCash.className = 'py-2.5 px-3 rounded-2xl border-2 border-amber-500 bg-amber-50 text-stone-950 font-black text-sm flex items-center justify-center gap-2 transition touch-target-large shadow-sm';
+    if (btnQris) btnQris.className = 'py-2.5 px-3 rounded-2xl border-2 border-stone-200 bg-white text-stone-700 font-bold text-sm flex items-center justify-center gap-2 transition touch-target-large';
     if (cashSection) cashSection.classList.remove('hidden');
     if (qrisSection) qrisSection.classList.add('hidden');
     updateChangeDisplay();
   } else {
-    if (btnQris) btnQris.className = 'py-2.5 px-3 rounded-2xl border-2 border-m3-secondary bg-rose-50 text-m3-secondary font-black text-sm flex items-center justify-center gap-2 transition touch-target-large shadow-sm';
-    if (btnCash) btnCash.className = 'py-2.5 px-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-sm flex items-center justify-center gap-2 transition touch-target-large';
+    if (btnQris) btnQris.className = 'py-2.5 px-3 rounded-2xl border-2 border-amber-500 bg-amber-50 text-stone-950 font-black text-sm flex items-center justify-center gap-2 transition touch-target-large shadow-sm';
+    if (btnCash) btnCash.className = 'py-2.5 px-3 rounded-2xl border-2 border-stone-200 bg-white text-stone-700 font-bold text-sm flex items-center justify-center gap-2 transition touch-target-large';
     if (cashSection) cashSection.classList.add('hidden');
     if (qrisSection) qrisSection.classList.remove('hidden');
     if (btnFinish) btnFinish.disabled = false; // QRIS is instantly marked paid
@@ -77,7 +77,7 @@ export function calculateSplitBill(persons) {
     banner.innerHTML = `
       <div class="flex items-center justify-between text-amber-950">
         <span>${persons} Orang:</span>
-        <span class="text-sm font-black text-m3-secondary">${formatRp(perPerson)} / orang</span>
+        <span class="text-sm font-black text-amber-800">${formatRp(perPerson)} / orang</span>
       </div>
     `;
     banner.classList.remove('hidden');
@@ -130,7 +130,7 @@ export function renderCashContributions() {
   if (cashContributions.length > 1) {
     area.classList.remove('hidden');
     list.innerHTML = cashContributions.map((c, i) => `
-      <span class="px-1.5 py-0.5 bg-white rounded border border-slate-300 text-slate-700">
+      <span class="px-1.5 py-0.5 bg-white rounded border border-stone-300 text-stone-700">
         Org ${i+1}: ${formatRp(c)}
       </span>
     `).join(' + ');

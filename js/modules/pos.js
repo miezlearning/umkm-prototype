@@ -14,12 +14,12 @@ export function renderOrderQueueTabs() {
     const isActive = q.id === state.activeQueueId;
     const itemCount = Object.values(q.cart).reduce((a, b) => a + b, 0);
     return `
-      <div class="flex items-center gap-1 rounded-xl px-2.5 py-1 ${isActive ? 'bg-m3-primary text-stone-950 font-black shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold'} transition shrink-0">
+      <div class="active-queue-tab-wrapper flex items-center gap-1 rounded-xl px-2.5 py-1 ${isActive ? 'bg-stone-900 text-white font-black shadow-sm active-queue-tab ring-1 ring-amber-400/40' : 'bg-stone-100 text-stone-700 hover:bg-stone-200 font-bold'} transition shrink-0">
         <button onclick="window.KasirApp.switchOrderQueue('${q.id}')" class="text-xs flex items-center gap-1.5 touch-target-large">
           <span>${escapeHtml(q.name)}</span>
-          ${itemCount > 0 ? `<span class="px-1.5 py-0.2 rounded-full text-[9px] ${isActive ? 'bg-m3-secondary text-white font-black' : 'bg-amber-400 text-stone-950 font-black'}">${itemCount}</span>` : ''}
+          ${itemCount > 0 ? `<span class="px-1.5 py-0.2 rounded-full text-[9px] ${isActive ? 'bg-amber-500 text-stone-950 font-black' : 'bg-stone-300 text-stone-800 font-black'}">${itemCount}</span>` : ''}
         </button>
-        <button onclick="window.KasirApp.deleteOrderQueue('${q.id}', event)" class="p-0.5 hover:bg-black/15 rounded-md text-xs flex items-center justify-center" title="Hapus / Tutup Antrian">
+        <button onclick="window.KasirApp.deleteOrderQueue('${q.id}', event)" class="p-0.5 hover:bg-white/20 rounded-md text-xs flex items-center justify-center" title="Hapus / Tutup Antrian">
           <span class="material-symbols-rounded text-sm">close</span>
         </button>
       </div>
@@ -32,6 +32,30 @@ export function renderOrderQueueTabs() {
     const drawerTitleEl = document.getElementById('mobileDrawerTitle');
     if (titleEl) titleEl.innerText = cur.name;
     if (drawerTitleEl) drawerTitleEl.innerText = cur.name;
+  }
+
+  // Auto-scroll active tab into view smoothly
+  setTimeout(() => {
+    const activeTab = container.querySelector('.active-queue-tab');
+    if (activeTab) {
+      activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }
+  }, 40);
+}
+
+export function scrollQueueTabs(direction) {
+  const container = document.getElementById('orderQueueTabs');
+  if (!container) return;
+  const scrollAmount = direction === 'left' ? -200 : 200;
+  container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+}
+
+export function handleQueueWheel(e) {
+  const container = document.getElementById('orderQueueTabs');
+  if (!container) return;
+  if (e.deltaY !== 0) {
+    e.preventDefault();
+    container.scrollLeft += e.deltaY;
   }
 }
 
@@ -56,6 +80,14 @@ export function addNewOrderQueue() {
   renderOrderQueueTabs();
   renderCart();
   renderProducts();
+
+  // Scroll to the newest tab on the far right
+  setTimeout(() => {
+    const container = document.getElementById('orderQueueTabs');
+    if (container) {
+      container.scrollTo({ left: container.scrollWidth, behavior: 'smooth' });
+    }
+  }, 60);
 }
 
 export function switchOrderQueue(queueId) {
@@ -112,11 +144,11 @@ export function deleteOrderQueue(queueId, event) {
 export function setCategory(cat) {
   state.currentCategory = cat;
   document.querySelectorAll('.cat-pill').forEach(btn => {
-    btn.className = 'cat-pill py-2 px-1 sm:px-4 rounded-xl font-extrabold text-xs sm:text-sm text-center bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large';
+    btn.className = 'cat-pill py-2 px-1 sm:px-4 rounded-xl font-bold text-xs sm:text-sm text-center bg-stone-100 hover:bg-stone-200 text-stone-700 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large';
   });
   const activeBtn = document.getElementById(`cat-${cat}`);
   if (activeBtn) {
-    activeBtn.className = 'cat-pill py-2 px-1 sm:px-4 rounded-xl font-black text-xs sm:text-sm text-center bg-m3-primary text-stone-950 shadow transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large';
+    activeBtn.className = 'cat-pill py-2 px-1 sm:px-4 rounded-xl font-black text-xs sm:text-sm text-center bg-amber-500 text-stone-950 shadow-md transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large';
   }
   renderProducts();
 }
@@ -137,8 +169,8 @@ export function renderProducts() {
 
   if (filtered.length === 0) {
     grid.innerHTML = `
-      <div class="col-span-full py-10 text-center text-slate-400 flex flex-col items-center justify-center gap-1.5">
-        <span class="material-symbols-rounded text-4xl">search_off</span>
+      <div class="col-span-full py-12 text-center text-stone-400 flex flex-col items-center justify-center gap-2 bg-white rounded-2xl border border-stone-200">
+        <span class="material-symbols-rounded text-5xl text-stone-300">search_off</span>
         <p class="font-bold text-sm">Menu tidak ditemukan</p>
       </div>
     `;
@@ -149,29 +181,29 @@ export function renderProducts() {
     const qty = currentCart[product.id] || 0;
     const hasQty = qty > 0;
     return `
-      <div onclick="window.KasirApp.addToCart('${product.id}')" class="relative bg-white active:scale-[0.97] border-2 ${hasQty ? 'border-amber-400 bg-amber-50/40 shadow-md' : 'border-slate-200 shadow-sm'} rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between cursor-pointer transition touch-target-large">
+      <div onclick="window.KasirApp.addToCart('${product.id}')" class="relative bg-white active:scale-[0.97] border-2 ${hasQty ? 'border-amber-500 bg-amber-50/50 shadow-md ring-2 ring-amber-400/30' : 'border-stone-200 hover:border-amber-300 shadow-sm'} rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between cursor-pointer transition touch-target-large">
         
         ${hasQty ? `
-          <span class="absolute -top-1.5 -right-1.5 bg-m3-secondary text-white font-black text-xs px-2 py-0.5 rounded-full shadow-md">
+          <span class="absolute -top-2 -right-2 bg-amber-500 text-stone-950 font-black text-xs px-2.5 py-0.5 rounded-full shadow-md">
             ${qty}x
           </span>
         ` : ''}
 
         <div class="flex items-start justify-between gap-1">
-          <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl ${hasQty ? 'bg-m3-primary text-stone-950 font-black' : 'bg-amber-100/70 text-amber-900'} flex items-center justify-center shrink-0">
+          <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl ${hasQty ? 'bg-amber-500 text-stone-950 font-black' : 'bg-stone-100 text-stone-700'} flex items-center justify-center shrink-0 transition">
             <span class="material-symbols-rounded text-xl sm:text-2xl">${product.icon || 'lunch_dining'}</span>
           </div>
-          <span class="text-[9px] font-bold text-slate-400 capitalize px-1.5 py-0.5 rounded bg-slate-100">${escapeHtml(product.category)}</span>
+          <span class="text-[10px] font-bold text-stone-500 capitalize px-2 py-0.5 rounded-lg bg-stone-100">${escapeHtml(product.category)}</span>
         </div>
 
-        <div class="mt-2">
-          <h3 class="font-extrabold text-slate-900 text-xs sm:text-base leading-tight line-clamp-2">${escapeHtml(product.name)}</h3>
-          <p class="font-black text-m3-secondary text-sm sm:text-lg mt-0.5">${formatRp(product.price)}</p>
+        <div class="mt-2.5">
+          <h3 class="font-extrabold text-stone-900 text-xs sm:text-base leading-tight line-clamp-2">${escapeHtml(product.name)}</h3>
+          <p class="font-black text-amber-700 text-sm sm:text-lg mt-0.5">${formatRp(product.price)}</p>
         </div>
 
-        <div class="mt-1.5 pt-1 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold ${hasQty ? 'text-amber-900 font-extrabold' : 'text-slate-400'}">
+        <div class="mt-2 pt-1.5 border-t border-stone-100 flex items-center justify-between text-[11px] font-extrabold ${hasQty ? 'text-amber-900' : 'text-stone-500'}">
           <span>+ Tambah</span>
-          <span class="material-symbols-rounded text-base">add_circle</span>
+          <span class="material-symbols-rounded text-base ${hasQty ? 'text-amber-600' : 'text-stone-400'}">add_circle</span>
         </div>
       </div>
     `;
@@ -252,8 +284,8 @@ export function renderCart() {
 
   const itemIds = Object.keys(currentCart);
   const itemsHtml = itemIds.length === 0 ? `
-    <div class="flex flex-col items-center justify-center h-32 text-slate-400 gap-1">
-      <span class="material-symbols-rounded text-3xl text-slate-300">touch_app</span>
+    <div class="flex flex-col items-center justify-center h-36 text-stone-400 gap-1.5">
+      <span class="material-symbols-rounded text-3xl text-stone-300">touch_app</span>
       <p class="font-bold text-xs sm:text-sm text-center">Sentuh menu untuk menambah pesanan</p>
     </div>
   ` : itemIds.map(id => {
@@ -263,15 +295,15 @@ export function renderCart() {
     const subtotal = p.price * qty;
 
     return `
-      <div class="py-2 flex items-center justify-between gap-1.5">
+      <div class="py-2.5 flex items-center justify-between gap-1.5 border-b border-stone-100 last:border-0">
         <div class="flex-1 min-w-0">
-          <h4 class="font-extrabold text-slate-900 text-xs sm:text-sm truncate">${escapeHtml(p.name)}</h4>
-          <p class="text-[11px] font-bold text-slate-500">${formatRp(p.price)} &times; ${qty} = <span class="text-m3-secondary font-black">${formatRp(subtotal)}</span></p>
+          <h4 class="font-extrabold text-stone-900 text-xs sm:text-sm truncate">${escapeHtml(p.name)}</h4>
+          <p class="text-[11px] font-bold text-stone-500">${formatRp(p.price)} &times; ${qty} = <span class="text-amber-800 font-black">${formatRp(subtotal)}</span></p>
         </div>
         <div class="flex items-center gap-1 shrink-0">
-          <button onclick="window.KasirApp.updateCartQty('${id}', -1)" class="w-7 h-7 rounded-lg bg-slate-100 text-slate-800 font-black text-sm flex items-center justify-center touch-target-large">-</button>
-          <span class="w-5 text-center font-black text-xs text-slate-800">${qty}</span>
-          <button onclick="window.KasirApp.updateCartQty('${id}', 1)" class="w-7 h-7 rounded-lg bg-m3-primary text-stone-950 font-black text-sm flex items-center justify-center touch-target-large shadow-sm">+</button>
+          <button onclick="window.KasirApp.updateCartQty('${id}', -1)" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-black text-sm flex items-center justify-center touch-target-large transition">-</button>
+          <span class="w-5 text-center font-black text-xs text-stone-800">${qty}</span>
+          <button onclick="window.KasirApp.updateCartQty('${id}', 1)" class="w-7 h-7 rounded-lg bg-amber-500 hover:bg-amber-600 text-stone-950 font-black text-sm flex items-center justify-center touch-target-large shadow-sm transition">+</button>
         </div>
       </div>
     `;

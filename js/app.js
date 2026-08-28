@@ -22,15 +22,15 @@ export function switchView(viewName) {
     const deskBtn = document.getElementById(`btnNav${v.charAt(0).toUpperCase() + v.slice(1)}Desktop`);
     if (deskBtn) {
       deskBtn.className = (v === viewName)
-        ? 'px-4 py-2 rounded-xl bg-stone-950/20 text-stone-950 font-black flex items-center gap-2 transition touch-target-large shadow-inner'
-        : 'px-4 py-2 rounded-xl bg-stone-950/10 hover:bg-stone-950/15 text-stone-900 font-bold flex items-center gap-2 transition touch-target-large';
+        ? 'px-4 py-2 rounded-xl bg-amber-500/20 text-amber-300 font-black flex items-center gap-2 transition touch-target-large ring-1 ring-amber-500/40'
+        : 'px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-stone-300 hover:text-white font-bold flex items-center gap-2 transition touch-target-large';
     }
     
     const mobBtn = document.getElementById(`btnNav${v.charAt(0).toUpperCase() + v.slice(1)}Mobile`);
     if (mobBtn) {
       mobBtn.className = (v === viewName)
-        ? 'flex flex-col items-center justify-center flex-1 py-1 text-m3-secondary font-black text-[11px] touch-target-large'
-        : 'flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-slate-600 font-medium text-[11px] touch-target-large';
+        ? 'flex flex-col items-center justify-center flex-1 py-1 text-amber-600 font-black text-[11px] touch-target-large'
+        : 'flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 font-medium text-[11px] touch-target-large';
     }
   });
 
@@ -67,6 +67,8 @@ const KasirApp = {
   switchOrderQueue: pos.switchOrderQueue,
   promptRenameQueue: pos.promptRenameQueue,
   deleteOrderQueue: pos.deleteOrderQueue,
+  scrollQueueTabs: pos.scrollQueueTabs,
+  handleQueueWheel: pos.handleQueueWheel,
   setCategory: pos.setCategory,
   renderProducts: pos.renderProducts,
   addToCart: pos.addToCart,

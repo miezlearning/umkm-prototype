@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Kasir Mami - POS UMKM Mudah & Cepat</title>
   <meta name="description" content="Aplikasi Kasir POS Sederhana, Ramah Lansia dan Mudah Digunakan untuk UMKM">
-  <meta name="theme-color" content="#d8ba00">
+  <meta name="theme-color" content="#1C1917">
   
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -28,26 +28,17 @@
             sans: ['"Plus Jakarta Sans"', 'sans-serif'],
           },
           colors: {
-            m3: {
-              primary: '#d8ba00',
-              primaryHover: '#c4a800',
-              primaryContainer: '#fff099',
-              onPrimaryContainer: '#413700',
-              secondary: '#934d47',
-              secondaryHover: '#7b3e39',
-              secondaryContainer: '#fcd8d4',
-              onSecondaryContainer: '#3d100d',
-              surface: '#FFFDF9',
-              surfaceVariant: '#F3EDE2',
-              onSurfaceVariant: '#4E4639',
-              outline: '#807667',
-              error: '#BA1A1A',
-              errorContainer: '#FFDAD6',
-              onErrorContainer: '#410002',
-              success: '#1B7F4B',
-              successContainer: '#BFF0D2',
-              onSuccessContainer: '#002110',
-              accent: '#934d47'
+            brand: {
+              amber: '#F59E0B',           // Primary Honey Amber
+              amberHover: '#D97706',      // Darker Amber for hover
+              amberLight: '#FEF3C7',      // Soft Amber Container
+              espresso: '#1C1917',        // Deep Warm Espresso
+              espressoLight: '#292524',   // Espresso light surface
+              orange: '#EA580C',          // Secondary Warm Cinnamon
+              orangeLight: '#FFEDD5',     // Light Orange
+              cream: '#FFFBEB',           // Soft Cream Background
+              surface: '#FAFAF9',         // Warm Neutral Surface
+              cardBorder: '#E7E5E4'       // Stone Border
             }
           }
         }
@@ -58,39 +49,46 @@
   <!-- Custom Modular CSS -->
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-amber-50/40 text-slate-900 min-h-screen flex flex-col antialiased">
+<body class="bg-stone-100/70 text-stone-900 min-h-screen flex flex-col antialiased">
 
-  <!-- TOP APP BAR -->
-  <header class="bg-m3-primary text-stone-950 shadow-md sticky top-0 z-30 px-3 py-2.5 sm:px-6 sm:py-3 border-b border-amber-500/30">
+  <!-- TOP APP BAR (Warm Espresso with Honey Amber Accent - Elegant & Comfortable) -->
+  <header class="bg-stone-900 text-white shadow-md sticky top-0 z-30 px-3 py-2.5 sm:px-6 sm:py-3 border-b border-stone-800">
     <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2 sm:gap-3">
-        <span class="material-symbols-rounded text-2xl sm:text-4xl text-m3-secondary p-1 bg-white/70 rounded-xl shadow-sm">storefront</span>
+      
+      <!-- Brand Logo & Title -->
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/50 flex items-center justify-center shrink-0 shadow-inner">
+          <span class="material-symbols-rounded text-2xl sm:text-3xl text-amber-400">storefront</span>
+        </div>
         <div>
-          <h1 class="text-lg sm:text-2xl font-black tracking-tight leading-tight text-stone-950">Kasir Mami</h1>
-          <p class="text-[10px] sm:text-xs text-stone-800 font-bold leading-tight">POS & Pembukuan UMKM</p>
+          <h1 class="text-lg sm:text-2xl font-black tracking-tight leading-tight text-white flex items-center gap-1.5">
+            <span>Kasir Mami</span>
+            <span class="text-[9px] uppercase px-1.5 py-0.5 rounded bg-amber-500 text-stone-950 font-black tracking-wide hidden sm:inline-block">POS UMKM</span>
+          </h1>
+          <p class="text-[10px] sm:text-xs text-stone-300 font-medium leading-tight">Mudah, Cepat & Ramah Lansia</p>
         </div>
       </div>
 
-      <!-- Desktop Nav Buttons -->
+      <!-- Desktop Navigation Buttons -->
       <div class="hidden lg:flex items-center gap-2">
-        <button id="btnNavPosDesktop" onclick="switchView('pos')" class="px-4 py-2 rounded-xl bg-stone-950/20 text-stone-950 font-black flex items-center gap-2 transition touch-target-large shadow-inner">
-          <span class="material-symbols-rounded text-2xl">point_of_sale</span>
+        <button id="btnNavPosDesktop" onclick="switchView('pos')" class="px-4 py-2 rounded-xl bg-amber-500/20 text-amber-300 font-black flex items-center gap-2 transition touch-target-large ring-1 ring-amber-500/40">
+          <span class="material-symbols-rounded text-2xl text-amber-400">point_of_sale</span>
           <span>Kasir</span>
         </button>
-        <button id="btnNavReportDesktop" onclick="switchView('report')" class="px-4 py-2 rounded-xl bg-stone-950/10 hover:bg-stone-950/15 text-stone-900 font-bold flex items-center gap-2 transition touch-target-large">
+        <button id="btnNavReportDesktop" onclick="switchView('report')" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-stone-300 hover:text-white font-bold flex items-center gap-2 transition touch-target-large">
           <span class="material-symbols-rounded text-2xl">account_balance_wallet</span>
           <span>Laporan & Laba</span>
         </button>
-        <button id="btnNavAdminDesktop" onclick="switchView('admin')" class="px-4 py-2 rounded-xl bg-stone-950/10 hover:bg-stone-950/15 text-stone-900 font-bold flex items-center gap-2 transition touch-target-large">
+        <button id="btnNavAdminDesktop" onclick="switchView('admin')" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-stone-300 hover:text-white font-bold flex items-center gap-2 transition touch-target-large">
           <span class="material-symbols-rounded text-2xl">inventory_2</span>
           <span>Kelola Menu</span>
         </button>
       </div>
 
       <!-- Quick Cart Indicator Button on Mobile Header -->
-      <button onclick="toggleMobileCartDrawer()" class="lg:hidden relative px-3 py-1.5 rounded-xl bg-stone-950/15 hover:bg-stone-950/25 text-stone-950 flex items-center gap-1.5 touch-target-large font-bold">
-        <span class="material-symbols-rounded text-xl">shopping_cart</span>
-        <span id="mobileHeaderCartTotal" class="text-xs font-black text-stone-950">Rp 0</span>
+      <button onclick="toggleMobileCartDrawer()" class="lg:hidden relative px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-white flex items-center gap-1.5 touch-target-large border border-stone-700">
+        <span class="material-symbols-rounded text-xl text-amber-400">shopping_cart</span>
+        <span id="mobileHeaderCartTotal" class="text-xs font-black text-amber-300">Rp 0</span>
       </button>
     </div>
   </header>
@@ -104,34 +102,51 @@
       <!-- LEFT COLUMN: PRODUCT GRID -->
       <section class="lg:col-span-7 xl:col-span-8 flex flex-col gap-2.5 sm:gap-3">
         
-        <!-- Multi-Order / Antrian Tabs -->
-        <div class="bg-white p-2 sm:p-2.5 rounded-2xl shadow-sm border border-amber-200/60 flex items-center justify-between gap-2 overflow-hidden">
-          <div class="flex items-center gap-1.5 overflow-x-auto custom-scroll flex-1 py-0.5" id="orderQueueTabs">
+        <!-- Multi-Order / Antrian Tabs (NO OVERLAY, SCROLL NAVIGATION & DEDICATED NEW QUEUE BUTTON) -->
+        <div class="bg-white p-2 sm:p-2.5 rounded-2xl shadow-sm border border-stone-200 flex items-center gap-1.5 overflow-hidden">
+          
+          <!-- Scroll Left Button -->
+          <button onclick="window.KasirApp.scrollQueueTabs('left')" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 transition shrink-0 flex items-center justify-center touch-target-large" title="Geser antrian ke kiri">
+            <span class="material-symbols-rounded text-lg">chevron_left</span>
+          </button>
+
+          <!-- Scrollable Antrian Tabs List -->
+          <div class="flex items-center gap-1.5 overflow-x-auto custom-scroll flex-1 py-0.5 scroll-smooth" id="orderQueueTabs" onwheel="window.KasirApp.handleQueueWheel(event)">
             <!-- Dynamic Antrian Tabs -->
           </div>
-          <button onclick="addNewOrderQueue()" class="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-stone-900 font-black text-xs flex items-center gap-1 border border-amber-300 shrink-0 touch-target-large">
-            <span class="material-symbols-rounded text-base">add</span>
+
+          <!-- Scroll Right Button -->
+          <button onclick="window.KasirApp.scrollQueueTabs('right')" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 transition shrink-0 flex items-center justify-center touch-target-large" title="Geser antrian ke kanan">
+            <span class="material-symbols-rounded text-lg">chevron_right</span>
+          </button>
+
+          <!-- Divider -->
+          <div class="h-6 w-[1px] bg-stone-200 shrink-0 mx-0.5"></div>
+
+          <!-- Add Queue Button (Fixed Right without overlapping tabs) -->
+          <button onclick="addNewOrderQueue()" class="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 font-extrabold text-xs flex items-center gap-1 border border-amber-300 shrink-0 touch-target-large transition active:scale-95 shadow-sm">
+            <span class="material-symbols-rounded text-base text-amber-700">add</span>
             <span class="hidden sm:inline">Antrian Baru</span>
             <span class="sm:hidden">Baru</span>
           </button>
         </div>
 
         <!-- Category Tabs -->
-        <div class="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-amber-200/60 flex flex-col gap-2">
+        <div class="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-stone-200 flex flex-col gap-2">
           <div class="grid grid-cols-4 gap-1 sm:flex sm:items-center sm:gap-2 w-full">
-            <button onclick="setCategory('all')" id="cat-all" class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-black text-xs sm:text-sm text-center bg-m3-primary text-stone-950 shadow transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large">
+            <button onclick="setCategory('all')" id="cat-all" class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-black text-xs sm:text-sm text-center bg-amber-500 text-stone-950 shadow-md transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large">
               <span class="material-symbols-rounded text-lg sm:text-xl">apps</span>
               <span class="truncate">Semua</span>
             </button>
-            <button onclick="setCategory('makanan')" id="cat-makanan" class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-extrabold text-xs sm:text-sm text-center bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large">
+            <button onclick="setCategory('makanan')" id="cat-makanan" class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-bold text-xs sm:text-sm text-center bg-stone-100 hover:bg-stone-200 text-stone-700 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large">
               <span class="material-symbols-rounded text-lg sm:text-xl">lunch_dining</span>
               <span class="truncate">Makanan</span>
             </button>
-            <button onclick="setCategory('minuman')" id="cat-minuman" class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-extrabold text-xs sm:text-sm text-center bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large">
+            <button onclick="setCategory('minuman')" id="cat-minuman" class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-bold text-xs sm:text-sm text-center bg-stone-100 hover:bg-stone-200 text-stone-700 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large">
               <span class="material-symbols-rounded text-lg sm:text-xl">local_cafe</span>
               <span class="truncate">Minuman</span>
             </button>
-            <button onclick="setCategory('camilan')" id="cat-camilan" class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-extrabold text-xs sm:text-sm text-center bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large">
+            <button onclick="setCategory('camilan')" id="cat-camilan" class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-bold text-xs sm:text-sm text-center bg-stone-100 hover:bg-stone-200 text-stone-700 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large">
               <span class="material-symbols-rounded text-lg sm:text-xl">bakery_dining</span>
               <span class="truncate">Camilan</span>
             </button>
@@ -139,8 +154,8 @@
 
           <!-- Search Input -->
           <div class="relative w-full">
-            <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
-            <input type="text" id="searchInput" oninput="renderProducts()" placeholder="Cari nama menu..." class="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 focus:border-m3-primary focus:outline-none bg-slate-50 font-medium">
+            <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-lg pointer-events-none">search</span>
+            <input type="text" id="searchInput" oninput="renderProducts()" placeholder="Cari nama menu..." class="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-stone-200 focus:border-amber-500 focus:outline-none bg-stone-50 font-medium">
           </div>
         </div>
 
@@ -151,43 +166,45 @@
       </section>
 
       <!-- RIGHT COLUMN (DESKTOP): PERMANENT CART SIDE SHEET -->
-      <section class="hidden lg:flex lg:col-span-5 xl:col-span-4 flex-col bg-white rounded-3xl shadow-lg border border-amber-200/80 p-4 xl:p-5 h-[calc(100vh-100px)] sticky top-20">
+      <section class="hidden lg:flex lg:col-span-5 xl:col-span-4 flex-col bg-white rounded-3xl shadow-lg border border-stone-200 p-4 xl:p-5 h-[calc(100vh-100px)] sticky top-20">
         
         <!-- Cart Header -->
-        <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div class="flex items-center justify-between pb-3 border-b border-stone-200">
           <div class="flex items-center gap-2">
-            <span class="material-symbols-rounded text-3xl text-m3-secondary">shopping_basket</span>
+            <div class="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
+              <span class="material-symbols-rounded text-2xl text-amber-700">shopping_basket</span>
+            </div>
             <div>
               <div class="flex items-center gap-1.5">
-                <h2 class="text-xl font-black text-slate-900 cursor-pointer hover:text-m3-secondary flex items-center gap-1" onclick="promptRenameQueue()" title="Klik untuk ubah nama antrian/meja">
+                <h2 class="text-xl font-black text-stone-900 cursor-pointer hover:text-amber-700 flex items-center gap-1" onclick="promptRenameQueue()" title="Klik untuk ubah nama antrian/meja">
                   <span id="currentOrderTitle">Pesanan #1</span>
-                  <span class="material-symbols-rounded text-base text-slate-400">edit</span>
+                  <span class="material-symbols-rounded text-base text-stone-400">edit</span>
                 </h2>
               </div>
-              <span class="text-xs text-slate-400 font-bold" id="currentOrderSub">Antrian Aktif</span>
+              <span class="text-xs text-stone-400 font-bold" id="currentOrderSub">Antrian Aktif</span>
             </div>
           </div>
           <span id="cartCountBadge" class="bg-amber-100 text-amber-950 font-black px-3 py-1 rounded-full text-sm border border-amber-300">0 item</span>
         </div>
 
         <!-- Cart Item List -->
-        <div id="cartItemsList" class="flex-1 overflow-y-auto custom-scroll my-3 divide-y divide-slate-100">
+        <div id="cartItemsList" class="flex-1 overflow-y-auto custom-scroll my-3 divide-y divide-stone-100">
           <!-- Rendered via JS -->
         </div>
 
         <!-- Bottom Total & Action Container -->
-        <div class="pt-3 border-t-2 border-slate-100 flex flex-col gap-3">
-          <div class="bg-gradient-to-br from-amber-50 to-orange-50/60 border-2 border-amber-300 rounded-2xl p-3.5 flex flex-col shadow-inner">
-            <span class="text-xs font-black tracking-wider text-amber-900 uppercase">TOTAL BAYAR</span>
+        <div class="pt-3 border-t-2 border-stone-100 flex flex-col gap-3">
+          <div class="bg-gradient-to-br from-amber-50 via-orange-50/40 to-amber-50 border-2 border-amber-300/80 rounded-2xl p-3.5 flex flex-col shadow-inner">
+            <span class="text-xs font-black tracking-wider text-amber-950 uppercase">TOTAL BAYAR</span>
             <span id="cartTotalDisplay" class="text-3xl xl:text-4xl font-black text-stone-950 tracking-tight">Rp 0</span>
           </div>
 
           <div class="grid grid-cols-3 gap-2">
-            <button onclick="confirmClearCart()" class="col-span-1 py-3 px-2 rounded-2xl bg-red-50 hover:bg-red-100 text-m3-error font-bold flex flex-col items-center justify-center gap-1 border border-red-200 transition touch-target-large">
+            <button onclick="confirmClearCart()" class="col-span-1 py-3 px-2 rounded-2xl bg-red-50 hover:bg-red-100 text-red-600 font-bold flex flex-col items-center justify-center gap-1 border border-red-200 transition touch-target-large">
               <span class="material-symbols-rounded text-xl">delete_sweep</span>
               <span class="text-xs">Kosongkan</span>
             </button>
-            <button id="btnCheckout" onclick="openPaymentModal()" disabled class="col-span-2 py-3 px-4 rounded-2xl bg-m3-primary hover:bg-m3-primaryHover disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-stone-950 font-black text-lg flex items-center justify-center gap-2 shadow-lg shadow-amber-900/15 active:scale-[0.98] transition touch-target-large">
+            <button id="btnCheckout" onclick="openPaymentModal()" disabled class="col-span-2 py-3 px-4 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-stone-950 font-black text-lg flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition touch-target-large">
               <span class="material-symbols-rounded text-2xl">payments</span>
               <span>BAYAR</span>
             </button>
@@ -198,14 +215,14 @@
 
     <!-- ==================== MOBILE FLOATING CART BAR ==================== -->
     <div id="mobileFloatingCart" class="lg:hidden fixed bottom-16 left-3 right-3 z-30 transition-all duration-300 translate-y-28 opacity-0 pointer-events-none">
-      <div class="bg-stone-950 text-white rounded-2xl shadow-2xl p-2.5 flex items-center justify-between border-2 border-m3-primary">
+      <div class="bg-stone-900 text-white rounded-2xl shadow-2xl p-2.5 flex items-center justify-between border-2 border-amber-500">
         <div onclick="toggleMobileCartDrawer()" class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0 pr-2">
-          <div class="w-9 h-9 rounded-xl bg-m3-primary text-stone-950 font-black flex items-center justify-center shrink-0">
+          <div class="w-9 h-9 rounded-xl bg-amber-500 text-stone-950 font-black flex items-center justify-center shrink-0">
             <span class="material-symbols-rounded text-xl">shopping_bag</span>
           </div>
           <div class="truncate">
             <span id="mobilePillCount" class="text-[11px] text-amber-200 font-bold block leading-none">0 Item</span>
-            <span id="mobilePillTotal" class="text-base font-black tracking-tight leading-tight block mt-0.5 text-m3-primary">Rp 0</span>
+            <span id="mobilePillTotal" class="text-base font-black tracking-tight leading-tight block mt-0.5 text-amber-400">Rp 0</span>
           </div>
         </div>
 
@@ -213,7 +230,7 @@
           <button onclick="toggleMobileCartDrawer()" class="px-2.5 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs touch-target-large">
             Detail
           </button>
-          <button onclick="openPaymentModal()" class="px-3.5 py-2 rounded-xl bg-m3-primary hover:bg-m3-primaryHover text-stone-950 font-black text-xs sm:text-sm flex items-center gap-1 shadow-md touch-target-large active:scale-95">
+          <button onclick="openPaymentModal()" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 font-black text-xs sm:text-sm flex items-center gap-1 shadow-md touch-target-large active:scale-95">
             <span>BAYAR</span>
             <span class="material-symbols-rounded text-base">arrow_forward</span>
           </button>
@@ -223,29 +240,29 @@
 
     <!-- ==================== MOBILE CART DRAWER ==================== -->
     <div id="mobileCartDrawer" class="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex flex-col justify-end transition-opacity">
-      <div class="bg-white w-full rounded-t-3xl shadow-2xl border-t border-slate-200 flex flex-col max-h-[85vh] animate-in slide-in-from-bottom duration-200">
+      <div class="bg-white w-full rounded-t-3xl shadow-2xl border-t border-stone-200 flex flex-col max-h-[85vh] animate-in slide-in-from-bottom duration-200">
         
-        <div class="p-3 border-b border-slate-100 flex items-center justify-between">
+        <div class="p-3 border-b border-stone-100 flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <span class="material-symbols-rounded text-2xl text-m3-secondary">shopping_basket</span>
+            <span class="material-symbols-rounded text-2xl text-amber-600">shopping_basket</span>
             <div>
-              <h3 class="text-base font-black text-slate-900 cursor-pointer flex items-center gap-1" onclick="promptRenameQueue()">
+              <h3 class="text-base font-black text-stone-900 cursor-pointer flex items-center gap-1" onclick="promptRenameQueue()">
                 <span id="mobileDrawerTitle">Pesanan #1</span>
-                <span class="material-symbols-rounded text-sm text-slate-400">edit</span>
+                <span class="material-symbols-rounded text-sm text-stone-400">edit</span>
               </h3>
-              <span class="text-[10px] text-slate-400 font-bold">Keranjang Antrian Ini</span>
+              <span class="text-[10px] text-stone-400 font-bold">Keranjang Antrian Ini</span>
             </div>
           </div>
-          <button onclick="toggleMobileCartDrawer()" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 touch-target-large flex items-center justify-center">
+          <button onclick="toggleMobileCartDrawer()" class="p-1.5 rounded-full hover:bg-stone-100 text-stone-500 touch-target-large flex items-center justify-center">
             <span class="material-symbols-rounded text-2xl">close</span>
           </button>
         </div>
 
-        <div id="mobileDrawerCartItems" class="flex-1 overflow-y-auto custom-scroll p-3 divide-y divide-slate-100 min-h-[160px] max-h-[45vh]">
+        <div id="mobileDrawerCartItems" class="flex-1 overflow-y-auto custom-scroll p-3 divide-y divide-stone-100 min-h-[160px] max-h-[45vh]">
           <!-- Rendered dynamically -->
         </div>
 
-        <div class="p-3 bg-slate-50 border-t border-slate-200 flex flex-col gap-2">
+        <div class="p-3 bg-stone-50 border-t border-stone-200 flex flex-col gap-2">
           <div class="flex justify-between items-center bg-amber-50 border border-amber-300 p-2.5 rounded-xl">
             <span class="font-extrabold text-amber-950 text-xs">TOTAL BAYAR</span>
             <span id="mobileDrawerTotalDisplay" class="font-black text-xl text-stone-950">Rp 0</span>
@@ -255,7 +272,7 @@
             <button onclick="confirmClearCart()" class="col-span-1 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold text-xs border border-red-200 flex items-center justify-center gap-1 touch-target-large">
               <span class="material-symbols-rounded text-base">delete</span> Kosongkan
             </button>
-            <button onclick="openPaymentModal(); toggleMobileCartDrawer(false);" class="col-span-2 py-2.5 rounded-xl bg-m3-primary hover:bg-m3-primaryHover text-stone-950 font-black text-sm flex items-center justify-center gap-1.5 shadow touch-target-large active:scale-95">
+            <button onclick="openPaymentModal(); toggleMobileCartDrawer(false);" class="col-span-2 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 font-black text-sm flex items-center justify-center gap-1.5 shadow touch-target-large active:scale-95">
               <span class="material-symbols-rounded text-lg">payments</span> BAYAR SEKARANG
             </button>
           </div>
@@ -265,17 +282,17 @@
 
     <!-- ==================== SCREEN 2: PAYMENT (TUNAI & QRIS) MODAL ==================== -->
     <div id="paymentModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
-      <div class="bg-white w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[92vh]">
+      <div class="bg-white w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[92vh]">
         
         <!-- Modal Header -->
-        <div class="bg-m3-secondary text-white p-3 sm:p-4 flex items-center justify-between">
+        <div class="bg-stone-900 text-white p-3 sm:p-4 flex items-center justify-between border-b border-stone-800">
           <div class="flex items-center gap-2">
             <button onclick="closePaymentModal()" class="p-1.5 hover:bg-white/20 rounded-xl transition touch-target-large flex items-center justify-center">
               <span class="material-symbols-rounded text-2xl">arrow_back</span>
             </button>
             <div>
               <h3 class="text-lg sm:text-2xl font-black">Pembayaran Kasir</h3>
-              <p class="text-[10px] sm:text-xs text-rose-100 font-medium">Pilih Tunai / QRIS, patungan & hitung kembalian</p>
+              <p class="text-[10px] sm:text-xs text-amber-200/90 font-medium">Pilih Tunai / QRIS, patungan & hitung kembalian</p>
             </div>
           </div>
           <button onclick="closePaymentModal()" class="p-1.5 hover:bg-white/20 rounded-full">
@@ -294,14 +311,14 @@
 
           <!-- PILIH METODE BAYAR: TUNAI VS QRIS/TRANSFER -->
           <div>
-            <label class="text-slate-700 font-extrabold text-xs sm:text-sm mb-1.5 block">Metode Pembayaran:</label>
+            <label class="text-stone-700 font-extrabold text-xs sm:text-sm mb-1.5 block">Metode Pembayaran:</label>
             <div class="grid grid-cols-2 gap-2">
-              <button onclick="setPaymentMethod('cash')" id="btnPayMethodCash" class="py-2.5 px-3 rounded-2xl border-2 border-m3-secondary bg-rose-50 text-m3-secondary font-black text-sm flex items-center justify-center gap-2 transition touch-target-large shadow-sm">
-                <span class="material-symbols-rounded text-xl">payments</span>
+              <button onclick="setPaymentMethod('cash')" id="btnPayMethodCash" class="py-2.5 px-3 rounded-2xl border-2 border-amber-500 bg-amber-50 text-stone-950 font-black text-sm flex items-center justify-center gap-2 transition touch-target-large shadow-sm">
+                <span class="material-symbols-rounded text-xl text-amber-700">payments</span>
                 <span>Uang Tunai (Cash)</span>
               </button>
-              <button onclick="setPaymentMethod('qris')" id="btnPayMethodQris" class="py-2.5 px-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-sm flex items-center justify-center gap-2 transition touch-target-large">
-                <span class="material-symbols-rounded text-xl text-m3-secondary">qr_code_scanner</span>
+              <button onclick="setPaymentMethod('qris')" id="btnPayMethodQris" class="py-2.5 px-3 rounded-2xl border-2 border-stone-200 bg-white text-stone-700 font-bold text-sm flex items-center justify-center gap-2 transition touch-target-large">
+                <span class="material-symbols-rounded text-xl text-stone-600">qr_code_scanner</span>
                 <span>QRIS / Transfer</span>
               </button>
             </div>
@@ -313,7 +330,7 @@
             <div class="bg-amber-50/90 border border-amber-300 p-2.5 rounded-2xl flex flex-col gap-1.5">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-black text-amber-950 flex items-center gap-1">
-                  <span class="material-symbols-rounded text-base text-m3-secondary">group</span>
+                  <span class="material-symbols-rounded text-base text-amber-700">group</span>
                   Rombongan Patungan? (Bagi Rata):
                 </span>
                 <button onclick="resetSplitBill()" id="btnResetSplit" class="hidden text-xs text-red-600 font-bold underline">Batal</button>
@@ -330,23 +347,23 @@
             <!-- Quick Cash Chips -->
             <div>
               <div class="flex items-center justify-between mb-1.5">
-                <label class="text-slate-700 font-extrabold text-xs sm:text-sm">Pilih Uang Masuk:</label>
+                <label class="text-stone-700 font-extrabold text-xs sm:text-sm">Pilih Uang Masuk:</label>
                 <label class="flex items-center gap-1.5 cursor-pointer bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">
-                  <input type="checkbox" id="toggleAccumulateCash" class="w-3.5 h-3.5 accent-m3-secondary cursor-pointer">
+                  <input type="checkbox" id="toggleAccumulateCash" class="w-3.5 h-3.5 accent-amber-600 cursor-pointer">
                   <span class="text-[11px] font-bold text-amber-950 select-none">+ Gabung Uang</span>
                 </label>
               </div>
 
               <div class="grid grid-cols-3 gap-1.5 sm:gap-2">
-                <button onclick="selectQuickCash('exact')" class="p-2 sm:p-3 rounded-xl bg-m3-primary hover:bg-m3-primaryHover border-2 border-amber-400 font-black text-stone-950 text-xs sm:text-base flex flex-col items-center justify-center transition active:scale-95 touch-target-large shadow-sm">
+                <button onclick="selectQuickCash('exact')" class="p-2 sm:p-3 rounded-xl bg-amber-500 hover:bg-amber-600 border-2 border-amber-400 font-black text-stone-950 text-xs sm:text-base flex flex-col items-center justify-center transition active:scale-95 touch-target-large shadow-sm">
                   <span class="material-symbols-rounded text-lg sm:text-xl text-stone-950">check_circle</span>
                   <span>Uang Pas</span>
                 </button>
-                <button onclick="selectQuickCash(10000)" class="p-2 sm:p-3 rounded-xl bg-slate-100 hover:bg-amber-100 border-2 border-slate-200 font-black text-slate-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>10.000</span></button>
-                <button onclick="selectQuickCash(20000)" class="p-2 sm:p-3 rounded-xl bg-slate-100 hover:bg-amber-100 border-2 border-slate-200 font-black text-slate-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>20.000</span></button>
-                <button onclick="selectQuickCash(50000)" class="p-2 sm:p-3 rounded-xl bg-slate-100 hover:bg-amber-100 border-2 border-slate-200 font-black text-slate-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>50.000</span></button>
-                <button onclick="selectQuickCash(100000)" class="p-2 sm:p-3 rounded-xl bg-slate-100 hover:bg-amber-100 border-2 border-slate-200 font-black text-slate-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>100.000</span></button>
-                <button onclick="toggleCustomKeypad()" class="p-2 sm:p-3 rounded-xl bg-rose-50 hover:bg-rose-100 border-2 border-m3-secondary/50 font-black text-m3-secondary text-xs sm:text-base flex items-center justify-center gap-1 transition active:scale-95 touch-target-large">
+                <button onclick="selectQuickCash(10000)" class="p-2 sm:p-3 rounded-xl bg-stone-100 hover:bg-amber-100 border-2 border-stone-200 font-black text-stone-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>10.000</span></button>
+                <button onclick="selectQuickCash(20000)" class="p-2 sm:p-3 rounded-xl bg-stone-100 hover:bg-amber-100 border-2 border-stone-200 font-black text-stone-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>20.000</span></button>
+                <button onclick="selectQuickCash(50000)" class="p-2 sm:p-3 rounded-xl bg-stone-100 hover:bg-amber-100 border-2 border-stone-200 font-black text-stone-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>50.000</span></button>
+                <button onclick="selectQuickCash(100000)" class="p-2 sm:p-3 rounded-xl bg-stone-100 hover:bg-amber-100 border-2 border-stone-200 font-black text-stone-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>100.000</span></button>
+                <button onclick="toggleCustomKeypad()" class="p-2 sm:p-3 rounded-xl bg-stone-100 hover:bg-amber-100 border-2 border-amber-400 font-black text-stone-800 text-xs sm:text-base flex items-center justify-center gap-1 transition active:scale-95 touch-target-large">
                   <span class="material-symbols-rounded text-base">dialpad</span>
                   <span>BEBAS</span>
                 </button>
@@ -354,15 +371,15 @@
             </div>
 
             <!-- History Uang Gabungan -->
-            <div id="cashContributionsArea" class="hidden bg-slate-50 p-2 rounded-xl border border-slate-200 flex flex-col gap-1">
-              <span class="text-[10px] font-bold text-slate-500">Rincian Uang yang Terkumpul:</span>
+            <div id="cashContributionsArea" class="hidden bg-stone-50 p-2 rounded-xl border border-stone-200 flex flex-col gap-1">
+              <span class="text-[10px] font-bold text-stone-500">Rincian Uang yang Terkumpul:</span>
               <div id="cashContributionList" class="flex flex-wrap gap-1 text-[11px] font-bold"></div>
             </div>
 
             <!-- Custom Cash Input & Numeric Keypad -->
-            <div id="customKeypadArea" class="hidden bg-amber-50/50 p-2.5 rounded-2xl border-2 border-amber-300 flex flex-col gap-2">
+            <div id="customKeypadArea" class="hidden bg-amber-50/60 p-2.5 rounded-2xl border-2 border-amber-300 flex flex-col gap-2">
               <div class="flex items-center gap-1.5">
-                <span class="font-extrabold text-slate-700 text-xs">Nominal:</span>
+                <span class="font-extrabold text-stone-700 text-xs">Nominal:</span>
                 <input type="number" id="cashInputManual" oninput="handleManualCashInput()" placeholder="Rp..." class="flex-1 p-2 text-lg font-black rounded-xl border-2 border-amber-400 bg-white text-right focus:outline-none">
                 <button onclick="clearManualCash()" class="px-2.5 py-1.5 bg-red-100 text-red-600 rounded-xl font-bold text-xs touch-target-large">Hapus</button>
               </div>
@@ -376,7 +393,7 @@
                 <button onclick="addKeypadDigit('7')" class="p-2 bg-white border rounded-xl font-black text-base">7</button>
                 <button onclick="addKeypadDigit('8')" class="p-2 bg-white border rounded-xl font-black text-base">8</button>
                 <button onclick="addKeypadDigit('9')" class="p-2 bg-white border rounded-xl font-black text-base">9</button>
-                <button onclick="addKeypadDigit('000')" class="p-2 bg-slate-200 border rounded-xl font-black text-xs">000</button>
+                <button onclick="addKeypadDigit('000')" class="p-2 bg-stone-200 border rounded-xl font-black text-xs">000</button>
                 <button onclick="addKeypadDigit('0')" class="p-2 bg-white border rounded-xl font-black text-base">0</button>
                 <button onclick="backspaceKeypad()" class="p-2 bg-amber-100 text-amber-800 border rounded-xl font-black flex items-center justify-center">
                   <span class="material-symbols-rounded text-base">backspace</span>
@@ -386,13 +403,13 @@
 
             <!-- Cash Calculation Display -->
             <div class="bg-emerald-50 border-2 border-emerald-400/80 rounded-2xl p-2.5 sm:p-4 flex flex-col gap-1">
-              <div class="flex justify-between items-center text-slate-700 font-bold text-xs sm:text-sm">
+              <div class="flex justify-between items-center text-stone-700 font-bold text-xs sm:text-sm">
                 <span>Total Uang Diterima:</span>
-                <span id="cashGivenDisplay" class="font-extrabold text-sm sm:text-base text-slate-900">Rp 0</span>
+                <span id="cashGivenDisplay" class="font-extrabold text-sm sm:text-base text-stone-900">Rp 0</span>
               </div>
               <div class="h-0.5 bg-emerald-200"></div>
               <div class="flex justify-between items-center">
-                <span class="font-extrabold text-slate-800 text-xs sm:text-sm">Kembalian:</span>
+                <span class="font-extrabold text-stone-800 text-xs sm:text-sm">Kembalian:</span>
                 <span id="changeDisplay" class="text-xl sm:text-3xl font-black text-emerald-700">Rp 0</span>
               </div>
               <p id="changeNotice" class="text-[10px] sm:text-xs font-semibold text-emerald-800 text-right"></p>
@@ -400,17 +417,17 @@
           </div>
 
           <!-- AREA QRIS NOTICE -->
-          <div id="qrisPaymentSection" class="hidden bg-rose-50 border-2 border-m3-secondary/50 p-4 rounded-2xl flex flex-col items-center text-center gap-2">
-            <span class="material-symbols-rounded text-5xl text-m3-secondary">qr_code_2</span>
-            <h4 class="font-black text-slate-900 text-base">Pembayaran QRIS / Non-Tunai</h4>
-            <p class="text-xs text-slate-600">Pastikan pembeli telah menunjukkan bukti transfer / sukses scan QRIS sesuai nominal yang tertera.</p>
-            <span class="px-3 py-1 bg-rose-100 text-m3-secondary rounded-full text-xs font-black">Nominal Pas: Otomatis Lunas</span>
+          <div id="qrisPaymentSection" class="hidden bg-amber-50/70 border-2 border-amber-400 p-4 rounded-2xl flex flex-col items-center text-center gap-2">
+            <span class="material-symbols-rounded text-5xl text-amber-700">qr_code_2</span>
+            <h4 class="font-black text-stone-900 text-base">Pembayaran QRIS / Non-Tunai</h4>
+            <p class="text-xs text-stone-600">Pastikan pembeli telah menunjukkan bukti transfer / sukses scan QRIS sesuai nominal yang tertera.</p>
+            <span class="px-3 py-1 bg-amber-100 text-amber-900 rounded-full text-xs font-black">Nominal Pas: Otomatis Lunas</span>
           </div>
         </div>
 
         <!-- Modal Action Footer -->
-        <div class="p-3 bg-slate-50 border-t border-slate-200">
-          <button id="btnFinishPayment" onclick="completeTransaction()" disabled class="w-full py-3 px-4 rounded-2xl bg-m3-primary hover:bg-m3-primaryHover disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-stone-950 font-black text-base sm:text-xl flex items-center justify-center gap-2 shadow-lg shadow-amber-900/15 active:scale-[0.98] transition touch-target-large">
+        <div class="p-3 bg-stone-50 border-t border-stone-200">
+          <button id="btnFinishPayment" onclick="completeTransaction()" disabled class="w-full py-3 px-4 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:bg-stone-300 disabled:text-stone-500 disabled:cursor-not-allowed text-stone-950 font-black text-base sm:text-xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition touch-target-large">
             <span class="material-symbols-rounded text-2xl">task_alt</span>
             <span>SELESAI & SIMPAN</span>
           </button>
@@ -420,21 +437,21 @@
 
     <!-- ==================== SCREEN 3: PRODUCT MANAGEMENT & DATA BACKUP ==================== -->
     <div id="viewAdmin" class="hidden flex-1 flex-col gap-3.5">
-      <div class="bg-white p-3 sm:p-5 rounded-2xl shadow-sm border border-amber-200/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+      <div class="bg-white p-3 sm:p-5 rounded-2xl shadow-sm border border-stone-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
         <div>
-          <h2 class="text-lg sm:text-2xl font-black text-slate-900">Kelola Menu & Harga</h2>
-          <p class="text-xs text-slate-500 font-medium">Tambah menu baru, ubah harga, atau backup data kasir</p>
+          <h2 class="text-lg sm:text-2xl font-black text-stone-900">Kelola Menu & Harga</h2>
+          <p class="text-xs text-stone-500 font-medium">Tambah menu baru, ubah harga, atau backup data kasir</p>
         </div>
         <div class="flex items-center gap-1.5 w-full sm:w-auto flex-wrap">
-          <button onclick="openAddProductModal()" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-m3-primary hover:bg-m3-primaryHover text-stone-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1 shadow-sm transition touch-target-large">
+          <button onclick="openAddProductModal()" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1 shadow-sm transition touch-target-large">
             <span class="material-symbols-rounded text-base">add_circle</span>
             <span>Tambah Menu</span>
           </button>
-          <button onclick="exportDataBackup()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1 transition touch-target-large" title="Simpan file cadangan data">
+          <button onclick="exportDataBackup()" class="px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center gap-1 transition touch-target-large" title="Simpan file cadangan data">
             <span class="material-symbols-rounded text-base">download</span>
             <span>Backup Data</span>
           </button>
-          <button onclick="document.getElementById('importFileInput').click()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1 transition touch-target-large" title="Pulihkan data dari file backup">
+          <button onclick="document.getElementById('importFileInput').click()" class="px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center gap-1 transition touch-target-large" title="Pulihkan data dari file backup">
             <span class="material-symbols-rounded text-base">upload</span>
             <span>Pulihkan</span>
           </button>
@@ -442,8 +459,8 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="divide-y divide-slate-100" id="adminProductCardList">
+      <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+        <div class="divide-y divide-stone-100" id="adminProductCardList">
           <!-- Rendered via JS -->
         </div>
       </div>
@@ -453,32 +470,32 @@
     <div id="viewReport" class="hidden flex-1 flex-col gap-3.5">
       
       <!-- Top Action & Period Filter Bar -->
-      <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-amber-200/60 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+      <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-stone-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
         
         <!-- Period Selector Tabs -->
-        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
-          <button onclick="setReportPeriod('today')" id="period-today" class="period-btn px-3 py-1.5 rounded-lg font-black text-xs sm:text-sm bg-m3-primary text-stone-950 shadow-sm transition">
+        <div class="flex items-center gap-1 bg-stone-100 p-1 rounded-xl">
+          <button onclick="setReportPeriod('today')" id="period-today" class="period-btn px-3 py-1.5 rounded-lg font-black text-xs sm:text-sm bg-amber-500 text-stone-950 shadow-sm transition">
             Hari Ini
           </button>
-          <button onclick="setReportPeriod('month')" id="period-month" class="period-btn px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-slate-600 hover:text-slate-900 transition">
+          <button onclick="setReportPeriod('month')" id="period-month" class="period-btn px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-stone-600 hover:text-stone-900 transition">
             Bulan Ini
           </button>
-          <button onclick="setReportPeriod('all')" id="period-all" class="period-btn px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-slate-600 hover:text-slate-900 transition">
+          <button onclick="setReportPeriod('all')" id="period-all" class="period-btn px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-stone-600 hover:text-stone-900 transition">
             Semua
           </button>
         </div>
 
         <!-- Action Buttons: Catat Pengeluaran, WA Share, CSV Export -->
         <div class="flex items-center gap-1.5 flex-wrap">
-          <button onclick="openExpenseModal()" class="flex-1 sm:flex-none px-3 py-2 rounded-xl bg-m3-secondary hover:bg-m3-secondaryHover text-white font-extrabold text-xs flex items-center justify-center gap-1 shadow transition touch-target-large">
-            <span class="material-symbols-rounded text-base">receipt_long</span>
+          <button onclick="openExpenseModal()" class="flex-1 sm:flex-none px-3 py-2 rounded-xl bg-stone-800 hover:bg-stone-900 text-white font-extrabold text-xs flex items-center justify-center gap-1 shadow transition touch-target-large">
+            <span class="material-symbols-rounded text-base text-amber-400">receipt_long</span>
             <span>+ Catat Pengeluaran</span>
           </button>
           <button onclick="shareReportWhatsApp()" class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1 shadow transition touch-target-large" title="Kirim rekap ke WhatsApp">
             <span class="material-symbols-rounded text-base">chat</span>
             <span class="hidden sm:inline">Kirim WA</span>
           </button>
-          <button onclick="exportReportCSV()" class="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1 transition touch-target-large" title="Download Excel CSV">
+          <button onclick="exportReportCSV()" class="px-2.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center gap-1 transition touch-target-large" title="Download Excel CSV">
             <span class="material-symbols-rounded text-base">table_view</span>
             <span class="hidden sm:inline">Excel</span>
           </button>
@@ -489,23 +506,23 @@
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3.5">
         
         <!-- Omset (Pemasukan) -->
-        <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+        <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-stone-200 flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="text-[10px] sm:text-xs font-bold text-slate-500 uppercase">Pemasukan (Omset)</span>
+            <span class="text-[10px] sm:text-xs font-bold text-stone-500 uppercase">Pemasukan (Omset)</span>
             <span class="material-symbols-rounded text-xl text-amber-600">arrow_downward</span>
           </div>
           <h3 id="statTotalRevenue" class="text-base sm:text-2xl font-black text-stone-900 mt-1 truncate">Rp 0</h3>
-          <span id="statRevenueSub" class="text-[10px] text-slate-400 font-semibold mt-0.5">0 Transaksi</span>
+          <span id="statRevenueSub" class="text-[10px] text-stone-400 font-semibold mt-0.5">0 Transaksi</span>
         </div>
 
         <!-- Total Pengeluaran -->
-        <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+        <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-stone-200 flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="text-[10px] sm:text-xs font-bold text-slate-500 uppercase">Pengeluaran (Biaya)</span>
+            <span class="text-[10px] sm:text-xs font-bold text-stone-500 uppercase">Pengeluaran (Biaya)</span>
             <span class="material-symbols-rounded text-xl text-red-600">arrow_upward</span>
           </div>
           <h3 id="statTotalExpenses" class="text-base sm:text-2xl font-black text-red-600 mt-1 truncate">Rp 0</h3>
-          <span id="statExpenseSub" class="text-[10px] text-slate-400 font-semibold mt-0.5">0 Catatan Biaya</span>
+          <span id="statExpenseSub" class="text-[10px] text-stone-400 font-semibold mt-0.5">0 Catatan Biaya</span>
         </div>
 
         <!-- LABA BERSIH -->
@@ -519,14 +536,14 @@
         </div>
 
         <!-- Rincian Tunai vs QRIS -->
-        <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between col-span-2 sm:col-span-1">
-          <span class="text-[10px] sm:text-xs font-bold text-slate-500 uppercase">Kas Fisik & QRIS</span>
+        <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-stone-200 flex flex-col justify-between col-span-2 sm:col-span-1">
+          <span class="text-[10px] sm:text-xs font-bold text-stone-500 uppercase">Kas Fisik & QRIS</span>
           <div class="flex flex-col gap-0.5 mt-1 text-xs font-bold">
-            <div class="flex justify-between text-slate-700">
+            <div class="flex justify-between text-stone-700">
               <span>Tunai di Laci:</span>
               <span id="statCashTotal" class="font-black text-stone-900">Rp 0</span>
             </div>
-            <div class="flex justify-between text-m3-secondary">
+            <div class="flex justify-between text-amber-700">
               <span>QRIS / Bank:</span>
               <span id="statQrisTotal" class="font-black">Rp 0</span>
             </div>
@@ -535,7 +552,7 @@
       </div>
 
       <!-- Widget Menu Terlaris (Top Selling) -->
-      <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-amber-200/60 flex flex-col gap-2">
+      <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-stone-200 flex flex-col gap-2">
         <h3 class="text-xs sm:text-sm font-black text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
           <span class="material-symbols-rounded text-lg text-amber-500">local_fire_department</span>
           Menu Paling Laris Periode Ini:
@@ -549,10 +566,10 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
         
         <!-- Kolom Kiri: Riwayat Penjualan (Col 7) -->
-        <div class="lg:col-span-7 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-2.5">
+        <div class="lg:col-span-7 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-stone-200 flex flex-col gap-2.5">
           <div class="flex items-center justify-between flex-wrap gap-1.5">
-            <h3 class="text-sm sm:text-base font-black text-slate-900 flex items-center gap-1">
-              <span class="material-symbols-rounded text-lg text-m3-secondary">receipt</span>
+            <h3 class="text-sm sm:text-base font-black text-stone-900 flex items-center gap-1">
+              <span class="material-symbols-rounded text-lg text-amber-600">receipt</span>
               Riwayat Penjualan
             </h3>
             <div class="flex items-center gap-1">
@@ -561,28 +578,28 @@
                 <span class="material-symbols-rounded text-base text-red-600">history_toggle_off</span>
                 <span>Hapus Data Hari Ini</span>
               </button>
-              <button onclick="clearAllHistory()" class="p-1 text-slate-400 hover:text-red-600 font-bold rounded-lg transition" title="Hapus seluruh riwayat semua periode">
+              <button onclick="clearAllHistory()" class="p-1 text-stone-400 hover:text-red-600 font-bold rounded-lg transition" title="Hapus seluruh riwayat semua periode">
                 <span class="material-symbols-rounded text-base">delete_forever</span>
               </button>
             </div>
           </div>
-          <div id="txHistoryCardList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto custom-scroll">
+          <div id="txHistoryCardList" class="divide-y divide-stone-100 max-h-72 overflow-y-auto custom-scroll">
             <!-- Rendered via JS -->
           </div>
         </div>
 
         <!-- Kolom Kanan: Catatan Pengeluaran Biaya (Col 5) -->
-        <div class="lg:col-span-5 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-2.5">
+        <div class="lg:col-span-5 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-stone-200 flex flex-col gap-2.5">
           <div class="flex items-center justify-between">
-            <h3 class="text-sm sm:text-base font-black text-slate-900 flex items-center gap-1">
+            <h3 class="text-sm sm:text-base font-black text-stone-900 flex items-center gap-1">
               <span class="material-symbols-rounded text-lg text-red-600">shopping_bag</span>
               Catatan Pengeluaran
             </h3>
-            <button onclick="openExpenseModal()" class="text-amber-800 font-black text-[11px] flex items-center gap-0.5 bg-amber-50 hover:bg-amber-100 px-2 py-1 rounded-lg border border-amber-200">
+            <button onclick="openExpenseModal()" class="text-amber-900 font-black text-[11px] flex items-center gap-0.5 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200">
               + Tambah
             </button>
           </div>
-          <div id="expenseHistoryList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto custom-scroll">
+          <div id="expenseHistoryList" class="divide-y divide-stone-100 max-h-72 overflow-y-auto custom-scroll">
             <!-- Rendered via JS -->
           </div>
         </div>
@@ -593,16 +610,16 @@
   </main>
 
   <!-- ==================== MOBILE BOTTOM NAVIGATION BAR ==================== -->
-  <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 flex items-center justify-around py-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-    <button onclick="switchView('pos')" id="btnNavPosMobile" class="flex flex-col items-center justify-center flex-1 py-1 text-m3-secondary font-black text-[11px] touch-target-large">
+  <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-stone-200 flex items-center justify-around py-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+    <button onclick="switchView('pos')" id="btnNavPosMobile" class="flex flex-col items-center justify-center flex-1 py-1 text-amber-600 font-black text-[11px] touch-target-large">
       <span class="material-symbols-rounded text-xl">point_of_sale</span>
       <span>Kasir</span>
     </button>
-    <button onclick="switchView('report')" id="btnNavReportMobile" class="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-slate-600 font-medium text-[11px] touch-target-large">
+    <button onclick="switchView('report')" id="btnNavReportMobile" class="flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 font-medium text-[11px] touch-target-large">
       <span class="material-symbols-rounded text-xl">account_balance_wallet</span>
       <span>Laba & Laporan</span>
     </button>
-    <button onclick="switchView('admin')" id="btnNavAdminMobile" class="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-slate-600 font-medium text-[11px] touch-target-large">
+    <button onclick="switchView('admin')" id="btnNavAdminMobile" class="flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 font-medium text-[11px] touch-target-large">
       <span class="material-symbols-rounded text-xl">inventory_2</span>
       <span>Menu</span>
     </button>
@@ -610,8 +627,8 @@
 
   <!-- ==================== MODAL: CATAT PENGELUARAN BARU ==================== -->
   <div id="expenseModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
-      <div class="bg-m3-secondary text-white p-3 sm:p-4 flex items-center justify-between">
+    <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col">
+      <div class="bg-stone-900 text-white p-3 sm:p-4 flex items-center justify-between border-b border-stone-800">
         <h3 class="text-lg font-black">Catat Pengeluaran Warung</h3>
         <button onclick="closeExpenseModal()" class="p-1 hover:bg-white/20 rounded-full">
           <span class="material-symbols-rounded text-xl">close</span>
@@ -620,18 +637,18 @@
 
       <form id="expenseForm" onsubmit="saveExpense(event)" class="p-3.5 flex flex-col gap-3">
         <div>
-          <label class="block text-slate-700 font-bold mb-1 text-xs sm:text-sm">Keterangan Pengeluaran *</label>
-          <input type="text" id="expName" required placeholder="Contoh: Beli Es Batu / Gas LPG / Belanja Ayam" class="w-full p-2.5 rounded-xl border border-slate-300 focus:border-m3-secondary focus:outline-none text-sm font-semibold">
+          <label class="block text-stone-700 font-bold mb-1 text-xs sm:text-sm">Keterangan Pengeluaran *</label>
+          <input type="text" id="expName" required placeholder="Contoh: Beli Es Batu / Gas LPG / Belanja Ayam" class="w-full p-2.5 rounded-xl border border-stone-300 focus:border-amber-500 focus:outline-none text-sm font-semibold">
         </div>
 
         <div>
-          <label class="block text-slate-700 font-bold mb-1 text-xs sm:text-sm">Jumlah Biaya (Rp) *</label>
-          <input type="number" id="expAmount" required min="500" step="500" placeholder="Contoh: 25000" class="w-full p-2.5 rounded-xl border border-slate-300 focus:border-m3-secondary focus:outline-none text-base font-bold text-red-600">
+          <label class="block text-stone-700 font-bold mb-1 text-xs sm:text-sm">Jumlah Biaya (Rp) *</label>
+          <input type="number" id="expAmount" required min="500" step="500" placeholder="Contoh: 25000" class="w-full p-2.5 rounded-xl border border-stone-300 focus:border-amber-500 focus:outline-none text-base font-bold text-red-600">
         </div>
 
         <div>
-          <label class="block text-slate-700 font-bold mb-1 text-xs">Kategori Biaya</label>
-          <select id="expCategory" class="w-full p-2 rounded-xl border border-slate-300 focus:border-m3-secondary focus:outline-none text-xs font-semibold bg-white">
+          <label class="block text-stone-700 font-bold mb-1 text-xs">Kategori Biaya</label>
+          <select id="expCategory" class="w-full p-2 rounded-xl border border-stone-300 focus:border-amber-500 focus:outline-none text-xs font-semibold bg-white">
             <option value="Bahan Baku / Belanja">Bahan Baku / Belanja Pasar</option>
             <option value="Operasional / Gas / Es">Operasional (Gas LPG, Es Batu, Listrik)</option>
             <option value="Kemasan / Plastik">Kemasan / Plastik / Kresek</option>
@@ -640,8 +657,8 @@
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-2 border-t">
-          <button type="button" onclick="closeExpenseModal()" class="px-3.5 py-2 rounded-xl bg-slate-100 font-bold text-slate-700 text-xs touch-target-large">Batal</button>
-          <button type="submit" class="px-4 py-2 rounded-xl bg-m3-secondary hover:bg-m3-secondaryHover text-white font-extrabold text-xs sm:text-sm touch-target-large shadow">Simpan Pengeluaran</button>
+          <button type="button" onclick="closeExpenseModal()" class="px-3.5 py-2 rounded-xl bg-stone-100 font-bold text-stone-700 text-xs touch-target-large">Batal</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 font-black text-xs sm:text-sm touch-target-large shadow">Simpan Pengeluaran</button>
         </div>
       </form>
     </div>
@@ -649,10 +666,10 @@
 
   <!-- ==================== MODAL: ADD / EDIT PRODUCT ==================== -->
   <div id="productModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
-      <div class="bg-m3-primary text-stone-950 p-3 sm:p-4 flex items-center justify-between border-b border-amber-300">
+    <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col">
+      <div class="bg-stone-900 text-white p-3 sm:p-4 flex items-center justify-between border-b border-stone-800">
         <h3 id="productModalTitle" class="text-lg font-black">Tambah Menu Baru</h3>
-        <button onclick="closeProductModal()" class="p-1 hover:bg-black/10 rounded-full">
+        <button onclick="closeProductModal()" class="p-1 hover:bg-white/20 rounded-full">
           <span class="material-symbols-rounded text-xl">close</span>
         </button>
       </div>
@@ -661,19 +678,19 @@
         <input type="hidden" id="editProductId">
         
         <div>
-          <label class="block text-slate-700 font-bold mb-1 text-xs sm:text-sm">Nama Menu / Produk *</label>
-          <input type="text" id="prodName" required placeholder="Contoh: Nasi Goreng Telur" class="w-full p-2.5 rounded-xl border border-slate-300 focus:border-m3-primary focus:outline-none text-sm font-semibold">
+          <label class="block text-stone-700 font-bold mb-1 text-xs sm:text-sm">Nama Menu / Produk *</label>
+          <input type="text" id="prodName" required placeholder="Contoh: Nasi Goreng Telur" class="w-full p-2.5 rounded-xl border border-stone-300 focus:border-amber-500 focus:outline-none text-sm font-semibold">
         </div>
 
         <div>
-          <label class="block text-slate-700 font-bold mb-1 text-xs sm:text-sm">Harga (Rp) *</label>
-          <input type="number" id="prodPrice" required min="100" step="500" placeholder="Contoh: 15000" class="w-full p-2.5 rounded-xl border border-slate-300 focus:border-m3-primary focus:outline-none text-base font-bold text-m3-secondary">
+          <label class="block text-stone-700 font-bold mb-1 text-xs sm:text-sm">Harga (Rp) *</label>
+          <input type="number" id="prodPrice" required min="100" step="500" placeholder="Contoh: 15000" class="w-full p-2.5 rounded-xl border border-stone-300 focus:border-amber-500 focus:outline-none text-base font-bold text-amber-700">
         </div>
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-slate-700 font-bold mb-1 text-xs">Kategori</label>
-            <select id="prodCategory" class="w-full p-2 rounded-xl border border-slate-300 focus:border-m3-primary focus:outline-none text-xs font-semibold bg-white">
+            <label class="block text-stone-700 font-bold mb-1 text-xs">Kategori</label>
+            <select id="prodCategory" class="w-full p-2 rounded-xl border border-stone-300 focus:border-amber-500 focus:outline-none text-xs font-semibold bg-white">
               <option value="makanan">Makanan</option>
               <option value="minuman">Minuman</option>
               <option value="camilan">Camilan</option>
@@ -681,8 +698,8 @@
           </div>
 
           <div>
-            <label class="block text-slate-700 font-bold mb-1 text-xs">Simbol Icon</label>
-            <select id="prodIcon" class="w-full p-2 rounded-xl border border-slate-300 focus:border-m3-primary focus:outline-none text-xs font-semibold bg-white">
+            <label class="block text-stone-700 font-bold mb-1 text-xs">Simbol Icon</label>
+            <select id="prodIcon" class="w-full p-2 rounded-xl border border-stone-300 focus:border-amber-500 focus:outline-none text-xs font-semibold bg-white">
               <option value="lunch_dining">🍲 Makanan</option>
               <option value="ramen_dining">🍜 Mie / Bakso</option>
               <option value="local_cafe">☕ Kopi / Teh</option>
@@ -695,8 +712,8 @@
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-2 border-t">
-          <button type="button" onclick="closeProductModal()" class="px-3.5 py-2 rounded-xl bg-slate-100 font-bold text-slate-700 text-xs touch-target-large">Batal</button>
-          <button type="submit" class="px-4 py-2 rounded-xl bg-m3-primary hover:bg-m3-primaryHover text-stone-950 font-black text-xs sm:text-sm touch-target-large shadow">Simpan</button>
+          <button type="button" onclick="closeProductModal()" class="px-3.5 py-2 rounded-xl bg-stone-100 font-bold text-stone-700 text-xs touch-target-large">Batal</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 font-black text-xs sm:text-sm touch-target-large shadow">Simpan</button>
         </div>
       </form>
     </div>
@@ -704,33 +721,33 @@
 
   <!-- ==================== RECEIPT POPUP MODAL ==================== -->
   <div id="receiptModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-3">
-    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-slate-200 p-4 flex flex-col gap-2.5 text-center animate-in zoom-in-95">
+    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-stone-200 p-4 flex flex-col gap-2.5 text-center animate-in zoom-in-95">
       <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
         <span class="material-symbols-rounded text-2xl">check_circle</span>
       </div>
 
       <div>
-        <h3 class="text-lg font-black text-slate-900">Transaksi Berhasil!</h3>
-        <p class="text-slate-500 text-[11px]" id="receiptSubtitle">Pesanan selesai dicatat</p>
+        <h3 class="text-lg font-black text-stone-900">Transaksi Berhasil!</h3>
+        <p class="text-stone-500 text-[11px]" id="receiptSubtitle">Pesanan selesai dicatat</p>
       </div>
 
       <!-- Printable Receipt -->
-      <div id="printArea" class="bg-slate-50 p-3 rounded-2xl border border-dashed border-slate-300 text-left text-xs font-mono flex flex-col gap-1">
-        <div class="text-center pb-1 border-b border-slate-300">
+      <div id="printArea" class="bg-stone-50 p-3 rounded-2xl border border-dashed border-stone-300 text-left text-xs font-mono flex flex-col gap-1">
+        <div class="text-center pb-1 border-b border-stone-300">
           <h4 class="font-black text-sm">KASIR MAMI</h4>
-          <p class="text-[9px] text-slate-400" id="receiptDate"></p>
-          <p class="text-[9px] text-slate-500 font-bold" id="receiptOrderName"></p>
-          <p class="text-[9px] text-m3-secondary font-bold" id="receiptPaymentType"></p>
+          <p class="text-[9px] text-stone-400" id="receiptDate"></p>
+          <p class="text-[9px] text-stone-500 font-bold" id="receiptOrderName"></p>
+          <p class="text-[9px] text-amber-800 font-bold" id="receiptPaymentType"></p>
         </div>
 
-        <div id="receiptItemList" class="divide-y divide-slate-200 py-0.5"></div>
+        <div id="receiptItemList" class="divide-y divide-stone-200 py-0.5"></div>
 
-        <div class="pt-1 border-t border-slate-300 flex flex-col gap-0.5 text-xs">
+        <div class="pt-1 border-t border-stone-300 flex flex-col gap-0.5 text-xs">
           <div class="flex justify-between font-black text-xs sm:text-sm">
             <span>TOTAL:</span>
             <span id="receiptTotal"></span>
           </div>
-          <div class="flex justify-between text-slate-600 text-[11px]" id="receiptCashRow">
+          <div class="flex justify-between text-stone-600 text-[11px]" id="receiptCashRow">
             <span>Uang Diterima:</span>
             <span id="receiptCash"></span>
           </div>
@@ -740,16 +757,16 @@
           </div>
         </div>
 
-        <div class="text-center pt-1 text-[8px] text-slate-400">
+        <div class="text-center pt-1 text-[8px] text-stone-400">
           Terima kasih atas kunjungan Anda! 🙏
         </div>
       </div>
 
       <div class="grid grid-cols-2 gap-2 pt-1">
-        <button onclick="window.print()" class="py-2 px-2.5 rounded-xl bg-slate-100 text-slate-800 font-bold text-xs flex items-center justify-center gap-1 touch-target-large">
+        <button onclick="window.print()" class="py-2 px-2.5 rounded-xl bg-stone-100 text-stone-800 font-bold text-xs flex items-center justify-center gap-1 touch-target-large">
           <span class="material-symbols-rounded text-base">print</span> Cetak
         </button>
-        <button onclick="closeReceiptModal()" class="py-2 px-2.5 rounded-xl bg-m3-primary hover:bg-m3-primaryHover text-stone-950 font-black text-xs flex items-center justify-center touch-target-large shadow">
+        <button onclick="closeReceiptModal()" class="py-2 px-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 font-black text-xs flex items-center justify-center touch-target-large shadow">
           <span>Pesanan Baru</span>
         </button>
       </div>

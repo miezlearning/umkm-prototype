@@ -12,9 +12,9 @@ export function setReportPeriod(period) {
     const btn = document.getElementById(`period-${p}`);
     if (btn) {
       if (p === period) {
-        btn.className = 'period-btn px-3 py-1.5 rounded-lg font-black text-xs sm:text-sm bg-m3-primary text-stone-950 shadow-sm transition';
+        btn.className = 'period-btn px-3 py-1.5 rounded-lg font-black text-xs sm:text-sm bg-amber-500 text-stone-950 shadow-sm transition';
       } else {
-        btn.className = 'period-btn px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-slate-600 hover:text-slate-900 transition';
+        btn.className = 'period-btn px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-stone-600 hover:text-stone-900 transition';
       }
     }
   });
@@ -93,13 +93,13 @@ export function renderFinancialReport() {
   if (topList) {
     const sortedItems = Object.entries(itemSalesCounter).sort((a, b) => b[1] - a[1]).slice(0, 4);
     if (sortedItems.length === 0) {
-      topList.innerHTML = `<div class="col-span-full text-center text-slate-400 text-xs py-2 font-bold">Belum ada penjualan menu pada periode ini</div>`;
+      topList.innerHTML = `<div class="col-span-full text-center text-stone-400 text-xs py-2 font-bold">Belum ada penjualan menu pada periode ini</div>`;
     } else {
       topList.innerHTML = sortedItems.map(([name, qty], idx) => `
         <div class="bg-amber-50/80 border border-amber-300/80 p-2 rounded-xl flex items-center justify-between shadow-sm">
           <div class="truncate">
             <span class="text-[10px] font-black text-amber-900">#${idx + 1}</span>
-            <p class="font-extrabold text-slate-800 text-xs truncate">${escapeHtml(name)}</p>
+            <p class="font-extrabold text-stone-800 text-xs truncate">${escapeHtml(name)}</p>
           </div>
           <span class="px-2 py-0.5 bg-amber-300 text-stone-900 font-black text-xs rounded-lg">${qty}x</span>
         </div>
@@ -111,24 +111,24 @@ export function renderFinancialReport() {
   const txContainer = document.getElementById('txHistoryCardList');
   if (txContainer) {
     if (filteredTx.length === 0) {
-      txContainer.innerHTML = `<div class="py-6 text-center text-slate-400 font-bold text-xs">Belum ada transaksi penjualan di periode ini</div>`;
+      txContainer.innerHTML = `<div class="py-6 text-center text-stone-400 font-bold text-xs">Belum ada transaksi penjualan di periode ini</div>`;
     } else {
       txContainer.innerHTML = filteredTx.map(tx => {
         const dateStr = formatDateShort(tx.date);
         const summaryItems = tx.items.map(i => `${i.qty}x ${escapeHtml(i.name)}`).join(', ');
 
         return `
-          <div class="py-2.5 flex items-center justify-between gap-1.5 hover:bg-slate-50 transition border-b border-slate-100 last:border-0">
+          <div class="py-2.5 flex items-center justify-between gap-1.5 hover:bg-stone-50 transition border-b border-stone-100 last:border-0">
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="font-black text-slate-900 text-xs sm:text-sm">${formatRp(tx.total)}</span>
-                <span class="text-[10px] text-slate-500 font-bold">${dateStr}</span>
-                <span class="text-[9px] ${tx.method === 'QRIS' ? 'bg-rose-100 text-m3-secondary font-black' : 'bg-amber-100 text-amber-900 font-black'} px-1.5 py-0.2 rounded">${tx.method || 'TUNAI'}</span>
+                <span class="font-black text-stone-900 text-xs sm:text-sm">${formatRp(tx.total)}</span>
+                <span class="text-[10px] text-stone-500 font-bold">${dateStr}</span>
+                <span class="text-[9px] ${tx.method === 'QRIS' ? 'bg-amber-100 text-amber-900 font-black' : 'bg-stone-100 text-stone-800 font-black'} px-1.5 py-0.2 rounded">${tx.method || 'TUNAI'}</span>
               </div>
-              <p class="text-[11px] text-slate-600 truncate mt-0.5">${summaryItems}</p>
+              <p class="text-[11px] text-stone-600 truncate mt-0.5">${summaryItems}</p>
             </div>
             <div class="flex items-center gap-1 shrink-0">
-              <button onclick='window.KasirApp.reprintTx("${tx.id}")' class="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition touch-target-large" title="Lihat / Cetak Struk">
+              <button onclick='window.KasirApp.reprintTx("${tx.id}")' class="p-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold transition touch-target-large" title="Lihat / Cetak Struk">
                 <span class="material-symbols-rounded text-base">receipt</span>
               </button>
               <button onclick='window.KasirApp.deleteTransaction("${tx.id}")' class="p-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold transition touch-target-large" title="Hapus transaksi ini (koreksi kesalahan input)">
@@ -145,18 +145,18 @@ export function renderFinancialReport() {
   const expContainer = document.getElementById('expenseHistoryList');
   if (expContainer) {
     if (filteredExp.length === 0) {
-      expContainer.innerHTML = `<div class="py-6 text-center text-slate-400 font-bold text-xs">Belum ada catatan pengeluaran di periode ini</div>`;
+      expContainer.innerHTML = `<div class="py-6 text-center text-stone-400 font-bold text-xs">Belum ada catatan pengeluaran di periode ini</div>`;
     } else {
       expContainer.innerHTML = filteredExp.map(exp => {
         const dateStr = formatDateShort(exp.date);
         return `
-          <div class="py-2.5 flex items-center justify-between gap-1.5 hover:bg-slate-50 transition border-b border-slate-100 last:border-0">
+          <div class="py-2.5 flex items-center justify-between gap-1.5 hover:bg-stone-50 transition border-b border-stone-100 last:border-0">
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5">
                 <span class="font-black text-red-600 text-xs sm:text-sm">- ${formatRp(exp.amount)}</span>
-                <span class="text-[10px] text-slate-500 font-bold">${dateStr}</span>
+                <span class="text-[10px] text-stone-500 font-bold">${dateStr}</span>
               </div>
-              <p class="text-[11px] font-bold text-slate-700 truncate mt-0.5">${escapeHtml(exp.name)} <span class="text-[10px] text-slate-400 font-normal">(${escapeHtml(exp.category)})</span></p>
+              <p class="text-[11px] font-bold text-stone-700 truncate mt-0.5">${escapeHtml(exp.name)} <span class="text-[10px] text-stone-400 font-normal">(${escapeHtml(exp.category)})</span></p>
             </div>
             <button onclick="window.KasirApp.deleteExpense('${exp.id}')" class="p-1.5 rounded-xl text-red-500 hover:bg-red-50 font-bold transition touch-target-large" title="Hapus catatan">
               <span class="material-symbols-rounded text-base">delete</span>
@@ -321,6 +321,7 @@ export function exportReportCSV() {
   link.href = URL.createObjectURL(blob);
   link.download = `Laporan_Kasir_Mami_${Date.now()}.csv`;
   link.click();
+  link.remove();
 }
 
 export function clearTransactionHistory() {

@@ -26,6 +26,12 @@ body {
   scrollbar-width: none;
 }
 
+/* Queue Tab Styles */
+.active-queue-tab-wrapper {
+  scroll-margin-left: 10px;
+  scroll-margin-right: 10px;
+}
+
 /* Print Receipt Styles */
 @media print {
   body * {
