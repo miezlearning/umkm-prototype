@@ -22,9 +22,10 @@ export function switchView(viewName) {
   const viewAdmin = document.getElementById('viewAdmin');
   const viewReport = document.getElementById('viewReport');
 
-  const btnPos = document.getElementById('btnNavPos');
-  const btnReport = document.getElementById('btnNavReport');
-  const btnAdmin = document.getElementById('btnNavAdmin');
+  const btnPosM = document.getElementById('btnNavPosMobile') || document.getElementById('btnNavPos');
+  const btnReportM = document.getElementById('btnNavReportMobile') || document.getElementById('btnNavReport');
+  const btnAdminM = document.getElementById('btnNavAdminMobile') || document.getElementById('btnNavAdmin');
+  
   const btnPosD = document.getElementById('btnNavPosDesktop');
   const btnReportD = document.getElementById('btnNavReportDesktop');
   const btnAdminD = document.getElementById('btnNavAdminDesktop');
@@ -35,34 +36,34 @@ export function switchView(viewName) {
   if (viewReport) viewReport.classList.add('hidden');
 
   // Reset Mobile Navigation Buttons
-  [btnPos, btnReport, btnAdmin].forEach(b => {
+  [btnPosM, btnReportM, btnAdminM].forEach(b => {
     if (b) {
-      b.className = 'flex flex-col items-center justify-center flex-1 py-1.5 text-stone-500 hover:text-stone-900 transition touch-target-large';
+      b.className = 'flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 font-medium text-[11px] touch-target-large';
     }
   });
 
   // Reset Desktop Navigation Buttons
   [btnPosD, btnReportD, btnAdminD].forEach(b => {
     if (b) {
-      b.className = 'px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-extrabold flex items-center gap-2 transition touch-target-large border border-stone-200';
+      b.className = 'px-4 py-2 rounded-xl text-stone-700 hover:text-stone-950 hover:bg-white font-extrabold flex items-center gap-2 transition';
     }
   });
 
   if (viewName === 'pos') {
     if (viewPos) viewPos.classList.remove('hidden');
-    if (btnPos) btnPos.className = 'flex flex-col items-center justify-center flex-1 py-1.5 text-emerald-700 font-extrabold transition touch-target-large';
-    if (btnPosD) btnPosD.className = 'px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black flex items-center gap-2 transition touch-target-large shadow-sm ring-2 ring-emerald-600/30';
+    if (btnPosM) btnPosM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
+    if (btnPosD) btnPosD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
     pos.renderProducts();
     pos.renderCart();
   } else if (viewName === 'admin') {
     if (viewAdmin) viewAdmin.classList.remove('hidden');
-    if (btnAdmin) btnAdmin.className = 'flex flex-col items-center justify-center flex-1 py-1.5 text-emerald-700 font-extrabold transition touch-target-large';
-    if (btnAdminD) btnAdminD.className = 'px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black flex items-center gap-2 transition touch-target-large shadow-sm ring-2 ring-emerald-600/30';
+    if (btnAdminM) btnAdminM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
+    if (btnAdminD) btnAdminD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
     admin.renderAdminTable();
   } else if (viewName === 'report') {
     if (viewReport) viewReport.classList.remove('hidden');
-    if (btnReport) btnReport.className = 'flex flex-col items-center justify-center flex-1 py-1.5 text-emerald-700 font-extrabold transition touch-target-large';
-    if (btnReportD) btnReportD.className = 'px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black flex items-center gap-2 transition touch-target-large shadow-sm ring-2 ring-emerald-600/30';
+    if (btnReportM) btnReportM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
+    if (btnReportD) btnReportD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
     report.renderFinancialReport();
   }
 }

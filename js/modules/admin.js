@@ -2,7 +2,7 @@ import { state, saveProducts, saveQueues, saveHistory, saveExpenses, saveQrisPay
 import { formatRp, escapeHtml, showToast, showConfirmDialog, playClick } from '../utils.js';
 import { renderProducts, renderCart } from './pos.js';
 import { syncSaveProduct, syncDeleteProduct, forceUploadAllToCloud, syncSaveQrisPayload } from '../firebase.js';
-import { decodeQRFromImage, renderQRToContainer } from '../qris.js';
+import { decodeQRFromImage, renderQRToContainer, parseQRISMetadata } from '../qris.js';
 
 export function renderAdminTable() {
   const container = document.getElementById('adminProductCardList');
