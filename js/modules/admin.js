@@ -31,33 +31,46 @@ export function renderAdminTable() {
   container.innerHTML = state.products.map(p => {
     const isReady = p.isAvailable !== false && (!p.trackStock || (p.stock || 0) > 0);
     return `
-      <div class="p-2.5 sm:p-4 flex items-center justify-between gap-2 hover:bg-stone-50 transition border-b border-stone-100 last:border-0 ${!isReady ? 'bg-stone-50/60' : ''}">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <span class="material-symbols-rounded text-xl sm:text-2xl text-stone-950 p-2 ${isReady ? 'bg-emerald-100/80' : 'bg-stone-200 text-stone-500'} rounded-xl shrink-0 border border-emerald-200">${p.icon || 'lunch_dining'}</span>
+      <div class="p-3 sm:p-4 flex items-center justify-between gap-3 hover:bg-stone-50 transition border-b border-stone-100 last:border-0 ${!isReady ? 'bg-stone-50/60' : ''}">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="material-symbols-rounded text-xl sm:text-2xl text-stone-950 p-2.5 ${isReady ? 'bg-emerald-100/80' : 'bg-stone-200 text-stone-500'} rounded-2xl shrink-0 border border-emerald-200">${p.icon || 'lunch_dining'}</span>
           <div class="truncate">
-            <div class="flex items-center gap-1.5">
-              <h4 class="font-extrabold text-stone-900 text-xs sm:text-base truncate ${!isReady ? 'line-through text-stone-500' : ''}">${escapeHtml(p.name)}</h4>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h4 class="font-extrabold text-stone-900 text-sm sm:text-base truncate ${!isReady ? 'line-through text-stone-500' : ''}">${escapeHtml(p.name)}</h4>
               ${p.trackStock ? `
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-black ${(p.stock || 0) > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'}">
-                  Stok: ${p.stock || 0}
+                <span class="px-2 py-0.5 rounded-lg text-xs font-black ${(p.stock || 0) > 0 ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' : 'bg-red-100 text-red-700 border border-red-300'}">
+                  Stok: ${p.stock || 0} Porsi
                 </span>
-              ` : ''}
+              ` : `
+                <span class="px-2 py-0.5 rounded-lg text-xs font-extrabold bg-stone-100 text-stone-600 border border-stone-200">
+                  Stok Bebas (Ready)
+                </span>
+              `}
             </div>
-            <p class="font-black text-emerald-800 text-xs sm:text-base">${formatRp(p.price)} <span class="text-[10px] text-stone-400 font-normal">(${escapeHtml(p.category)})</span></p>
+            <p class="font-black text-emerald-800 text-xs sm:text-sm mt-0.5">${formatRp(p.price)} <span class="text-[11px] text-stone-400 font-medium">(${escapeHtml(p.category)})</span></p>
           </div>
         </div>
-        <div class="flex items-center gap-1.5 shrink-0">
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <!-- 1-Tap Toggle Status Ready / Habis -->
           <button onclick="window.KasirApp.toggleProductAvailability('${p.id}')" 
-            class="px-2.5 py-1.5 rounded-xl font-black text-[11px] sm:text-xs transition touch-target-large flex items-center gap-1 border ${isReady ? 'bg-emerald-50 text-emerald-950 border-emerald-300 hover:bg-emerald-100' : 'bg-red-50 text-red-700 border-red-300 hover:bg-red-100'}"
+            class="px-2.5 sm:px-3 py-2 rounded-xl font-black text-xs transition touch-target-large flex items-center gap-1 border ${isReady ? 'bg-emerald-50 text-emerald-950 border-emerald-300 hover:bg-emerald-100' : 'bg-red-50 text-red-700 border-red-300 hover:bg-red-100'}"
             title="Klik untuk ubah status Ready/Habis">
-            <span class="material-symbols-rounded text-sm">${isReady ? 'check_circle' : 'cancel'}</span>
+            <span class="material-symbols-rounded text-base">${isReady ? 'check_circle' : 'cancel'}</span>
             <span>${isReady ? 'Ready' : 'Habis'}</span>
           </button>
-          <button onclick="window.KasirApp.openEditProductModal('${p.id}')" class="p-1.5 rounded-xl bg-stone-100 text-stone-800 hover:bg-emerald-100 border border-stone-200 font-bold touch-target-large" title="Ubah menu">
+          
+          <!-- Tombol Ubah Menu (Satu Arah & Lengkap) -->
+          <button onclick="window.KasirApp.openEditProductModal('${p.id}')" 
+            class="px-2.5 sm:px-3 py-2 rounded-xl bg-stone-100 text-stone-800 hover:bg-emerald-100 hover:text-emerald-900 border border-stone-200 font-black text-xs flex items-center gap-1 transition touch-target-large" 
+            title="Ubah nama, harga, atau stok menu">
             <span class="material-symbols-rounded text-base">edit</span>
+            <span class="hidden sm:inline">Ubah</span>
           </button>
-          <button onclick="window.KasirApp.deleteProduct('${p.id}')" class="p-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 font-bold touch-target-large" title="Hapus menu">
+          
+          <!-- Hapus Menu -->
+          <button onclick="window.KasirApp.deleteProduct('${p.id}')" 
+            class="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 font-bold touch-target-large" 
+            title="Hapus menu">
             <span class="material-symbols-rounded text-base">delete</span>
           </button>
         </div>
@@ -75,7 +88,7 @@ export function toggleProductAvailability(id) {
   p.isAvailable = !currentReady;
   
   if (p.isAvailable && p.trackStock && (p.stock || 0) <= 0) {
-    p.stock = 10; // Default restock to 10 if stock was 0
+    p.stock = 10; // Restock ke 10 jika sebelumnya 0
   }
 
   saveProducts();
@@ -83,15 +96,6 @@ export function toggleProductAvailability(id) {
   renderAdminTable();
   renderProducts();
   showToast(`Menu "${p.name}" sekarang ${p.isAvailable ? 'READY / TERSEDIA' : 'HABIS / KOSONG'}`, p.isAvailable ? 'success' : 'warning');
-}
-
-export function toggleTrackStockInput() {
-  playClick('tap');
-  const check = document.getElementById('prodTrackStock');
-  const container = document.getElementById('stockInputContainer');
-  if (check && container) {
-    container.classList.toggle('hidden', !check.checked);
-  }
 }
 
 export function openAddProductModal() {
@@ -103,9 +107,7 @@ export function openAddProductModal() {
   const catEl = document.getElementById('prodCategory');
   const iconEl = document.getElementById('prodIcon');
   const isAvailEl = document.getElementById('prodIsAvailable');
-  const trackStockEl = document.getElementById('prodTrackStock');
   const stockEl = document.getElementById('prodStock');
-  const stockContainer = document.getElementById('stockInputContainer');
   const modal = document.getElementById('productModal');
 
   if (titleEl) titleEl.innerText = 'Tambah Menu Baru';
@@ -115,9 +117,7 @@ export function openAddProductModal() {
   if (catEl) catEl.value = 'makanan';
   if (iconEl) iconEl.value = 'lunch_dining';
   if (isAvailEl) isAvailEl.checked = true;
-  if (trackStockEl) trackStockEl.checked = false;
   if (stockEl) stockEl.value = '';
-  if (stockContainer) stockContainer.classList.add('hidden');
   if (modal) modal.classList.remove('hidden');
 }
 
@@ -133,21 +133,19 @@ export function openEditProductModal(id) {
   const catEl = document.getElementById('prodCategory');
   const iconEl = document.getElementById('prodIcon');
   const isAvailEl = document.getElementById('prodIsAvailable');
-  const trackStockEl = document.getElementById('prodTrackStock');
   const stockEl = document.getElementById('prodStock');
-  const stockContainer = document.getElementById('stockInputContainer');
   const modal = document.getElementById('productModal');
 
-  if (titleEl) titleEl.innerText = 'Ubah Menu';
+  if (titleEl) titleEl.innerText = `Ubah Menu: ${p.name}`;
   if (editIdEl) editIdEl.value = p.id;
   if (nameEl) nameEl.value = p.name;
   if (priceEl) priceEl.value = p.price;
   if (catEl) catEl.value = p.category;
   if (iconEl) iconEl.value = p.icon;
   if (isAvailEl) isAvailEl.checked = p.isAvailable !== false;
-  if (trackStockEl) trackStockEl.checked = !!p.trackStock;
-  if (stockEl) stockEl.value = (p.stock !== undefined && p.stock !== null) ? p.stock : '';
-  if (stockContainer) stockContainer.classList.toggle('hidden', !p.trackStock);
+  if (stockEl) {
+    stockEl.value = (p.trackStock && p.stock !== null && p.stock !== undefined) ? p.stock : '';
+  }
   if (modal) modal.classList.remove('hidden');
 }
 
@@ -166,11 +164,17 @@ export function saveProduct(e) {
   const category = document.getElementById('prodCategory').value;
   const icon = document.getElementById('prodIcon').value;
   const isAvailable = document.getElementById('prodIsAvailable').checked;
-  const trackStock = document.getElementById('prodTrackStock').checked;
-  const stockVal = parseInt(document.getElementById('prodStock').value || '0', 10);
-  const stock = trackStock ? Math.max(0, stockVal) : null;
+  const stockInputRaw = document.getElementById('prodStock').value.trim();
 
-  if (!name || isNaN(price) || price <= 0) return;
+  if (!name || isNaN(price) || price <= 0) {
+    showToast('Harap isi nama dan harga menu dengan benar', 'warning');
+    return;
+  }
+
+  // Jika input stok diisi angka -> aktifkan batasan stok porsi. Jika dikosongkan -> stok bebas.
+  const trackStock = stockInputRaw !== '';
+  const stock = trackStock ? Math.max(0, parseInt(stockInputRaw, 10) || 0) : null;
+  const finalAvailable = trackStock ? (stock > 0 && isAvailable) : isAvailable;
 
   let productObj = null;
 
@@ -183,9 +187,9 @@ export function saveProduct(e) {
         price, 
         category, 
         icon,
-        isAvailable,
+        isAvailable: finalAvailable,
         trackStock,
-        stock: trackStock ? stock : null
+        stock
       };
       state.products[index] = productObj;
     }
@@ -196,11 +200,11 @@ export function saveProduct(e) {
       price,
       category,
       icon,
-      isAvailable,
+      isAvailable: finalAvailable,
       trackStock,
-      stock: trackStock ? stock : null
+      stock
     };
-    state.products.push(productObj);
+    state.products.unshift(productObj);
   }
 
   saveProducts();
@@ -211,7 +215,7 @@ export function saveProduct(e) {
   closeProductModal();
   renderAdminTable();
   renderProducts();
-  showToast(id ? `Menu "${name}" berhasil diperbarui!` : `Menu "${name}" berhasil ditambahkan!`, 'success');
+  showToast(`Menu "${name}" berhasil disimpan! ${trackStock ? `(Stok: ${stock} Porsi)` : '(Stok Bebas)'}`, 'success');
 }
 
 export async function deleteProduct(id) {

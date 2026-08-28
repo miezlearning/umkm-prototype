@@ -1117,27 +1117,39 @@
         </div>
 
         <!-- Status Ketersediaan & Pelacakan Stok (Opsional) -->
-        <div class="bg-stone-50 p-3.5 rounded-2xl border border-stone-200 flex flex-col gap-2.5">
+        <!-- Status Ketersediaan & Stok Menu (1 Tempat Jelas & Praktis) -->
+        <div class="bg-stone-50 p-4 rounded-2xl border border-stone-200 flex flex-col gap-3">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-stone-700">Status Menu:</span>
-            <label class="flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1 rounded-xl border border-stone-200">
+            <div>
+              <span class="text-xs font-black text-stone-800">Status Menu</span>
+              <p class="text-[11px] text-stone-500">Bisa langsung dipesan kasir</p>
+            </div>
+            <label class="flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-stone-200 shadow-sm">
               <input type="checkbox" id="prodIsAvailable" class="w-4 h-4 accent-emerald-600 cursor-pointer" checked>
               <span id="prodIsAvailableLabel" class="text-xs font-black text-emerald-800 select-none">Ready / Tersedia</span>
             </label>
           </div>
 
-          <div class="border-t border-stone-200 pt-2 flex flex-col gap-1.5">
-            <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" id="prodTrackStock" onchange="window.KasirApp.toggleTrackStockInput()" class="w-4 h-4 accent-emerald-600 cursor-pointer">
-              <span class="text-xs font-extrabold text-stone-800 select-none">Hitung Jumlah Stok (Opsional)</span>
-            </label>
-            <p class="text-[10px] text-stone-400 font-medium leading-tight">Biarkan tidak dicentang jika stok tanpa batas (seperti warung makan Mami).</p>
+          <div class="border-t border-stone-200 pt-3 flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <label for="prodStock" class="text-xs font-black text-stone-800">Jumlah Sisa Stok (Porsi)</label>
+                <p class="text-[11px] text-stone-500 font-medium">Kosongkan jika stok bebas / selalu ready</p>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <input type="number" id="prodStock" min="0" step="1" placeholder="Bebas"
+                  class="w-24 p-2 rounded-xl border-2 border-stone-300 focus:border-emerald-600 focus:outline-none text-base font-black text-center text-emerald-900 bg-white">
+                <span class="text-xs font-bold text-stone-600">Porsi</span>
+              </div>
+            </div>
 
-            <div id="stockInputContainer" class="hidden mt-1 flex items-center gap-2">
-              <span class="text-xs font-bold text-stone-700">Sisa Stok:</span>
-              <input type="number" id="prodStock" min="0" step="any" placeholder="Contoh: 20"
-                class="w-24 p-2 rounded-xl border border-stone-300 focus:border-emerald-600 focus:outline-none text-sm font-bold text-right bg-white">
-              <span class="text-xs text-stone-500 font-medium">porsi / item</span>
+            <!-- Quick presets to set stock in 1 click -->
+            <div class="flex items-center gap-1.5 mt-1">
+              <span class="text-[11px] text-stone-400 font-bold">Cepat:</span>
+              <button type="button" onclick="document.getElementById('prodStock').value = 10" class="px-2.5 py-1 bg-white hover:bg-emerald-50 rounded-lg text-xs font-bold text-stone-700 border border-stone-200">10</button>
+              <button type="button" onclick="document.getElementById('prodStock').value = 25" class="px-2.5 py-1 bg-white hover:bg-emerald-50 rounded-lg text-xs font-bold text-stone-700 border border-stone-200">25</button>
+              <button type="button" onclick="document.getElementById('prodStock').value = 50" class="px-2.5 py-1 bg-white hover:bg-emerald-50 rounded-lg text-xs font-bold text-stone-700 border border-stone-200">50</button>
+              <button type="button" onclick="document.getElementById('prodStock').value = ''" class="px-2.5 py-1 bg-white hover:bg-stone-100 rounded-lg text-xs font-bold text-stone-500 border border-stone-200">Bebas ♾️</button>
             </div>
           </div>
         </div>

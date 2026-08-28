@@ -168,7 +168,18 @@ function setupRealtimeListeners() {
     } else {
       const cloudProducts = [];
       snapshot.forEach(docSnap => {
-        cloudProducts.push({ id: docSnap.id, ...docSnap.data() });
+        const data = docSnap.data();
+        cloudProducts.push({ 
+          id: docSnap.id, 
+          name: data.name || 'Menu',
+          price: Number(data.price) || 0,
+          category: data.category || 'makanan',
+          icon: data.icon || 'lunch_dining',
+          isAvailable: data.isAvailable !== false,
+          trackStock: !!data.trackStock,
+          stock: data.trackStock ? (data.stock !== undefined && data.stock !== null ? Number(data.stock) : null) : null,
+          updatedAt: data.updatedAt || new Date().toISOString()
+        });
       });
 
       // Update state and localStorage
@@ -310,6 +321,9 @@ async function seedInitialProducts() {
         price: p.price,
         category: p.category,
         icon: p.icon || 'lunch_dining',
+        isAvailable: p.isAvailable !== false,
+        trackStock: !!p.trackStock,
+        stock: p.trackStock ? (p.stock !== undefined && p.stock !== null ? Number(p.stock) : null) : null,
         updatedAt: new Date().toISOString()
       }, { merge: true });
     });
@@ -334,6 +348,9 @@ export async function syncSaveProduct(product) {
       price: product.price,
       category: product.category,
       icon: product.icon || 'lunch_dining',
+      isAvailable: product.isAvailable !== false,
+      trackStock: !!product.trackStock,
+      stock: product.trackStock ? (product.stock !== undefined && product.stock !== null ? Number(product.stock) : null) : null,
       updatedAt: new Date().toISOString()
     }, { merge: true });
   } catch (e) {
@@ -509,6 +526,9 @@ export async function forceUploadAllToCloud() {
         price: p.price,
         category: p.category,
         icon: p.icon || 'lunch_dining',
+        isAvailable: p.isAvailable !== false,
+        trackStock: !!p.trackStock,
+        stock: p.trackStock ? (p.stock !== undefined && p.stock !== null ? Number(p.stock) : null) : null,
         updatedAt: new Date().toISOString()
       }, { merge: true });
     });

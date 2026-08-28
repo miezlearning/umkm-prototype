@@ -275,7 +275,7 @@ const KasirApp = {
   closeReceiptModal: payment.closeReceiptModal,
   toggleQrisPaymentMode: payment.toggleQrisPaymentMode,
 
-  // Admin & Backup & QRIS & Stock
+  // Admin & Backup & QRIS & Menu
   renderAdminTable: admin.renderAdminTable,
   openAddProductModal: admin.openAddProductModal,
   openEditProductModal: admin.openEditProductModal,
@@ -283,7 +283,6 @@ const KasirApp = {
   saveProduct: admin.saveProduct,
   deleteProduct: admin.deleteProduct,
   toggleProductAvailability: admin.toggleProductAvailability,
-  toggleTrackStockInput: admin.toggleTrackStockInput,
   openQrisModal: admin.openQrisModal,
   closeQrisModal: admin.closeQrisModal,
   handleQrisImageUpload: admin.handleQrisImageUpload,
