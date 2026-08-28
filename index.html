@@ -196,26 +196,30 @@
 
         <!-- Cart Header -->
         <div class="flex items-center justify-between pb-3 border-b border-stone-200">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2.5 min-w-0">
             <div
-              class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
-              <span class="material-symbols-rounded text-2xl text-emerald-700">shopping_basket</span>
+              class="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
+              <span class="material-symbols-rounded text-2xl text-emerald-700">receipt_long</span>
             </div>
-            <div>
+            <div class="truncate">
               <div class="flex items-center gap-1.5">
                 <h2
-                  class="text-xl font-black text-stone-900 cursor-pointer hover:text-emerald-700 flex items-center gap-1"
+                  class="text-lg font-black text-stone-900 cursor-pointer hover:text-emerald-700 flex items-center gap-1 truncate"
                   onclick="promptRenameQueue()" title="Klik untuk ubah nama antrian/meja">
-                  <span id="currentOrderTitle">Pesanan #1</span>
-                  <span class="material-symbols-rounded text-base text-stone-400">edit</span>
+                  <span id="currentOrderTitle" class="truncate">Pesanan #1</span>
+                  <span class="material-symbols-rounded text-sm text-stone-400 shrink-0">edit</span>
                 </h2>
               </div>
-              <span class="text-xs text-stone-400 font-bold" id="currentOrderSub">Antrian Aktif</span>
+              <span class="text-[11px] text-stone-400 font-medium cursor-pointer hover:underline" onclick="promptRenameQueue()">Tap untuk ganti nama/meja</span>
             </div>
           </div>
-          <span id="cartCountBadge"
-            class="bg-emerald-100 text-emerald-950 font-black px-3 py-1 rounded-full text-sm border border-emerald-300">0
-            item</span>
+          <div class="flex items-center gap-1 shrink-0">
+            <button onclick="deleteCurrentActiveQueue()"
+              class="p-2 rounded-xl bg-stone-100 hover:bg-red-50 text-stone-500 hover:text-red-600 transition touch-target-large flex items-center justify-center border border-stone-200"
+              title="Tutup antrian ini">
+              <span class="material-symbols-rounded text-base">close</span>
+            </button>
+          </div>
         </div>
 
         <!-- Cart Item List -->
@@ -286,21 +290,28 @@
         class="bg-white w-full rounded-t-3xl shadow-2xl border-t border-stone-200 flex flex-col max-h-[85vh] animate-in slide-in-from-bottom duration-200">
 
         <div class="p-3 border-b border-stone-100 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-rounded text-2xl text-emerald-700">shopping_basket</span>
-            <div>
-              <h3 class="text-base font-black text-stone-900 cursor-pointer flex items-center gap-1"
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="material-symbols-rounded text-2xl text-emerald-700 shrink-0">receipt_long</span>
+            <div class="truncate">
+              <h3 class="text-base font-black text-stone-900 cursor-pointer flex items-center gap-1 truncate"
                 onclick="promptRenameQueue()">
-                <span id="mobileDrawerTitle">Pesanan #1</span>
-                <span class="material-symbols-rounded text-sm text-stone-400">edit</span>
+                <span id="mobileDrawerTitle" class="truncate">Pesanan #1</span>
+                <span class="material-symbols-rounded text-sm text-stone-400 shrink-0">edit</span>
               </h3>
-              <span class="text-[10px] text-stone-400 font-bold">Keranjang Antrian Ini</span>
+              <span class="text-[10px] text-stone-400 font-medium cursor-pointer" onclick="promptRenameQueue()">Tap untuk ganti nama/meja</span>
             </div>
           </div>
-          <button onclick="toggleMobileCartDrawer()"
-            class="p-1.5 rounded-full hover:bg-stone-100 text-stone-500 touch-target-large flex items-center justify-center">
-            <span class="material-symbols-rounded text-2xl">close</span>
-          </button>
+          <div class="flex items-center gap-1 shrink-0">
+            <button onclick="deleteCurrentActiveQueue()"
+              class="p-1.5 rounded-xl bg-stone-100 hover:bg-red-50 text-stone-500 hover:text-red-600 transition touch-target-large flex items-center justify-center border border-stone-200"
+              title="Tutup antrian ini">
+              <span class="material-symbols-rounded text-base">delete</span>
+            </button>
+            <button onclick="toggleMobileCartDrawer()"
+              class="p-1.5 rounded-full hover:bg-stone-100 text-stone-500 touch-target-large flex items-center justify-center">
+              <span class="material-symbols-rounded text-2xl">close</span>
+            </button>
+          </div>
         </div>
 
         <div id="mobileDrawerCartItems"

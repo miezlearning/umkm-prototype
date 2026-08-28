@@ -153,6 +153,7 @@ const KasirApp = {
   addNewOrderQueue: pos.addNewOrderQueue,
   switchOrderQueue: pos.switchOrderQueue,
   promptRenameQueue: pos.promptRenameQueue,
+  deleteCurrentActiveQueue: pos.deleteCurrentActiveQueue,
   deleteOrderQueue: pos.deleteOrderQueue,
   scrollQueueTabs: pos.scrollQueueTabs,
   handleQueueWheel: pos.handleQueueWheel,

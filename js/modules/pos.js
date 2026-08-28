@@ -14,16 +14,27 @@ export function renderOrderQueueTabs() {
   container.innerHTML = state.orderQueues.map((q) => {
     const isActive = q.id === state.activeQueueId;
     const itemCount = Object.values(q.cart).reduce((a, b) => a + b, 0);
+
+    let tabStyle = '';
+    let badgeStyle = '';
+
+    if (isActive) {
+      tabStyle = 'bg-stone-900 text-white font-black shadow-md ring-2 ring-emerald-500/60 active-queue-tab scale-[1.02]';
+      badgeStyle = 'bg-emerald-500 text-stone-950 font-black';
+    } else if (itemCount > 0) {
+      tabStyle = 'bg-emerald-50 text-emerald-950 hover:bg-emerald-100 font-extrabold border border-emerald-300/80 shadow-sm';
+      badgeStyle = 'bg-emerald-600 text-white font-black';
+    } else {
+      tabStyle = 'bg-stone-100/90 text-stone-600 hover:bg-stone-200 font-bold border border-stone-200';
+      badgeStyle = 'bg-stone-200 text-stone-700 font-bold';
+    }
+
     return `
-      <div class="active-queue-tab-wrapper flex items-center gap-1 rounded-xl px-2.5 py-1 ${isActive ? 'bg-stone-900 text-white font-black shadow-sm active-queue-tab ring-1 ring-emerald-400/40' : 'bg-stone-100 text-stone-700 hover:bg-stone-200 font-bold'} transition shrink-0">
-        <button onclick="window.KasirApp.switchOrderQueue('${q.id}')" class="text-xs flex items-center gap-1.5 touch-target-large">
-          <span>${escapeHtml(q.name)}</span>
-          ${itemCount > 0 ? `<span class="px-1.5 py-0.2 rounded-full text-[9px] ${isActive ? 'bg-emerald-600 text-stone-950 font-black' : 'bg-stone-300 text-stone-800 font-black'}">${itemCount}</span>` : ''}
-        </button>
-        <button onclick="window.KasirApp.deleteOrderQueue('${q.id}', event)" class="p-0.5 hover:bg-white/20 rounded-md text-xs flex items-center justify-center" title="Hapus / Tutup Antrian">
-          <span class="material-symbols-rounded text-sm">close</span>
-        </button>
-      </div>
+      <button onclick="window.KasirApp.switchOrderQueue('${q.id}')"
+        class="active-queue-tab-wrapper px-3.5 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 transition shrink-0 touch-target-large ${tabStyle}">
+        <span>${escapeHtml(q.name)}</span>
+        ${itemCount > 0 ? `<span class="px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${badgeStyle}">${itemCount}</span>` : ''}
+      </button>
     `;
   }).join('');
 
@@ -102,7 +113,7 @@ export function switchOrderQueue(queueId) {
 export function promptRenameQueue() {
   const cur = getActiveQueue();
   if (!cur) return;
-  const newName = prompt('Ubah nama antrian / meja ini:', cur.name);
+  const newName = prompt('Ganti Nama Antrian / Nomor Meja:\n(Contoh: Meja 5, Mas Joko, Bungkus)', cur.name);
   if (newName && newName.trim()) {
     cur.name = newName.trim();
     saveQueues();
@@ -111,16 +122,40 @@ export function promptRenameQueue() {
   }
 }
 
+export function deleteCurrentActiveQueue() {
+  const cur = getActiveQueue();
+  if (!cur) return;
+
+  if (state.orderQueues.length <= 1) {
+    const itemCount = Object.values(cur.cart).reduce((a, b) => a + b, 0);
+    if (itemCount > 0) {
+      if (confirm(`Kosongkan semua pesanan pada "${cur.name}"?`)) {
+        cur.cart = {};
+        saveQueues();
+        syncSaveQueues(state.orderQueues);
+        renderOrderQueueTabs();
+        renderCart();
+        renderProducts();
+      }
+    }
+    return;
+  }
+
+  const itemCount = Object.values(cur.cart).reduce((a, b) => a + b, 0);
+  const msg = itemCount > 0 
+    ? `Tutup dan hapus "${cur.name}" yang masih berisi ${itemCount} pesanan?`
+    : `Tutup antrian "${cur.name}"?`;
+
+  if (confirm(msg)) {
+    deleteOrderQueue(cur.id);
+  }
+}
+
 export function deleteOrderQueue(queueId, event) {
   if (event) event.stopPropagation();
   const qToDelete = state.orderQueues.find(q => q.id === queueId);
   if (!qToDelete) return;
   
-  const itemCount = Object.values(qToDelete.cart).reduce((a, b) => a + b, 0);
-  if (itemCount > 0) {
-    if (!confirm(`Hapus ${qToDelete.name} yang berisi ${itemCount} pesanan?`)) return;
-  }
-
   state.orderQueues = state.orderQueues.filter(q => q.id !== queueId);
 
   if (state.orderQueues.length === 0) {
