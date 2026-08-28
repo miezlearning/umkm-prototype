@@ -470,8 +470,6 @@ export function addToCart(productId) {
     renderOrderQueueTabs();
     renderCart();
     renderProducts();
-
-    showToast(`+1 ${p.name} (${q.name})`, 'info', 1200);
   }
 }
 

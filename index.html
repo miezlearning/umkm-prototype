@@ -112,40 +112,43 @@
       </div>
 
       <!-- Desktop Navigation Buttons (Segmented Pills) -->
-      <div class="hidden lg:flex items-center gap-1.5 bg-stone-100 p-1.5 rounded-2xl border border-stone-200/80 shadow-inner">
-        <button id="btnNavPosDesktop" onclick="switchView('pos')"
-          class="px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm">
-          <span class="material-symbols-rounded text-xl">point_of_sale</span>
-          <span>Kasir</span>
-        </button>
-        <button id="btnNavReportDesktop" onclick="switchView('report')"
-          class="px-4 py-2 rounded-xl text-stone-700 hover:text-stone-950 hover:bg-white font-extrabold flex items-center gap-2 transition">
-          <span class="material-symbols-rounded text-xl">account_balance_wallet</span>
-          <span>Laporan & Laba</span>
-        </button>
-        <button id="btnNavAdminDesktop" onclick="switchView('admin')"
-          class="px-4 py-2 rounded-xl text-stone-700 hover:text-stone-950 hover:bg-white font-extrabold flex items-center gap-2 transition">
-          <span class="material-symbols-rounded text-xl">inventory_2</span>
-          <span>Kelola Menu</span>
-        </button>
-        <button onclick="KasirApp.openGuideTour(0)" title="Buka Panduan Kasir"
-          class="px-3 py-2 rounded-xl text-emerald-800 hover:text-emerald-950 hover:bg-emerald-100/70 font-black flex items-center gap-1.5 transition border border-emerald-300/60 ml-1">
-          <span class="material-symbols-rounded text-xl text-emerald-700">help</span>
+      <div class="hidden lg:flex items-center gap-3">
+        <div class="flex items-center gap-1.5 bg-stone-100 p-1.5 rounded-2xl border border-stone-200/80 shadow-inner">
+          <button id="btnNavPosDesktop" onclick="switchView('pos')"
+            class="px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm">
+            <span class="material-symbols-rounded text-xl">point_of_sale</span>
+            <span>Kasir</span>
+          </button>
+          <button id="btnNavReportDesktop" onclick="switchView('report')"
+            class="px-4 py-2 rounded-xl text-stone-700 hover:text-stone-950 hover:bg-white font-extrabold flex items-center gap-2 transition">
+            <span class="material-symbols-rounded text-xl">account_balance_wallet</span>
+            <span>Laporan & Laba</span>
+          </button>
+          <button id="btnNavAdminDesktop" onclick="switchView('admin')"
+            class="px-4 py-2 rounded-xl text-stone-700 hover:text-stone-950 hover:bg-white font-extrabold flex items-center gap-2 transition">
+            <span class="material-symbols-rounded text-xl">inventory_2</span>
+            <span>Kelola Menu</span>
+          </button>
+        </div>
+
+        <!-- Separate Dedicated Help Button -->
+        <button onclick="KasirApp.openGuideTour(0)" title="Buka Panduan Kasir Interaktif"
+          class="px-3.5 py-2.5 rounded-2xl bg-white hover:bg-emerald-50 text-stone-700 hover:text-emerald-900 font-extrabold text-xs flex items-center gap-1.5 border border-stone-200 hover:border-emerald-300 shadow-sm transition active:scale-95 touch-target-large">
+          <span class="material-symbols-rounded text-lg text-emerald-700">help</span>
           <span>Panduan</span>
         </button>
       </div>
 
-      <!-- Quick Action Buttons on Mobile Header (Panduan + Keranjang) -->
-      <div class="lg:hidden flex items-center gap-1.5">
-        <button onclick="KasirApp.openGuideTour(0)" title="Panduan Kasir"
-          class="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 flex items-center gap-1 touch-target-large border border-emerald-300 font-extrabold text-xs shadow-sm">
-          <span class="material-symbols-rounded text-lg text-emerald-700">help</span>
-          <span>Panduan</span>
+      <!-- Quick Action Buttons on Mobile Header (Distinct Separation to Prevent Misclick) -->
+      <div class="lg:hidden flex items-center gap-2.5">
+        <button onclick="KasirApp.openGuideTour(0)" title="Bantuan Panduan Kasir" aria-label="Bantuan Panduan"
+          class="w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-600 flex items-center justify-center border border-stone-200 shadow-sm transition active:scale-90 touch-target-large">
+          <span class="material-symbols-rounded text-xl text-stone-500">help</span>
         </button>
         <button onclick="toggleMobileCartDrawer()"
-          class="relative px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-950 flex items-center gap-1.5 touch-target-large border border-emerald-300 font-black shadow-sm">
-          <span class="material-symbols-rounded text-xl text-emerald-700">shopping_cart</span>
-          <span id="mobileHeaderCartTotal" class="text-xs font-black text-emerald-900">Rp 0</span>
+          class="relative px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white flex items-center gap-1.5 touch-target-large shadow-sm active:scale-95 transition">
+          <span class="material-symbols-rounded text-lg text-emerald-200">shopping_cart</span>
+          <span id="mobileHeaderCartTotal" class="text-xs font-black">Rp 0</span>
         </button>
       </div>
     </div>
@@ -1576,7 +1579,7 @@
   </div>
 
   <!-- Main JavaScript App Module -->
-  <script type="module" src="js/app.js?v=21"></script>
+  <script type="module" src="js/app.js?v=22"></script>
 </body>
 
 </html>
