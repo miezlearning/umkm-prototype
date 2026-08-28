@@ -111,6 +111,8 @@ export const state = {
  * Muat seluruh data dari LocalStorage ke State
  */
 export function initState() {
+  state.currentCategory = 'all';
+
   if (!state.storeId) {
     state.isSessionActive = false;
     state.storeProfile = { id: '', name: 'Aristotle POS', city: '', nmid: '', acquirer: 'Aristotle POS' };
@@ -118,6 +120,7 @@ export function initState() {
     state.transactions = [];
     state.expenses = [];
     state.orderQueues = [{ id: 'q_1', name: 'Pesanan #1', cart: {} }];
+    state.activeQueueId = 'q_1';
     updateUIStoreBranding();
     return;
   }

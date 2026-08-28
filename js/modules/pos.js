@@ -39,12 +39,11 @@ export function renderOrderQueueTabs() {
   }).join('');
 
   const cur = getActiveQueue();
-  if (cur) {
-    const titleEl = document.getElementById('currentOrderTitle');
-    const drawerTitleEl = document.getElementById('mobileDrawerTitle');
-    if (titleEl) titleEl.innerText = cur.name;
-    if (drawerTitleEl) drawerTitleEl.innerText = cur.name;
-  }
+  const queueName = cur ? cur.name : (state.orderQueues[0]?.name || 'Pesanan #1');
+  const titleEl = document.getElementById('currentOrderTitle');
+  const drawerTitleEl = document.getElementById('mobileDrawerTitle');
+  if (titleEl) titleEl.innerText = queueName;
+  if (drawerTitleEl) drawerTitleEl.innerText = queueName;
 
   // Auto-scroll active tab into view smoothly & init drag scroll
   setTimeout(() => {
@@ -314,16 +313,21 @@ export function deleteOrderQueue(queueId, event) {
 }
 
 // ================= CATEGORY & PRODUCT RENDERING =================
-export function setCategory(cat) {
-  playClick('switch');
-  state.currentCategory = cat;
+export function syncCategoryPillsUI() {
+  const current = state.currentCategory || 'all';
   document.querySelectorAll('.cat-pill').forEach(btn => {
     btn.className = 'cat-pill py-2 px-1 sm:px-4 rounded-xl font-bold text-xs sm:text-sm text-center bg-stone-100 hover:bg-stone-200 text-stone-800 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large border border-stone-200';
   });
-  const activeBtn = document.getElementById(`cat-${cat}`);
+  const activeBtn = document.getElementById(`cat-${current}`);
   if (activeBtn) {
     activeBtn.className = 'cat-pill py-2 px-1 sm:px-4 rounded-xl font-black text-xs sm:text-sm text-center bg-emerald-700 text-white shadow-md transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large ring-2 ring-emerald-500/30';
   }
+}
+
+export function setCategory(cat) {
+  playClick('switch');
+  state.currentCategory = cat;
+  syncCategoryPillsUI();
   renderProducts();
 }
 
@@ -352,6 +356,26 @@ export function renderProducts() {
   const searchInput = document.getElementById('searchInput');
   const search = (searchInput ? searchInput.value : '').toLowerCase().trim();
   const currentCart = getCurrentCart();
+
+  // Mode Belum Masuk Toko / Logout
+  if (!state.storeId) {
+    grid.innerHTML = `
+      <div class="col-span-full py-16 text-center text-stone-500 flex flex-col items-center justify-center gap-3 bg-white rounded-3xl border border-stone-200 p-6 shadow-sm">
+        <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200 shadow-sm">
+          <span class="material-symbols-rounded text-3xl">storefront</span>
+        </div>
+        <div>
+          <h3 class="text-base font-black text-stone-900">Belum Ada Toko Terhubung</h3>
+          <p class="text-xs text-stone-500 max-w-xs mt-0.5">Silakan masuk ke toko Anda atau daftarkan toko baru untuk mulai melayani pelanggan.</p>
+        </div>
+        <button type="button" onclick="KasirApp.openUniversalLoginModal('login')"
+          class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs shadow-sm transition active:scale-95 touch-target-large">
+          Pilih / Masuk Toko
+        </button>
+      </div>
+    `;
+    return;
+  }
 
   const filtered = state.products.filter(p => {
     const matchesCat = (state.currentCategory === 'all') || (p.category === state.currentCategory);

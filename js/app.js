@@ -260,11 +260,17 @@ export function quickSelectStore(storeId) {
 
   state.storeId = cleanId;
   state.isSessionActive = true;
+  state.currentCategory = 'all';
+
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) searchInput.value = '';
+
   initState();
   setupRealtimeListeners();
-  pos.renderProducts();
-  pos.renderCart();
+  pos.syncCategoryPillsUI();
   pos.renderOrderQueueTabs();
+  pos.renderCart();
+  pos.renderProducts();
   admin.renderAdminTable();
   report.renderFinancialReport();
   updatePinButtonUI();
@@ -278,13 +284,21 @@ export function deleteSavedStoreCard(storeId) {
     unsubscribeAllListeners();
     state.storeId = null;
     state.isSessionActive = false;
+    state.currentCategory = 'all';
+    state.activeQueueId = 'q_1';
+    state.orderQueues = [{ id: 'q_1', name: 'Pesanan #1', cart: {} }];
+
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.value = '';
+
     localStorage.removeItem(GLOBAL_STORAGE_KEYS.ACTIVE_STORE_ID);
     sessionStorage.setItem('is_logged_out_state', '1');
     window.history.replaceState(null, '', window.location.pathname);
     initState();
-    pos.renderProducts();
-    pos.renderCart();
+    pos.syncCategoryPillsUI();
     pos.renderOrderQueueTabs();
+    pos.renderCart();
+    pos.renderProducts();
   }
   renderSavedStoresList();
   showToast('Toko dihapus dari daftar perangkat.', 'info');
@@ -524,11 +538,19 @@ export async function logoutStore() {
 
     state.storeId = null;
     state.isSessionActive = false;
-    initState();
+    state.currentCategory = 'all';
+    state.activeQueueId = 'q_1';
+    state.orderQueues = [{ id: 'q_1', name: 'Pesanan #1', cart: {} }];
+
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.value = '';
+
     window.history.replaceState(null, '', window.location.pathname);
-    pos.renderProducts();
-    pos.renderCart();
+    initState();
+    pos.syncCategoryPillsUI();
     pos.renderOrderQueueTabs();
+    pos.renderCart();
+    pos.renderProducts();
     admin.renderAdminTable();
     report.renderFinancialReport();
     updatePinButtonUI();
