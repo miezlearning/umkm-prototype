@@ -327,6 +327,24 @@ export function setCategory(cat) {
   renderProducts();
 }
 
+export function renderProductSkeletons(count = 8) {
+  const grid = document.getElementById('productGrid');
+  if (!grid) return;
+  grid.innerHTML = Array(count).fill(0).map(() => `
+    <div class="bg-white border border-stone-200 rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between h-40 animate-pulse shadow-sm">
+      <div class="flex items-start justify-between">
+        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl skeleton-shimmer"></div>
+        <div class="w-14 h-4 rounded-lg skeleton-shimmer"></div>
+      </div>
+      <div class="space-y-2 mt-2">
+        <div class="w-3/4 h-4 rounded skeleton-shimmer"></div>
+        <div class="w-1/2 h-5 rounded skeleton-shimmer"></div>
+      </div>
+      <div class="w-full h-3 rounded skeleton-shimmer mt-2 pt-1 border-t border-stone-100"></div>
+    </div>
+  `).join('');
+}
+
 export function renderProducts() {
   const grid = document.getElementById('productGrid');
   if (!grid) return;

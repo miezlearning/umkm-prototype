@@ -4,6 +4,26 @@ import { renderProducts, renderCart } from './pos.js';
 import { syncSaveProduct, syncDeleteProduct, forceUploadAllToCloud, syncSaveQrisPayload } from '../firebase.js';
 import { decodeQRFromImage, renderQRToContainer, parseQRISMetadata } from '../qris.js';
 
+export function renderAdminSkeletons(count = 5) {
+  const container = document.getElementById('adminProductCardList');
+  if (!container) return;
+  container.innerHTML = Array(count).fill(0).map(() => `
+    <div class="p-3 sm:p-4 flex items-center justify-between gap-3 border-b border-stone-100 animate-pulse">
+      <div class="flex items-center gap-3 flex-1 min-w-0">
+        <div class="w-10 h-10 rounded-xl skeleton-shimmer shrink-0"></div>
+        <div class="space-y-1.5 flex-1 max-w-xs">
+          <div class="w-3/4 h-4 rounded skeleton-shimmer"></div>
+          <div class="w-1/3 h-3.5 rounded skeleton-shimmer"></div>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <div class="w-16 h-8 rounded-xl skeleton-shimmer"></div>
+        <div class="w-8 h-8 rounded-xl skeleton-shimmer"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
 export function renderAdminTable() {
   const container = document.getElementById('adminProductCardList');
   if (!container) return;

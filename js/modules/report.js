@@ -42,6 +42,22 @@ export function filterByPeriod(items) {
   });
 }
 
+export function renderReportSkeletons() {
+  const txContainer = document.getElementById('transactionHistoryList');
+  const expContainer = document.getElementById('expenseHistoryList');
+  const skeletonItem = `
+    <div class="py-3 flex items-center justify-between gap-3 border-b border-stone-100 animate-pulse">
+      <div class="space-y-1.5 flex-1">
+        <div class="w-24 h-4 rounded skeleton-shimmer"></div>
+        <div class="w-48 h-3 rounded skeleton-shimmer"></div>
+      </div>
+      <div class="w-8 h-8 rounded-xl skeleton-shimmer shrink-0"></div>
+    </div>
+  `;
+  if (txContainer) txContainer.innerHTML = Array(4).fill(skeletonItem).join('');
+  if (expContainer) expContainer.innerHTML = Array(3).fill(skeletonItem).join('');
+}
+
 export function renderFinancialReport() {
   const filteredTx = filterByPeriod(state.transactions);
   const filteredExp = filterByPeriod(state.expenses);

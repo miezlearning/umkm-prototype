@@ -7,7 +7,11 @@
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Kasir Mami - POS UMKM Mudah & Cepat</title>
   <meta name="description" content="Aplikasi Kasir POS Sederhana, Ramah Lansia dan Mudah Digunakan untuk UMKM">
-  <meta name="theme-color" content="#006A67">
+  <meta name="theme-color" content="#047857">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Kasir Mami">
+  <link rel="apple-touch-icon" href="icon.svg">
 
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -59,6 +63,29 @@
 </head>
 
 <body class="bg-stone-100/70 text-stone-900 min-h-screen flex flex-col antialiased">
+
+  <!-- ==================== PWA APP LAUNCH / SPLASH SCREEN ==================== -->
+  <div id="appSplashScreen"
+    class="fixed inset-0 z-[100] bg-stone-950 text-white flex flex-col items-center justify-center p-6 select-none">
+    <div class="flex flex-col items-center text-center max-w-xs animate-in zoom-in-95 duration-300">
+      
+      <!-- Animated Branded Logo -->
+      <div class="w-20 h-20 rounded-3xl bg-emerald-700 text-white flex items-center justify-center shadow-2xl splash-logo-ring mb-5">
+        <span class="material-symbols-rounded text-4xl">point_of_sale</span>
+      </div>
+
+      <!-- App Title & Tagline -->
+      <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white">Kasir Mami</h1>
+      <p class="text-xs text-stone-400 font-medium mt-1">POS Kasir UMKM Pintar & Ramah Lansia</p>
+
+      <!-- Smooth Progress Indicator -->
+      <div class="w-48 h-1.5 bg-stone-800 rounded-full overflow-hidden mt-8">
+        <div class="h-full bg-emerald-500 rounded-full animate-[pulse_1s_infinite] w-full origin-left"></div>
+      </div>
+
+      <p id="splashStatusText" class="text-[11px] text-stone-500 font-semibold mt-3">Menyiapkan sistem kasir...</p>
+    </div>
+  </div>
 
   <!-- TOP APP BAR (Crisp Clean White & High-Contrast Forest Emerald - Ultra Readable & Senior Friendly) -->
   <header

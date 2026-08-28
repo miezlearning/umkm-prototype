@@ -1,16 +1,19 @@
 {
-  "name": "Kasir Mami - POS UMKM",
+  "name": "Kasir Mami - POS UMKM Pintar",
   "short_name": "Kasir Mami",
-  "description": "Aplikasi Kasir POS Sederhana & Ramah Lansia untuk UMKM",
+  "description": "Aplikasi Kasir POS Sederhana, Cepat, dan Ramah Lansia untuk UMKM",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#FAFAF9",
-  "theme_color": "#1C1917",
+  "orientation": "any",
+  "background_color": "#FFFFFF",
+  "theme_color": "#047857",
+  "categories": ["business", "finance", "utilities"],
   "icons": [
     {
       "src": "icon.svg",
       "sizes": "192x192 512x512",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }

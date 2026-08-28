@@ -169,17 +169,32 @@ function registerSW() {
 }
 
 // ================= APP INITIALIZATION =================
+function dismissSplashScreen() {
+  const splash = document.getElementById('appSplashScreen');
+  if (splash) {
+    setTimeout(() => {
+      splash.classList.add('splash-hidden');
+      setTimeout(() => {
+        splash.style.display = 'none';
+      }, 450);
+    }, 400);
+  }
+}
+
 export function init() {
-  // 1. Instant load from local storage (0ms first paint)
+  // 1. Initial skeleton preview if DOM not populated
+  pos.renderProductSkeletons(8);
+
+  // 2. Instant load from local storage
   initState();
   pos.renderOrderQueueTabs();
   pos.renderProducts();
   pos.renderCart();
 
-  // 2. Setup Service Worker for offline PWA
+  // 3. Setup Service Worker for offline PWA
   registerSW();
 
-  // 3. Setup Firebase Realtime Cloud Sync
+  // 4. Setup Firebase Realtime Cloud Sync
   setRemoteUpdateCallback((type) => {
     if (type === 'products') {
       pos.renderProducts();
@@ -196,10 +211,13 @@ export function init() {
 
   initFirebaseSync();
 
+  // 5. Dismiss Splash Screen smoothly
+  dismissSplashScreen();
+
   // Welcome Toast Notification
   setTimeout(() => {
     showToast(`Kasir [${state.storeProfile?.name || 'Toko'}] siap melayani`, 'success', 2500);
-  }, 300);
+  }, 700);
 }
 
 // ================= EXPORT GLOBAL NAMESPACE FOR HTML HANDLERS =================
@@ -233,6 +251,7 @@ const KasirApp = {
   handleQueueWheel: pos.handleQueueWheel,
   setCategory: pos.setCategory,
   renderProducts: pos.renderProducts,
+  renderProductSkeletons: pos.renderProductSkeletons,
   addToCart: pos.addToCart,
   updateCartQty: pos.updateCartQty,
   confirmClearCart: pos.confirmClearCart,
