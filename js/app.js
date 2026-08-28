@@ -74,8 +74,17 @@ export function openCloudModal() {
   const modal = document.getElementById('cloudModal');
   if (modal) {
     const storeDisplay = document.getElementById('cloudStoreIdDisplay');
+    const storeNameDisplay = document.getElementById('cloudStoreNameDisplay');
+    const storeIdShort = document.getElementById('cloudStoreIdShort');
+    
     if (storeDisplay) {
       storeDisplay.innerText = `${state.storeProfile?.name || 'Toko UMKM'} (${state.storeId})`;
+    }
+    if (storeNameDisplay) {
+      storeNameDisplay.innerText = state.storeProfile?.name || 'Kedai Usaha Mami';
+    }
+    if (storeIdShort) {
+      storeIdShort.innerText = state.storeId || 'default';
     }
     modal.classList.remove('hidden');
   }
