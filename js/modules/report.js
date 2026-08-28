@@ -19,7 +19,7 @@ export function setReportPeriod(period) {
     const btn = document.getElementById(`period-${p}`);
     if (btn) {
       if (p === period) {
-        btn.className = 'period-btn px-3 py-1.5 rounded-lg font-black text-xs sm:text-sm bg-amber-500 text-stone-950 shadow-sm transition';
+        btn.className = 'period-btn px-3 py-1.5 rounded-lg font-black text-xs sm:text-sm bg-emerald-600 text-stone-950 shadow-sm transition';
       } else {
         btn.className = 'period-btn px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-stone-600 hover:text-stone-900 transition';
       }
@@ -103,12 +103,12 @@ export function renderFinancialReport() {
       topList.innerHTML = `<div class="col-span-full text-center text-stone-400 text-xs py-2 font-bold">Belum ada penjualan menu pada periode ini</div>`;
     } else {
       topList.innerHTML = sortedItems.map(([name, qty], idx) => `
-        <div class="bg-amber-50/80 border border-amber-300/80 p-2 rounded-xl flex items-center justify-between shadow-sm">
+        <div class="bg-emerald-50/80 border border-emerald-300/80 p-2 rounded-xl flex items-center justify-between shadow-sm">
           <div class="truncate">
-            <span class="text-[10px] font-black text-amber-900">#${idx + 1}</span>
+            <span class="text-[10px] font-black text-emerald-900">#${idx + 1}</span>
             <p class="font-extrabold text-stone-800 text-xs truncate">${escapeHtml(name)}</p>
           </div>
-          <span class="px-2 py-0.5 bg-amber-300 text-stone-900 font-black text-xs rounded-lg">${qty}x</span>
+          <span class="px-2 py-0.5 bg-emerald-300 text-stone-900 font-black text-xs rounded-lg">${qty}x</span>
         </div>
       `).join('');
     }
@@ -130,7 +130,7 @@ export function renderFinancialReport() {
               <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="font-black text-stone-900 text-xs sm:text-sm">${formatRp(tx.total)}</span>
                 <span class="text-[10px] text-stone-500 font-bold">${dateStr}</span>
-                <span class="text-[9px] ${tx.method === 'QRIS' ? 'bg-amber-100 text-amber-900 font-black' : 'bg-stone-100 text-stone-800 font-black'} px-1.5 py-0.2 rounded">${tx.method || 'TUNAI'}</span>
+                <span class="text-[9px] ${tx.method === 'QRIS' ? 'bg-emerald-100 text-emerald-900 font-black' : 'bg-stone-100 text-stone-800 font-black'} px-1.5 py-0.2 rounded">${tx.method || 'TUNAI'}</span>
               </div>
               <p class="text-[11px] text-stone-600 truncate mt-0.5">${summaryItems}</p>
             </div>

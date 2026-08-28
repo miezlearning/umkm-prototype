@@ -58,38 +58,32 @@ export function updateSyncStatusUI(status, message) {
   syncStatus = status;
   const dotEl = document.getElementById('cloudStatusDot');
   const textEl = document.getElementById('cloudStatusText');
-  const badgeEl = document.getElementById('cloudStatusBadge');
   const modalStatusEl = document.getElementById('cloudModalStatusText');
-  const modalBadgeEl = document.getElementById('cloudModalStatusBadge');
 
   const statusMap = {
     online: {
-      dot: 'bg-emerald-400',
+      dot: 'bg-emerald-500',
       pulse: true,
       text: 'Cloud Sinkron',
-      badge: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-      label: '🟢 Terhubung Real-time'
+      color: 'text-emerald-700'
     },
     syncing: {
-      dot: 'bg-amber-400',
+      dot: 'bg-emerald-600',
       pulse: true,
       text: 'Menyinkronkan...',
-      badge: 'bg-amber-100 text-amber-900 border-amber-300',
-      label: '🔄 Menyinkronkan...'
+      color: 'text-emerald-800'
     },
     offline: {
       dot: 'bg-stone-400',
       pulse: false,
       text: 'Mode Offline',
-      badge: 'bg-stone-100 text-stone-700 border-stone-300',
-      label: '⚪ Mode Offline'
+      color: 'text-stone-600'
     },
     error: {
-      dot: 'bg-red-500',
+      dot: 'bg-rose-500',
       pulse: false,
       text: 'Koneksi Gangguan',
-      badge: 'bg-red-100 text-red-700 border-red-300',
-      label: '⚠️ Gangguan Cloud'
+      color: 'text-rose-700'
     }
   };
 
@@ -101,16 +95,9 @@ export function updateSyncStatusUI(status, message) {
   if (textEl) {
     textEl.innerText = current.text;
   }
-  if (badgeEl) {
-    badgeEl.className = `px-2 py-0.5 rounded-full text-[10px] font-black border ${current.badge}`;
-    badgeEl.innerText = current.label;
-  }
-  if (modalBadgeEl) {
-    modalBadgeEl.className = `px-2.5 py-1 rounded-full text-xs font-bold border ${current.badge}`;
-    modalBadgeEl.innerText = current.text;
-  }
   if (modalStatusEl) {
-    modalStatusEl.innerText = message || current.label;
+    modalStatusEl.innerText = message || current.text;
+    modalStatusEl.className = `text-xs font-bold ${current.color}`;
   }
 }
 

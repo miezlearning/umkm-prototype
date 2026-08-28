@@ -29,7 +29,7 @@ export function renderDynamicQrisCode() {
     badgeEl.innerText = isDynamic ? 'Nominal Pas' : 'Nominal Bebas';
     badgeEl.className = isDynamic 
       ? 'px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black'
-      : 'px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black';
+      : 'px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black';
   }
 
   if (qrisContainer) {
@@ -87,13 +87,13 @@ export function setPaymentMethod(method) {
   const btnFinish = document.getElementById('btnFinishPayment');
 
   if (method === 'cash') {
-    if (btnCash) btnCash.className = 'py-2.5 px-3 rounded-2xl border-2 border-amber-500 bg-amber-50 text-stone-950 font-black text-sm flex items-center justify-center gap-2 transition touch-target-large shadow-sm';
+    if (btnCash) btnCash.className = 'py-2.5 px-3 rounded-2xl border-2 border-emerald-600 bg-emerald-50 text-stone-950 font-black text-sm flex items-center justify-center gap-2 transition touch-target-large shadow-sm';
     if (btnQris) btnQris.className = 'py-2.5 px-3 rounded-2xl border-2 border-stone-200 bg-white text-stone-700 font-bold text-sm flex items-center justify-center gap-2 transition touch-target-large';
     if (cashSection) cashSection.classList.remove('hidden');
     if (qrisSection) qrisSection.classList.add('hidden');
     updateChangeDisplay();
   } else {
-    if (btnQris) btnQris.className = 'py-2.5 px-3 rounded-2xl border-2 border-amber-500 bg-amber-50 text-stone-950 font-black text-sm flex items-center justify-center gap-2 transition touch-target-large shadow-sm';
+    if (btnQris) btnQris.className = 'py-2.5 px-3 rounded-2xl border-2 border-emerald-600 bg-emerald-50 text-stone-950 font-black text-sm flex items-center justify-center gap-2 transition touch-target-large shadow-sm';
     if (btnCash) btnCash.className = 'py-2.5 px-3 rounded-2xl border-2 border-stone-200 bg-white text-stone-700 font-bold text-sm flex items-center justify-center gap-2 transition touch-target-large';
     if (cashSection) cashSection.classList.add('hidden');
     if (qrisSection) qrisSection.classList.remove('hidden');
@@ -110,9 +110,9 @@ export function calculateSplitBill(persons) {
 
   if (banner) {
     banner.innerHTML = `
-      <div class="flex items-center justify-between text-amber-950">
+      <div class="flex items-center justify-between text-emerald-950">
         <span>${persons} Orang:</span>
-        <span class="text-sm font-black text-amber-800">${formatRp(perPerson)} / orang</span>
+        <span class="text-sm font-black text-emerald-800">${formatRp(perPerson)} / orang</span>
       </div>
     `;
     banner.classList.remove('hidden');

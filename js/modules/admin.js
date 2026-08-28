@@ -11,14 +11,14 @@ export function renderAdminTable() {
   container.innerHTML = state.products.map(p => `
     <div class="p-2.5 sm:p-4 flex items-center justify-between gap-2 hover:bg-stone-50 transition border-b border-stone-100 last:border-0">
       <div class="flex items-center gap-2.5 min-w-0">
-        <span class="material-symbols-rounded text-xl sm:text-2xl text-stone-950 p-2 bg-amber-100/80 rounded-xl shrink-0 border border-amber-200">${p.icon || 'lunch_dining'}</span>
+        <span class="material-symbols-rounded text-xl sm:text-2xl text-stone-950 p-2 bg-emerald-100/80 rounded-xl shrink-0 border border-emerald-200">${p.icon || 'lunch_dining'}</span>
         <div class="truncate">
           <h4 class="font-extrabold text-stone-900 text-xs sm:text-base truncate">${escapeHtml(p.name)}</h4>
-          <p class="font-black text-amber-800 text-xs sm:text-base">${formatRp(p.price)} <span class="text-[10px] text-stone-400 font-normal">(${escapeHtml(p.category)})</span></p>
+          <p class="font-black text-emerald-800 text-xs sm:text-base">${formatRp(p.price)} <span class="text-[10px] text-stone-400 font-normal">(${escapeHtml(p.category)})</span></p>
         </div>
       </div>
       <div class="flex items-center gap-1 shrink-0">
-        <button onclick="window.KasirApp.openEditProductModal('${p.id}')" class="p-1.5 rounded-xl bg-amber-50 text-amber-950 hover:bg-amber-100 border border-amber-300 font-bold touch-target-large" title="Ubah menu">
+        <button onclick="window.KasirApp.openEditProductModal('${p.id}')" class="p-1.5 rounded-xl bg-emerald-50 text-emerald-950 hover:bg-emerald-100 border border-emerald-300 font-bold touch-target-large" title="Ubah menu">
           <span class="material-symbols-rounded text-base">edit</span>
         </button>
         <button onclick="window.KasirApp.deleteProduct('${p.id}')" class="p-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 font-bold touch-target-large" title="Hapus menu">
@@ -155,10 +155,10 @@ export function renderQrisPreview(payload) {
     const metaInfoEl = document.getElementById('qrisMetaInfoArea');
     if (metaInfoEl) {
       metaInfoEl.innerHTML = `
-        <div class="bg-amber-50 rounded-xl p-2.5 border border-amber-200 text-left text-xs flex flex-col gap-1 w-full">
+        <div class="bg-emerald-50 rounded-xl p-2.5 border border-emerald-200 text-left text-xs flex flex-col gap-1 w-full">
           <div class="flex items-center justify-between">
-            <span class="font-extrabold text-amber-950">${escapeHtml(meta.merchantName)}</span>
-            <span class="px-2 py-0.5 rounded bg-amber-200 text-amber-900 text-[10px] font-black">${escapeHtml(meta.acquirer)}</span>
+            <span class="font-extrabold text-emerald-950">${escapeHtml(meta.merchantName)}</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 text-[10px] font-black">${escapeHtml(meta.acquirer)}</span>
           </div>
           <p class="text-[11px] text-stone-600">NMID: <strong class="text-stone-900">${meta.nmid || '-'}</strong> | Kota: ${escapeHtml(meta.city || '-')}</p>
         </div>
@@ -175,7 +175,7 @@ export async function handleQrisImageUpload(event) {
   const statusEl = document.getElementById('qrisScanStatus');
   if (statusEl) {
     statusEl.innerText = '⏳ Sedang memindai gambar QRIS...';
-    statusEl.className = 'text-xs font-bold text-amber-700 block';
+    statusEl.className = 'text-xs font-bold text-emerald-700 block';
   }
 
   try {

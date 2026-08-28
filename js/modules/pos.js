@@ -15,10 +15,10 @@ export function renderOrderQueueTabs() {
     const isActive = q.id === state.activeQueueId;
     const itemCount = Object.values(q.cart).reduce((a, b) => a + b, 0);
     return `
-      <div class="active-queue-tab-wrapper flex items-center gap-1 rounded-xl px-2.5 py-1 ${isActive ? 'bg-stone-900 text-white font-black shadow-sm active-queue-tab ring-1 ring-amber-400/40' : 'bg-stone-100 text-stone-700 hover:bg-stone-200 font-bold'} transition shrink-0">
+      <div class="active-queue-tab-wrapper flex items-center gap-1 rounded-xl px-2.5 py-1 ${isActive ? 'bg-stone-900 text-white font-black shadow-sm active-queue-tab ring-1 ring-emerald-400/40' : 'bg-stone-100 text-stone-700 hover:bg-stone-200 font-bold'} transition shrink-0">
         <button onclick="window.KasirApp.switchOrderQueue('${q.id}')" class="text-xs flex items-center gap-1.5 touch-target-large">
           <span>${escapeHtml(q.name)}</span>
-          ${itemCount > 0 ? `<span class="px-1.5 py-0.2 rounded-full text-[9px] ${isActive ? 'bg-amber-500 text-stone-950 font-black' : 'bg-stone-300 text-stone-800 font-black'}">${itemCount}</span>` : ''}
+          ${itemCount > 0 ? `<span class="px-1.5 py-0.2 rounded-full text-[9px] ${isActive ? 'bg-emerald-600 text-stone-950 font-black' : 'bg-stone-300 text-stone-800 font-black'}">${itemCount}</span>` : ''}
         </button>
         <button onclick="window.KasirApp.deleteOrderQueue('${q.id}', event)" class="p-0.5 hover:bg-white/20 rounded-md text-xs flex items-center justify-center" title="Hapus / Tutup Antrian">
           <span class="material-symbols-rounded text-sm">close</span>
@@ -152,7 +152,7 @@ export function setCategory(cat) {
   });
   const activeBtn = document.getElementById(`cat-${cat}`);
   if (activeBtn) {
-    activeBtn.className = 'cat-pill py-2 px-1 sm:px-4 rounded-xl font-black text-xs sm:text-sm text-center bg-amber-500 text-stone-950 shadow-md transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large';
+    activeBtn.className = 'cat-pill py-2 px-1 sm:px-4 rounded-xl font-black text-xs sm:text-sm text-center bg-emerald-600 text-stone-950 shadow-md transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large';
   }
   renderProducts();
 }
@@ -185,16 +185,16 @@ export function renderProducts() {
     const qty = currentCart[product.id] || 0;
     const hasQty = qty > 0;
     return `
-      <div onclick="window.KasirApp.addToCart('${product.id}')" class="relative bg-white active:scale-[0.97] border-2 ${hasQty ? 'border-amber-500 bg-amber-50/50 shadow-md ring-2 ring-amber-400/30' : 'border-stone-200 hover:border-amber-300 shadow-sm'} rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between cursor-pointer transition touch-target-large">
+      <div onclick="window.KasirApp.addToCart('${product.id}')" class="relative bg-white active:scale-[0.97] border-2 ${hasQty ? 'border-emerald-600 bg-emerald-50/50 shadow-md ring-2 ring-emerald-400/30' : 'border-stone-200 hover:border-emerald-300 shadow-sm'} rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between cursor-pointer transition touch-target-large">
         
         ${hasQty ? `
-          <span class="absolute -top-2 -right-2 bg-amber-500 text-stone-950 font-black text-xs px-2.5 py-0.5 rounded-full shadow-md">
+          <span class="absolute -top-2 -right-2 bg-emerald-600 text-stone-950 font-black text-xs px-2.5 py-0.5 rounded-full shadow-md">
             ${qty}x
           </span>
         ` : ''}
 
         <div class="flex items-start justify-between gap-1">
-          <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl ${hasQty ? 'bg-amber-500 text-stone-950 font-black' : 'bg-stone-100 text-stone-700'} flex items-center justify-center shrink-0 transition">
+          <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl ${hasQty ? 'bg-emerald-600 text-stone-950 font-black' : 'bg-stone-100 text-stone-700'} flex items-center justify-center shrink-0 transition">
             <span class="material-symbols-rounded text-xl sm:text-2xl">${product.icon || 'lunch_dining'}</span>
           </div>
           <span class="text-[10px] font-bold text-stone-500 capitalize px-2 py-0.5 rounded-lg bg-stone-100">${escapeHtml(product.category)}</span>
@@ -202,12 +202,12 @@ export function renderProducts() {
 
         <div class="mt-2.5">
           <h3 class="font-extrabold text-stone-900 text-xs sm:text-base leading-tight line-clamp-2">${escapeHtml(product.name)}</h3>
-          <p class="font-black text-amber-700 text-sm sm:text-lg mt-0.5">${formatRp(product.price)}</p>
+          <p class="font-black text-emerald-700 text-sm sm:text-lg mt-0.5">${formatRp(product.price)}</p>
         </div>
 
-        <div class="mt-2 pt-1.5 border-t border-stone-100 flex items-center justify-between text-[11px] font-extrabold ${hasQty ? 'text-amber-900' : 'text-stone-500'}">
+        <div class="mt-2 pt-1.5 border-t border-stone-100 flex items-center justify-between text-[11px] font-extrabold ${hasQty ? 'text-emerald-900' : 'text-stone-500'}">
           <span>+ Tambah</span>
-          <span class="material-symbols-rounded text-base ${hasQty ? 'text-amber-600' : 'text-stone-400'}">add_circle</span>
+          <span class="material-symbols-rounded text-base ${hasQty ? 'text-emerald-700' : 'text-stone-400'}">add_circle</span>
         </div>
       </div>
     `;
@@ -305,12 +305,12 @@ export function renderCart() {
       <div class="py-2.5 flex items-center justify-between gap-1.5 border-b border-stone-100 last:border-0">
         <div class="flex-1 min-w-0">
           <h4 class="font-extrabold text-stone-900 text-xs sm:text-sm truncate">${escapeHtml(p.name)}</h4>
-          <p class="text-[11px] font-bold text-stone-500">${formatRp(p.price)} &times; ${qty} = <span class="text-amber-800 font-black">${formatRp(subtotal)}</span></p>
+          <p class="text-[11px] font-bold text-stone-500">${formatRp(p.price)} &times; ${qty} = <span class="text-emerald-800 font-black">${formatRp(subtotal)}</span></p>
         </div>
         <div class="flex items-center gap-1 shrink-0">
           <button onclick="window.KasirApp.updateCartQty('${id}', -1)" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-black text-sm flex items-center justify-center touch-target-large transition">-</button>
           <span class="w-5 text-center font-black text-xs text-stone-800">${qty}</span>
-          <button onclick="window.KasirApp.updateCartQty('${id}', 1)" class="w-7 h-7 rounded-lg bg-amber-500 hover:bg-amber-600 text-stone-950 font-black text-sm flex items-center justify-center touch-target-large shadow-sm transition">+</button>
+          <button onclick="window.KasirApp.updateCartQty('${id}', 1)" class="w-7 h-7 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-stone-950 font-black text-sm flex items-center justify-center touch-target-large shadow-sm transition">+</button>
         </div>
       </div>
     `;
