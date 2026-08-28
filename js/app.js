@@ -3,6 +3,7 @@
  */
 
 import { initState, state } from './state.js';
+import { getStorageKeys } from './config.js';
 import { showToast, playClick } from './utils.js';
 import * as pos from './modules/pos.js';
 import * as payment from './modules/payment.js';
@@ -150,6 +151,20 @@ export function saveNewStoreCreation(e) {
 
   const cleanId = storeName.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
   if (cleanId) {
+    // Simpan profil toko awal untuk toko baru
+    const newKeys = getStorageKeys(cleanId);
+    const newProfile = {
+      id: cleanId,
+      name: storeName,
+      city: 'Indonesia',
+      nmid: '',
+      acquirer: 'POS UMKM'
+    };
+    try {
+      localStorage.setItem(newKeys.PROFILE, JSON.stringify(newProfile));
+      localStorage.setItem('kasir_active_store_id', cleanId);
+    } catch (err) {}
+
     const baseUrl = window.location.origin + window.location.pathname;
     closeCreateStoreModal();
     showToast(`Membuka toko baru: ${storeName}...`, 'success');
@@ -194,18 +209,29 @@ export function init() {
   // 3. Setup Service Worker for offline PWA
   registerSW();
 
-  // 4. Setup Firebase Realtime Cloud Sync
+  // 4. Setup Firebase Realtime Cloud Sync (Smart Smooth Live Update)
   setRemoteUpdateCallback((type) => {
+    const viewPos = document.getElementById('viewPos');
+    const viewAdmin = document.getElementById('viewAdmin');
+    const viewReport = document.getElementById('viewReport');
+
     if (type === 'products') {
-      pos.renderProducts();
-      admin.renderAdminTable();
-      pos.renderCart();
+      if (viewPos && !viewPos.classList.contains('hidden')) {
+        pos.renderProducts();
+        pos.renderCart();
+      }
+      if (viewAdmin && !viewAdmin.classList.contains('hidden')) {
+        admin.renderAdminTable();
+      }
     } else if (type === 'transactions' || type === 'expenses') {
-      report.renderFinancialReport();
+      if (viewReport && !viewReport.classList.contains('hidden')) {
+        report.renderFinancialReport();
+      }
     } else if (type === 'queues') {
-      pos.renderOrderQueueTabs();
-      pos.renderCart();
-      pos.renderProducts();
+      if (viewPos && !viewPos.classList.contains('hidden')) {
+        pos.renderOrderQueueTabs();
+        pos.renderCart();
+      }
     }
   });
 
