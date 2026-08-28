@@ -3,7 +3,7 @@
  */
 
 import { state, saveQueues, getCurrentCart, getActiveQueue, calculateCartTotal } from '../state.js';
-import { formatRp, playBeep, escapeHtml, showToast } from '../utils.js';
+import { formatRp, playBeep, escapeHtml, showToast, showConfirmDialog } from '../utils.js';
 import { syncSaveQueues } from '../firebase.js';
 
 // ================= MULTI-ORDER QUEUE =================
@@ -156,7 +156,12 @@ export function openRenameQueueModal() {
   const input = document.getElementById('renameQueueInput');
   if (input) input.value = cur.name;
   if (modal) modal.classList.remove('hidden');
-  if (input) setTimeout(() => { input.focus(); input.select(); }, 100);
+  if (input) {
+    requestAnimationFrame(() => {
+      input.focus();
+      input.select();
+    });
+  }
 }
 
 export function closeRenameQueueModal() {
@@ -185,32 +190,51 @@ export function saveQueueRename(e) {
   }
 }
 
-export function deleteCurrentActiveQueue() {
+export async function deleteCurrentActiveQueue() {
   const cur = getActiveQueue();
   if (!cur) return;
 
+  const itemCount = Object.values(cur.cart).reduce((a, b) => a + b, 0);
+
   if (state.orderQueues.length <= 1) {
-    const itemCount = Object.values(cur.cart).reduce((a, b) => a + b, 0);
     if (itemCount > 0) {
-      if (confirm(`Kosongkan semua pesanan pada "${cur.name}"?`)) {
+      const ok = await showConfirmDialog({
+        title: 'Kosongkan Pesanan',
+        message: `Kosongkan semua pesanan pada "${cur.name}"?`,
+        confirmText: 'Kosongkan',
+        confirmType: 'danger',
+        icon: 'remove_shopping_cart'
+      });
+      if (ok) {
         cur.cart = {};
         saveQueues();
         syncSaveQueues(state.orderQueues);
         renderOrderQueueTabs();
         renderCart();
         renderProducts();
+        showToast(`Pesanan pada "${cur.name}" telah dikosongkan.`, 'info');
       }
+    } else {
+      showToast(`Antrian "${cur.name}" sudah kosong.`, 'info');
     }
     return;
   }
 
-  const itemCount = Object.values(cur.cart).reduce((a, b) => a + b, 0);
-  const msg = itemCount > 0 
-    ? `Tutup dan hapus "${cur.name}" yang masih berisi ${itemCount} pesanan?`
-    : `Tutup antrian "${cur.name}"?`;
-
-  if (confirm(msg)) {
+  if (itemCount > 0) {
+    const ok = await showConfirmDialog({
+      title: 'Tutup Antrian Pesanan',
+      message: `"${cur.name}" masih berisi ${itemCount} pesanan. Yakin ingin menutup dan menghapus antrian ini?`,
+      confirmText: 'Tutup Antrian',
+      confirmType: 'danger',
+      icon: 'delete_sweep'
+    });
+    if (ok) {
+      deleteOrderQueue(cur.id);
+      showToast(`Antrian "${cur.name}" telah ditutup.`, 'info');
+    }
+  } else {
     deleteOrderQueue(cur.id);
+    showToast(`Antrian "${cur.name}" telah ditutup.`, 'info');
   }
 }
 
@@ -374,10 +398,17 @@ export function updateCartQty(productId, delta) {
   renderProducts();
 }
 
-export function confirmClearCart() {
+export async function confirmClearCart() {
   const q = getActiveQueue();
   if (!q || Object.keys(q.cart).length === 0) return;
-  if (confirm(`Kosongkan semua pesanan di ${q.name}?`)) {
+  const ok = await showConfirmDialog({
+    title: 'Kosongkan Pesanan',
+    message: `Hapus semua item pesanan di ${q.name}?`,
+    confirmText: 'Kosongkan',
+    confirmType: 'danger',
+    icon: 'remove_shopping_cart'
+  });
+  if (ok) {
     q.cart = {};
     saveQueues();
     syncSaveQueues(state.orderQueues);
@@ -385,6 +416,7 @@ export function confirmClearCart() {
     renderOrderQueueTabs();
     renderCart();
     renderProducts();
+    showToast(`Pesanan pada ${q.name} telah dikosongkan.`, 'info');
   }
 }
 

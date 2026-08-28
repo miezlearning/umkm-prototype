@@ -838,6 +838,29 @@
     </button>
   </nav>
 
+  <!-- ==================== MODAL: CUSTOM M3 CONFIRMATION DIALOG ==================== -->
+  <div id="customConfirmModal"
+    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div
+      class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col">
+      <div class="p-5 sm:p-6 flex flex-col gap-3 text-center sm:text-left">
+        <div class="w-12 h-12 rounded-2xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center mx-auto sm:mx-0">
+          <span id="customConfirmIcon" class="material-symbols-rounded text-2xl">warning</span>
+        </div>
+        <div>
+          <h3 id="customConfirmTitle" class="text-base sm:text-lg font-black text-stone-900">Konfirmasi Tindakan</h3>
+          <p id="customConfirmMessage" class="text-xs sm:text-sm text-stone-600 font-medium mt-1 leading-relaxed"></p>
+        </div>
+      </div>
+      <div class="p-3.5 bg-stone-50 border-t border-stone-100 flex items-center justify-end gap-2">
+        <button id="customConfirmCancelBtn" type="button"
+          class="px-4 py-2.5 rounded-xl bg-white border border-stone-200 hover:bg-stone-100 font-bold text-stone-700 text-xs sm:text-sm touch-target-large">Batal</button>
+        <button id="customConfirmOkBtn" type="button"
+          class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs sm:text-sm touch-target-large shadow">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== MODAL: GANTI NAMA ANTRIAN / MEJA ==================== -->
   <div id="renameQueueModal"
     class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -950,7 +973,7 @@
 
         <div>
           <label class="block text-stone-700 font-bold mb-1 text-xs sm:text-sm">Jumlah Biaya (Rp) *</label>
-          <input type="number" id="expAmount" required min="500" step="500" placeholder="Contoh: 25000"
+          <input type="number" id="expAmount" required min="0" step="any" placeholder="Contoh: 25000"
             class="w-full p-2.5 rounded-xl border border-stone-300 focus:border-emerald-600 focus:outline-none text-base font-bold text-red-600">
         </div>
 
@@ -999,7 +1022,7 @@
 
         <div>
           <label class="block text-stone-700 font-bold mb-1 text-xs sm:text-sm">Harga (Rp) *</label>
-          <input type="number" id="prodPrice" required min="100" step="500" placeholder="Contoh: 15000"
+          <input type="number" id="prodPrice" required min="0" step="any" placeholder="Contoh: 15000"
             class="w-full p-2.5 rounded-xl border border-stone-300 focus:border-emerald-600 focus:outline-none text-base font-bold text-emerald-700">
         </div>
 
@@ -1048,7 +1071,7 @@
 
             <div id="stockInputContainer" class="hidden mt-1 flex items-center gap-2">
               <span class="text-xs font-bold text-stone-700">Sisa Stok:</span>
-              <input type="number" id="prodStock" min="0" step="1" placeholder="Contoh: 20"
+              <input type="number" id="prodStock" min="0" step="any" placeholder="Contoh: 20"
                 class="w-24 p-2 rounded-xl border border-stone-300 focus:border-emerald-600 focus:outline-none text-sm font-bold text-right bg-white">
               <span class="text-xs text-stone-500 font-medium">porsi / item</span>
             </div>

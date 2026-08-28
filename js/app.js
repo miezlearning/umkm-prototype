@@ -117,7 +117,9 @@ export function openCreateStoreModal() {
   const input = document.getElementById('newStoreNameInput');
   if (input) input.value = '';
   if (modal) modal.classList.remove('hidden');
-  if (input) setTimeout(() => input.focus(), 100);
+  if (input) {
+    requestAnimationFrame(() => input.focus());
+  }
 }
 
 export function closeCreateStoreModal() {
@@ -136,9 +138,7 @@ export function saveNewStoreCreation(e) {
     const baseUrl = window.location.origin + window.location.pathname;
     closeCreateStoreModal();
     showToast(`Membuka toko baru: ${storeName}...`, 'success');
-    setTimeout(() => {
-      window.location.href = `${baseUrl}?store=${encodeURIComponent(cleanId)}`;
-    }, 600);
+    window.location.href = `${baseUrl}?store=${encodeURIComponent(cleanId)}`;
   }
 }
 
@@ -184,7 +184,7 @@ export function init() {
   // Welcome Toast Notification
   setTimeout(() => {
     showToast(`Kasir [${state.storeProfile?.name || 'Toko'}] siap melayani`, 'success', 2500);
-  }, 400);
+  }, 300);
 }
 
 // ================= EXPORT GLOBAL NAMESPACE FOR HTML HANDLERS =================

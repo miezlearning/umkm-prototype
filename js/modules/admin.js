@@ -1,5 +1,5 @@
 import { state, saveProducts, saveQueues, saveHistory, saveExpenses, saveQrisPayload } from '../state.js';
-import { formatRp, escapeHtml, showToast } from '../utils.js';
+import { formatRp, escapeHtml, showToast, showConfirmDialog } from '../utils.js';
 import { renderProducts, renderCart } from './pos.js';
 import { syncSaveProduct, syncDeleteProduct, forceUploadAllToCloud, syncSaveQrisPayload } from '../firebase.js';
 import { decodeQRFromImage, renderQRToContainer } from '../qris.js';
@@ -189,10 +189,17 @@ export function saveProduct(e) {
   showToast(id ? `Menu "${name}" berhasil diperbarui!` : `Menu "${name}" berhasil ditambahkan!`, 'success');
 }
 
-export function deleteProduct(id) {
+export async function deleteProduct(id) {
   const p = state.products.find(prod => prod.id === id);
   const prodName = p ? p.name : 'ini';
-  if (confirm(`Hapus menu "${prodName}" dari kasir?`)) {
+  const ok = await showConfirmDialog({
+    title: 'Hapus Menu Kasir',
+    message: `Hapus menu "${prodName}" dari daftar kasir?`,
+    confirmText: 'Hapus Menu',
+    confirmType: 'danger',
+    icon: 'delete'
+  });
+  if (ok) {
     state.products = state.products.filter(p => p.id !== id);
     state.orderQueues.forEach(q => delete q.cart[id]);
     saveProducts();

@@ -3,7 +3,7 @@
  */
 
 import { state, saveExpenses, saveHistory } from '../state.js';
-import { formatRp, formatDateShort, formatDateFull, escapeHtml, showToast } from '../utils.js';
+import { formatRp, formatDateShort, formatDateFull, escapeHtml, showToast, showConfirmDialog } from '../utils.js';
 import { showReceipt } from './payment.js';
 import { 
   syncAddExpense, 
@@ -185,7 +185,7 @@ export function reprintTx(txId) {
 /**
  * HAPUS DATA HARI INI (Transaksi Penjualan & Pengeluaran Hari Ini Saja)
  */
-export function clearTodayData() {
+export async function clearTodayData() {
   const now = new Date();
   const todayStr = now.toDateString();
 
@@ -197,9 +197,15 @@ export function clearTodayData() {
     return;
   }
 
-  const confirmMsg = `⚠️ HAPUS DATA HARI INI?\n\n• ${todayTxCount} Transaksi Penjualan Hari Ini\n• ${todayExpCount} Catatan Pengeluaran Hari Ini\n\n(Catatan hari kemarin & hari-hari sebelumnya TETAP AMAN tersimpan).\n\nLanjutkan hapus data hari ini?`;
+  const ok = await showConfirmDialog({
+    title: 'Hapus Data Hari Ini?',
+    message: `Hapus ${todayTxCount} transaksi penjualan & ${todayExpCount} pengeluaran hari ini? (Data hari kemarin tetap aman tersimpan).`,
+    confirmText: 'Hapus Data Hari Ini',
+    confirmType: 'danger',
+    icon: 'delete_sweep'
+  });
 
-  if (confirm(confirmMsg)) {
+  if (ok) {
     state.transactions = state.transactions.filter(t => new Date(t.date).toDateString() !== todayStr);
     state.expenses = state.expenses.filter(e => new Date(e.date).toDateString() !== todayStr);
     saveHistory();
@@ -213,18 +219,25 @@ export function clearTodayData() {
 /**
  * HAPUS SATU TRANSAKSI SPESIFIK (Untuk koreksi jika salah input)
  */
-export function deleteTransaction(txId) {
+export async function deleteTransaction(txId) {
   const tx = state.transactions.find(t => t.id === txId);
   if (!tx) return;
 
   const itemSummary = tx.items.map(i => `${i.qty}x ${i.name}`).join(', ');
-  const confirmMsg = `Hapus transaksi ${tx.orderName || 'Pesanan'} senilai ${formatRp(tx.total)}?\n\nItem: ${itemSummary}\n\nData transaksi ini akan dihapus dari laporan.`;
+  const ok = await showConfirmDialog({
+    title: 'Hapus Transaksi Penjualan',
+    message: `Hapus transaksi ${tx.orderName || 'Pesanan'} senilai ${formatRp(tx.total)} (${itemSummary})?`,
+    confirmText: 'Hapus Transaksi',
+    confirmType: 'danger',
+    icon: 'delete'
+  });
 
-  if (confirm(confirmMsg)) {
+  if (ok) {
     state.transactions = state.transactions.filter(t => t.id !== txId);
     saveHistory();
     syncDeleteTransaction(txId);
     renderFinancialReport();
+    showToast('Catatan transaksi berhasil dihapus.', 'info');
   }
 }
 
@@ -268,14 +281,22 @@ export function saveExpense(e) {
   renderFinancialReport();
 }
 
-export function deleteExpense(id) {
+export async function deleteExpense(id) {
   const exp = state.expenses.find(e => e.id === id);
   const expName = exp ? `${exp.name} (${formatRp(exp.amount)})` : 'ini';
-  if (confirm(`Hapus catatan pengeluaran ${expName}?`)) {
+  const ok = await showConfirmDialog({
+    title: 'Hapus Catatan Pengeluaran',
+    message: `Hapus catatan pengeluaran ${expName}?`,
+    confirmText: 'Hapus Biaya',
+    confirmType: 'danger',
+    icon: 'delete'
+  });
+  if (ok) {
     state.expenses = state.expenses.filter(e => e.id !== id);
     saveExpenses();
     syncDeleteExpense(id);
     renderFinancialReport();
+    showToast('Catatan pengeluaran berhasil dihapus.', 'info');
   }
 }
 
@@ -342,12 +363,19 @@ export function clearTransactionHistory() {
   clearAllHistory();
 }
 
-export function clearAllHistory() {
+export async function clearAllHistory() {
   if (state.transactions.length === 0 && state.expenses.length === 0) {
     showToast('Riwayat transaksi dan pengeluaran sudah kosong.', 'info');
     return;
   }
-  if (confirm('PERINGATAN: Hapus SELURUH riwayat transaksi penjualan & pengeluaran (Semua Periode)?\n\nData yang telah dihapus tidak dapat dipulihkan kembali kecuali Anda memiliki file backup.')) {
+  const ok = await showConfirmDialog({
+    title: 'Hapus Seluruh Riwayat',
+    message: 'PERINGATAN: Hapus SELURUH riwayat transaksi penjualan & pengeluaran untuk semua periode? Data tidak dapat dipulihkan kembali.',
+    confirmText: 'Hapus Seluruh Data',
+    confirmType: 'danger',
+    icon: 'warning'
+  });
+  if (ok) {
     state.transactions = [];
     state.expenses = [];
     saveHistory();

@@ -16,8 +16,10 @@ export const formatRp = (num) => {
   }).format(num || 0);
 };
 
+let audioCtx = null;
+
 /**
- * Bunyikan audio beep taktil saat aksi kasir
+ * Bunyikan audio beep taktil saat aksi kasir (Instant 0ms Audio)
  * @param {number} freq Frekuensi audio (Hz)
  * @param {number} duration Durasi dalam detik
  */
@@ -25,16 +27,19 @@ export function playBeep(freq = 600, duration = 0.08) {
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
-    const ctx = new AudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    if (!audioCtx) audioCtx = new AudioCtx();
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
     osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(audioCtx.destination);
     osc.start();
-    osc.stop(ctx.currentTime + duration);
+    osc.stop(audioCtx.currentTime + duration);
   } catch (e) {
     // Ignore audio error if not permitted
   }
@@ -155,6 +160,60 @@ export function showToast(message, type = 'success', duration = 3000) {
   }
 }
 
+/**
+ * Custom Material Design 3 Confirmation Dialog (Pengganti confirm() browser)
+ * @param {object} options
+ * @returns {Promise<boolean>}
+ */
+export function showConfirmDialog({ 
+  title = 'Konfirmasi Tindakan', 
+  message = 'Apakah Anda yakin ingin melanjutkan?', 
+  confirmText = 'Ya, Lanjutkan', 
+  confirmType = 'danger',
+  icon = 'warning'
+} = {}) {
+  return new Promise((resolve) => {
+    let modal = document.getElementById('customConfirmModal');
+    if (!modal) {
+      // Fallback if modal container not in DOM
+      resolve(true);
+      return;
+    }
+
+    const titleEl = document.getElementById('customConfirmTitle');
+    const msgEl = document.getElementById('customConfirmMessage');
+    const iconEl = document.getElementById('customConfirmIcon');
+    const okBtn = document.getElementById('customConfirmOkBtn');
+    const cancelBtn = document.getElementById('customConfirmCancelBtn');
+
+    if (titleEl) titleEl.innerText = title;
+    if (msgEl) msgEl.innerText = message;
+    if (iconEl) iconEl.innerText = icon;
+    
+    if (okBtn) {
+      okBtn.innerText = confirmText;
+      okBtn.className = confirmType === 'danger'
+        ? 'px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs sm:text-sm touch-target-large shadow transition active:scale-95'
+        : 'px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-stone-950 font-black text-xs sm:text-sm touch-target-large shadow transition active:scale-95';
+    }
+
+    const cleanup = (result) => {
+      modal.classList.add('hidden');
+      if (okBtn) okBtn.onclick = null;
+      if (cancelBtn) cancelBtn.onclick = null;
+      resolve(result);
+    };
+
+    if (okBtn) okBtn.onclick = () => cleanup(true);
+    if (cancelBtn) cancelBtn.onclick = () => cleanup(false);
+
+    // Instant zero-delay display
+    modal.classList.remove('hidden');
+    playBeep(450, 0.06);
+  });
+}
+
 if (typeof window !== 'undefined') {
   window.showToast = showToast;
+  window.showConfirmDialog = showConfirmDialog;
 }
