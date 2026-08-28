@@ -20,9 +20,9 @@ export function setReportPeriod(period) {
     const btn = document.getElementById(`period-${p}`);
     if (btn) {
       if (p === period) {
-        btn.className = 'period-btn px-3 py-1.5 rounded-lg font-black text-xs sm:text-sm bg-emerald-600 text-stone-950 shadow-sm transition';
+        btn.className = 'period-btn px-4 py-2 rounded-xl font-black text-xs sm:text-sm bg-emerald-700 text-white shadow-sm transition';
       } else {
-        btn.className = 'period-btn px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-stone-600 hover:text-stone-900 transition';
+        btn.className = 'period-btn px-4 py-2 rounded-xl font-extrabold text-xs sm:text-sm text-stone-600 hover:text-stone-900 transition';
       }
     }
   });

@@ -652,192 +652,207 @@
       </div>
     </div>
 
-    <!-- ==================== SCREEN 4: LAPORAN KEUANGAN, PENGELUARAN & LABA BERSIH ==================== -->
-    <div id="viewReport" class="hidden flex-1 flex-col gap-3.5">
+    <!-- ==================== SCREEN 4: LAPORAN KEUANGAN & BUKU KAS ==================== -->
+    <div id="viewReport" class="hidden flex-1 flex-col gap-5 max-w-7xl mx-auto w-full pb-8">
 
-      <!-- Top Action & Period Filter Bar -->
+      <!-- Top Action & Period Filter Toolbar -->
       <div
-        class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-stone-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+        class="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-stone-200/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5">
 
-        <!-- Period Selector Tabs -->
-        <div class="flex items-center gap-1 bg-stone-100 p-1 rounded-xl">
+        <!-- Period Selector Tabs (Generous & High Contrast) -->
+        <div class="flex items-center gap-1.5 bg-stone-100 p-1.5 rounded-2xl border border-stone-200/60 self-start sm:self-auto">
           <button onclick="setReportPeriod('today')" id="period-today"
-            class="period-btn px-3 py-1.5 rounded-lg font-black text-xs sm:text-sm bg-emerald-600 text-stone-950 shadow-sm transition">
+            class="period-btn px-4 py-2 rounded-xl font-black text-xs sm:text-sm bg-emerald-700 text-white shadow-sm transition">
             Hari Ini
           </button>
           <button onclick="setReportPeriod('month')" id="period-month"
-            class="period-btn px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-stone-600 hover:text-stone-900 transition">
+            class="period-btn px-4 py-2 rounded-xl font-extrabold text-xs sm:text-sm text-stone-600 hover:text-stone-900 transition">
             Bulan Ini
           </button>
           <button onclick="setReportPeriod('all')" id="period-all"
-            class="period-btn px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-stone-600 hover:text-stone-900 transition">
-            Semua
+            class="period-btn px-4 py-2 rounded-xl font-extrabold text-xs sm:text-sm text-stone-600 hover:text-stone-900 transition">
+            Semua Waktu
           </button>
         </div>
 
         <!-- Action Buttons: Catat Pengeluaran, WA Share, CSV Export -->
-        <div class="flex items-center gap-1.5 flex-wrap">
+        <div class="flex items-center gap-2 flex-wrap">
           <button onclick="openExpenseModal()"
-            class="flex-1 sm:flex-none px-3 py-2 rounded-xl bg-stone-800 hover:bg-stone-900 text-white font-extrabold text-xs flex items-center justify-center gap-1 shadow transition touch-target-large">
-            <span class="material-symbols-rounded text-base text-emerald-400">receipt_long</span>
+            class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition touch-target-large active:scale-95">
+            <span class="material-symbols-rounded text-lg">receipt_long</span>
             <span>+ Catat Pengeluaran</span>
           </button>
           <button onclick="shareReportWhatsApp()"
-            class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1 shadow transition touch-target-large"
-            title="Kirim rekap ke WhatsApp">
-            <span class="material-symbols-rounded text-base">chat</span>
-            <span class="hidden sm:inline">Kirim WA</span>
+            class="px-3.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-extrabold text-xs sm:text-sm flex items-center gap-1.5 border border-stone-200 transition touch-target-large"
+            title="Kirim rekap laporan ke WhatsApp">
+            <span class="material-symbols-rounded text-lg text-emerald-700">chat</span>
+            <span>Kirim WA</span>
           </button>
           <button onclick="exportReportCSV()"
-            class="px-2.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center gap-1 transition touch-target-large"
+            class="px-3.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-extrabold text-xs sm:text-sm flex items-center gap-1.5 border border-stone-200 transition touch-target-large"
             title="Download Excel CSV">
-            <span class="material-symbols-rounded text-base">table_view</span>
-            <span class="hidden sm:inline">Excel</span>
+            <span class="material-symbols-rounded text-lg text-stone-600">table_view</span>
+            <span>Excel</span>
           </button>
         </div>
       </div>
 
-      <!-- 4 Core Financial Metric Cards -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3.5">
+      <!-- Core Financial Metric Cards (3 Spacious Cards) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-        <!-- Omset (Pemasukan) -->
-        <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-stone-200 flex flex-col justify-between">
+        <!-- 1. Omset (Pemasukan) -->
+        <div class="bg-white p-5 sm:p-6 rounded-3xl shadow-sm border border-stone-200/80 flex flex-col justify-between gap-4">
           <div class="flex items-center justify-between">
-            <span class="text-[10px] sm:text-xs font-bold text-stone-500 uppercase">Pemasukan (Omset)</span>
-            <span class="material-symbols-rounded text-xl text-emerald-700">arrow_downward</span>
-          </div>
-          <h3 id="statTotalRevenue" class="text-base sm:text-2xl font-black text-stone-900 mt-1 truncate">Rp 0</h3>
-          <span id="statRevenueSub" class="text-[10px] text-stone-400 font-semibold mt-0.5">0 Transaksi</span>
-        </div>
-
-        <!-- Total Pengeluaran -->
-        <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-stone-200 flex flex-col justify-between">
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] sm:text-xs font-bold text-stone-500 uppercase">Pengeluaran (Biaya)</span>
-            <span class="material-symbols-rounded text-xl text-red-600">arrow_upward</span>
-          </div>
-          <h3 id="statTotalExpenses" class="text-base sm:text-2xl font-black text-red-600 mt-1 truncate">Rp 0</h3>
-          <span id="statExpenseSub" class="text-[10px] text-stone-400 font-semibold mt-0.5">0 Catatan Biaya</span>
-        </div>
-
-        <!-- LABA BERSIH -->
-        <div
-          class="bg-gradient-to-br from-emerald-50 to-teal-50 p-3 sm:p-4 rounded-2xl shadow-md border-2 border-emerald-400/80 flex flex-col justify-between col-span-2 sm:col-span-1">
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] sm:text-xs font-black text-emerald-900 uppercase tracking-wider">UNTUNG BERSIH
-              (LABA)</span>
-            <span class="material-symbols-rounded text-xl text-emerald-700">savings</span>
-          </div>
-          <h3 id="statNetProfit" class="text-xl sm:text-3xl font-black text-emerald-700 mt-1 truncate">Rp 0</h3>
-          <span class="text-[10px] text-emerald-800 font-bold mt-0.5">Omset - Pengeluaran</span>
-        </div>
-
-        <!-- Rincian Tunai vs QRIS -->
-        <div
-          class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-stone-200 flex flex-col justify-between col-span-2 sm:col-span-1">
-          <span class="text-[10px] sm:text-xs font-bold text-stone-500 uppercase">Kas Fisik & QRIS</span>
-          <div class="flex flex-col gap-0.5 mt-1 text-xs font-bold">
-            <div class="flex justify-between text-stone-700">
-              <span>Tunai di Laci:</span>
-              <span id="statCashTotal" class="font-black text-stone-900">Rp 0</span>
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center">
+                <span class="material-symbols-rounded text-2xl">arrow_downward</span>
+              </div>
+              <div>
+                <span class="text-xs font-black text-stone-400 uppercase tracking-wider">Total Omset</span>
+                <p class="text-[11px] text-stone-500 font-medium">Uang masuk dari penjualan</p>
+              </div>
             </div>
-            <div class="flex justify-between text-emerald-700">
-              <span>QRIS / Bank:</span>
-              <span id="statQrisTotal" class="font-black">Rp 0</span>
+          </div>
+          <div>
+            <h3 id="statTotalRevenue" class="text-2xl sm:text-3xl lg:text-4xl font-black text-stone-900 leading-tight">Rp 0</h3>
+            <span id="statRevenueSub" class="inline-block text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/80 mt-2">0 Transaksi Selesai</span>
+          </div>
+        </div>
+
+        <!-- 2. Total Pengeluaran -->
+        <div class="bg-white p-5 sm:p-6 rounded-3xl shadow-sm border border-stone-200/80 flex flex-col justify-between gap-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-2xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center">
+                <span class="material-symbols-rounded text-2xl">arrow_upward</span>
+              </div>
+              <div>
+                <span class="text-xs font-black text-stone-400 uppercase tracking-wider">Total Pengeluaran</span>
+                <p class="text-[11px] text-stone-500 font-medium">Biaya belanja, gas, operasional</p>
+              </div>
             </div>
+          </div>
+          <div>
+            <h3 id="statTotalExpenses" class="text-2xl sm:text-3xl lg:text-4xl font-black text-red-600 leading-tight">Rp 0</h3>
+            <span id="statExpenseSub" class="inline-block text-xs font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-md border border-red-200/80 mt-2">0 Catatan Biaya</span>
+          </div>
+        </div>
+
+        <!-- 3. LABA BERSIH (Hero Card) -->
+        <div class="bg-gradient-to-br from-emerald-50/90 to-teal-50/90 p-5 sm:p-6 rounded-3xl shadow-md border-2 border-emerald-400/80 flex flex-col justify-between gap-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-2xl bg-emerald-700 text-white flex items-center justify-center shadow-sm">
+                <span class="material-symbols-rounded text-2xl">savings</span>
+              </div>
+              <div>
+                <span class="text-xs font-black text-emerald-950 uppercase tracking-wider">UNTUNG BERSIH (LABA)</span>
+                <p class="text-[11px] text-emerald-800 font-medium">Omset - Pengeluaran</p>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 id="statNetProfit" class="text-2xl sm:text-3xl lg:text-4xl font-black text-emerald-900 leading-tight">Rp 0</h3>
+            <span class="inline-block text-xs font-bold text-emerald-900 bg-white/80 px-2.5 py-0.5 rounded-md border border-emerald-300 mt-2">Keuntungan Toko</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Rincian Kas Fisik di Laci & QRIS (Spacious Horizontal Bar) -->
+      <div class="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-stone-200/80 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+          <div class="w-10 h-10 rounded-2xl bg-stone-100 text-stone-700 flex items-center justify-center shrink-0">
+            <span class="material-symbols-rounded text-2xl">account_balance</span>
+          </div>
+          <div>
+            <h4 class="text-sm font-black text-stone-900">Rincian Saldo Uang Masuk</h4>
+            <p class="text-xs text-stone-500 font-medium">Pembagian uang tunai fisik dan non-tunai</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 w-full sm:w-auto">
+          <div class="bg-stone-50 border border-stone-200/80 rounded-2xl p-3 sm:px-4 flex flex-col">
+            <span class="text-[11px] font-bold text-stone-500 flex items-center gap-1">
+              <span class="material-symbols-rounded text-sm text-stone-700">payments</span> Uang Tunai di Laci:
+            </span>
+            <span id="statCashTotal" class="text-base sm:text-lg font-black text-stone-900 mt-0.5">Rp 0</span>
+          </div>
+          <div class="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-3 sm:px-4 flex flex-col">
+            <span class="text-[11px] font-bold text-emerald-800 flex items-center gap-1">
+              <span class="material-symbols-rounded text-sm text-emerald-700">qr_code_scanner</span> QRIS / Transfer:
+            </span>
+            <span id="statQrisTotal" class="text-base sm:text-lg font-black text-emerald-800 mt-0.5">Rp 0</span>
           </div>
         </div>
       </div>
 
-      <!-- Widget Menu Terlaris (Top Selling) -->
-      <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-stone-200 flex flex-col gap-2">
-        <h3 class="text-xs sm:text-sm font-black text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
-          <span class="material-symbols-rounded text-lg text-emerald-600">local_fire_department</span>
-          Menu Paling Laris Periode Ini:
-        </h3>
-        <div id="topSellingList" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <!-- Widget Menu Terlaris (Top Selling Products) -->
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-stone-200/80 flex flex-col gap-3.5">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs sm:text-sm font-black text-stone-900 uppercase tracking-wider flex items-center gap-2">
+            <span class="material-symbols-rounded text-xl text-amber-500">local_fire_department</span>
+            Menu Paling Laris Periode Ini
+          </h3>
+        </div>
+        <div id="topSellingList" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <!-- Rendered via JS -->
         </div>
       </div>
 
-      <!-- TABEL RIWAYAT TRANSAKSI & PENGELUARAN (DENGAN FITUR HAPUS DATA HARI INI & PER-TRANSAKSI) -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+      <!-- TABEL RIWAYAT TRANSAKSI & PENGELUARAN (Spacious Ledgers) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
         <!-- Kolom Kiri: Riwayat Penjualan (Col 7) -->
-        <div
-          class="lg:col-span-7 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-stone-200 flex flex-col gap-2.5">
-          <div class="flex items-center justify-between flex-wrap gap-1.5">
-            <h3 class="text-sm sm:text-base font-black text-stone-900 flex items-center gap-1">
-              <span class="material-symbols-rounded text-lg text-emerald-700">receipt</span>
-              Riwayat Penjualan
-            </h3>
-            <div class="flex items-center gap-1">
-              <!-- FITUR HAPUS DATA HARI INI JIKA ADA SALAH INPUT -->
+        <div class="lg:col-span-7 bg-white p-5 sm:p-6 rounded-3xl shadow-sm border border-stone-200/80 flex flex-col gap-4">
+          <div class="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-stone-100">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                <span class="material-symbols-rounded text-xl">receipt</span>
+              </div>
+              <h3 class="text-sm sm:text-base font-black text-stone-900">Riwayat Penjualan Kasir</h3>
+            </div>
+            
+            <div class="flex items-center gap-1.5">
               <button onclick="clearTodayData()"
-                class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl font-extrabold text-[11px] flex items-center gap-1 border border-red-200 transition touch-target-large shadow-sm"
+                class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl font-black text-xs flex items-center gap-1 border border-red-200 transition touch-target-large shadow-sm"
                 title="Hapus seluruh data transaksi & pengeluaran HARI INI jika ada salah input">
                 <span class="material-symbols-rounded text-base text-red-600">history_toggle_off</span>
                 <span>Hapus Data Hari Ini</span>
               </button>
               <button onclick="clearAllHistory()"
-                class="p-1 text-stone-400 hover:text-red-600 font-bold rounded-lg transition"
+                class="p-1.5 text-stone-400 hover:text-red-600 rounded-xl transition hover:bg-stone-100"
                 title="Hapus seluruh riwayat semua periode">
-                <span class="material-symbols-rounded text-base">delete_forever</span>
+                <span class="material-symbols-rounded text-lg">delete_forever</span>
               </button>
             </div>
           </div>
-          <div id="txHistoryCardList" class="divide-y divide-stone-100 max-h-72 overflow-y-auto custom-scroll">
+          
+          <div id="txHistoryCardList" class="divide-y divide-stone-100 max-h-[460px] overflow-y-auto custom-scroll">
             <!-- Rendered via JS -->
           </div>
         </div>
 
         <!-- Kolom Kanan: Catatan Pengeluaran Biaya (Col 5) -->
-        <div
-          class="lg:col-span-5 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-stone-200 flex flex-col gap-2.5">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm sm:text-base font-black text-stone-900 flex items-center gap-1">
-              <span class="material-symbols-rounded text-lg text-red-600">shopping_bag</span>
-              Catatan Pengeluaran
-            </h3>
+        <div class="lg:col-span-5 bg-white p-5 sm:p-6 rounded-3xl shadow-sm border border-stone-200/80 flex flex-col gap-4">
+          <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+                <span class="material-symbols-rounded text-xl">payments</span>
+              </div>
+              <h3 class="text-sm sm:text-base font-black text-stone-900">Catatan Pengeluaran</h3>
+            </div>
             <button onclick="openExpenseModal()"
-              class="text-emerald-900 font-black text-[11px] flex items-center gap-0.5 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200">
-              + Tambah
+              class="text-emerald-800 font-black text-xs flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 transition">
+              <span class="material-symbols-rounded text-base">add</span> Tambah
             </button>
           </div>
-          <div id="expenseHistoryList" class="divide-y divide-stone-100 max-h-72 overflow-y-auto custom-scroll">
+          
+          <div id="expenseHistoryList" class="divide-y divide-stone-100 max-h-[460px] overflow-y-auto custom-scroll">
             <!-- Rendered via JS -->
           </div>
         </div>
 
-      </div>
-
-      <!-- Widget Cloud Sync Multi-Device (Modern & Simple Card on Report Page) -->
-      <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-stone-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
-            <span class="material-symbols-rounded text-2xl text-emerald-700">cloud_sync</span>
-          </div>
-            <div>
-              <h3 class="text-sm sm:text-base font-extrabold text-stone-900">Sinkronisasi Cloud (Tablet & HP Mami)</h3>
-              <p class="text-[11px] text-stone-500 font-medium mt-0.5">
-                Data transaksi, menu, dan omset tersinkron otomatis antar-perangkat via Google Firebase.
-              </p>
-            </div>
-        </div>
-
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-          <button onclick="copyStoreShareLink()"
-            class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-stone-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition touch-target-large">
-            <span class="material-symbols-rounded text-base">share</span>
-            <span>Salin Link HP Mami</span>
-          </button>
-          <button onclick="forceSyncCloud()"
-            class="px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center justify-center gap-1 border border-stone-200 transition touch-target-large"
-            title="Unggah ulang semua data lokal ke cloud">
-            <span class="material-symbols-rounded text-base">sync</span>
-            <span>Sync Ulang</span>
-          </button>
-        </div>
       </div>
 
     </div>
