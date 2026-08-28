@@ -127,23 +127,23 @@ export async function initFirebaseSync() {
     }
 
     isInitialized = true;
-    updateSyncStatusUI('online', '🟢 Terhubung ke Cloud Firestore (Real-time)');
+    updateSyncStatusUI('online', 'Online & Terhubung');
 
     // Setup Realtime Listeners
     setupRealtimeListeners();
 
     // Listen for online/offline browser events
     window.addEventListener('online', () => {
-      updateSyncStatusUI('online', '🟢 Internet Tersambung. Data Sinkron Real-time');
+      updateSyncStatusUI('online', 'Online & Terhubung');
     });
 
     window.addEventListener('offline', () => {
-      updateSyncStatusUI('offline', '⚪ Internet Terputus. Kasir tetap berfungsi via Local Storage');
+      updateSyncStatusUI('offline', 'Mode Offline (Lokal)');
     });
 
   } catch (error) {
     console.error('Failed to initialize Firebase:', error);
-    updateSyncStatusUI('offline', '⚪ Menggunakan Database Lokal (Offline)');
+    updateSyncStatusUI('offline', 'Mode Offline (Lokal)');
   }
 }
 

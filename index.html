@@ -1253,21 +1253,21 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: CLOUD SYNC & MULTI-DEVICE ==================== -->
+  <!-- ==================== MODAL: HUBUNGKAN PERANGKAT ==================== -->
   <div id="cloudModal"
     class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div
       class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col">
       
-      <!-- Integrated Clean Header -->
+      <!-- Clean Header -->
       <div class="p-5 pb-3 flex items-start justify-between border-b border-stone-100">
         <div class="flex items-center gap-3">
           <div class="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0">
-            <span class="material-symbols-rounded text-2xl">cloud_sync</span>
+            <span class="material-symbols-rounded text-2xl">devices</span>
           </div>
           <div>
-            <h3 class="text-base sm:text-lg font-black text-stone-900 leading-tight">Sinkronisasi Cloud</h3>
-            <p class="text-xs text-stone-500 font-medium mt-0.5">Multi-Perangkat (Tablet Kasir & HP)</p>
+            <h3 class="text-base sm:text-lg font-black text-stone-900 leading-tight">Hubungkan Perangkat</h3>
+            <p class="text-xs text-stone-500 font-medium mt-0.5">Buka kasir di HP & tablet lain bersamaan</p>
           </div>
         </div>
         <button onclick="closeCloudModal()" class="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition">
@@ -1276,47 +1276,40 @@
       </div>
 
       <!-- Modal Body -->
-      <div class="p-5 flex flex-col gap-3.5">
+      <div class="p-5 flex flex-col gap-4">
         
-        <!-- Live Connection Status Card -->
-        <div class="bg-stone-50 border border-stone-200/80 rounded-2xl p-3 flex items-center justify-between">
-          <span class="text-xs font-bold text-stone-600">Status Server:</span>
-          <div class="flex items-center gap-1.5 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/80">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span id="cloudModalStatusText" class="text-xs font-extrabold text-emerald-800">Terhubung Real-Time</span>
+        <!-- Info Toko Sederhana & Status -->
+        <div class="bg-stone-50 border border-stone-200/80 rounded-2xl p-4 flex flex-col gap-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-stone-500">Toko Saat Ini</span>
+            <span id="cloudModalStatusText" class="font-extrabold text-emerald-700 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Online & Terhubung
+            </span>
           </div>
+          <h4 id="cloudStoreNameDisplay" class="font-black text-stone-900 text-lg leading-tight">Kedai Usaha Mami</h4>
+          <p class="text-xs text-stone-600 leading-relaxed">
+            Data pesanan, menu, dan laporan otomatis tersambung tanpa perlu input manual.
+          </p>
         </div>
 
-        <!-- Active Store Info & Share Link -->
-        <div class="bg-stone-50 border border-stone-200/80 rounded-2xl p-3.5 flex flex-col gap-2.5">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-black text-stone-400 uppercase tracking-wider">Toko Aktif Saat Ini</span>
-            <span class="text-[10px] font-bold px-2 py-0.5 bg-stone-200/80 text-stone-700 rounded-md">ID: <span id="cloudStoreIdShort">kedai_usaha_mami</span></span>
-          </div>
-          <div>
-            <h4 id="cloudStoreNameDisplay" class="font-black text-stone-900 text-sm sm:text-base leading-tight">Kedai Usaha Mami</h4>
-            <p class="text-[11px] text-stone-500 font-medium mt-0.5 leading-relaxed">
-              Database terisolasi mandiri. Buka link toko ini di HP karyawan untuk sinkronisasi otomatis.
-            </p>
-          </div>
-          <button onclick="copyStoreShareLink()"
-            class="mt-1 w-full py-2.5 px-3 rounded-xl bg-white hover:bg-emerald-50 text-emerald-800 border-2 border-emerald-300 font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition active:scale-95 shadow-sm">
-            <span class="material-symbols-rounded text-lg text-emerald-700">share</span>
-            <span>Salin Link Toko (WhatsApp)</span>
-          </button>
-        </div>
+        <!-- Tombol Utama: Buka di HP Lain via WhatsApp -->
+        <button onclick="copyStoreShareLink()"
+          class="w-full py-3 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-sm flex items-center justify-center gap-2 transition active:scale-95 shadow-sm">
+          <span class="material-symbols-rounded text-xl">share</span>
+          <span>Buka di HP Lain via WhatsApp</span>
+        </button>
 
-        <!-- Action Grid: Buat Toko Baru & Sync Ulang -->
-        <div class="grid grid-cols-2 gap-2 pt-1">
+        <!-- Aksi Tambahan: Perbarui Data & Buat Toko Baru -->
+        <div class="grid grid-cols-2 gap-2 pt-1 border-t border-stone-100">
           <button onclick="forceSyncCloud()"
-            class="py-2.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-extrabold text-xs flex items-center justify-center gap-1.5 border border-stone-200 transition touch-target-large">
+            class="py-2.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center justify-center gap-1.5 border border-stone-200 transition touch-target-large">
             <span class="material-symbols-rounded text-base text-stone-600">sync</span>
-            <span>Sync Ulang</span>
+            <span>Perbarui Data</span>
           </button>
 
           <button onclick="promptCreateNewStore()"
-            class="py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs flex items-center justify-center gap-1.5 transition touch-target-large shadow-sm">
-            <span class="material-symbols-rounded text-base">add_business</span>
+            class="py-2.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center justify-center gap-1.5 border border-stone-200 transition touch-target-large">
+            <span class="material-symbols-rounded text-base text-stone-600">storefront</span>
             <span>+ Toko Baru</span>
           </button>
         </div>
