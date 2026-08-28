@@ -58,10 +58,10 @@ body {
   }
 }
 
-/* Toast Notification Styles */
+/* Toast Notification Styles (Material 3 Floating Snackbar) */
 #toastContainer {
   position: fixed;
-  top: 1rem;
+  bottom: 5.5rem; /* Mobile: Melayang aman di atas bottom bar */
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
@@ -71,23 +71,35 @@ body {
   gap: 0.5rem;
   pointer-events: none;
   width: 90%;
-  max-width: 420px;
+  max-width: 400px;
+}
+
+/* Tablet & Desktop: Pindah ke Pojok Bawah-Kiri (Bottom-Left) agar tidak menghalangi kasir */
+@media (min-width: 768px) {
+  #toastContainer {
+    bottom: 1.5rem;
+    left: 1.5rem;
+    transform: none;
+    align-items: flex-start;
+    width: auto;
+    max-width: 380px;
+  }
 }
 
 .toast-item {
   pointer-events: auto;
-  animation: toastSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  transition: all 0.25s ease;
+  animation: toastSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: all 0.2s ease;
 }
 
 .toast-item.toast-out {
-  animation: toastSlideOut 0.2s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+  animation: toastSlideDown 0.18s cubic-bezier(0.7, 0, 0.84, 0) forwards;
 }
 
-@keyframes toastSlideIn {
+@keyframes toastSlideUp {
   from {
     opacity: 0;
-    transform: translateY(-20px) scale(0.95);
+    transform: translateY(16px) scale(0.96);
   }
   to {
     opacity: 1;
@@ -95,13 +107,13 @@ body {
   }
 }
 
-@keyframes toastSlideOut {
+@keyframes toastSlideDown {
   from {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
   to {
     opacity: 0;
-    transform: translateY(-15px) scale(0.92);
+    transform: translateY(12px) scale(0.94);
   }
 }
