@@ -13,6 +13,12 @@ export const DEFAULT_STORE_PROFILE = {
   acquirer: "Livin' by Mandiri"
 };
 
+export const GLOBAL_STORAGE_KEYS = {
+  ACTIVE_STORE_ID: 'kasir_active_store_id',
+  SAVED_STORES: 'kasir_saved_stores_registry_v1',
+  AUTH_ROLE: 'kasir_active_user_role' // 'owner' or 'cashier'
+};
+
 /**
  * Generate isolated localStorage keys per store ID (Multi-Tenant)
  * @param {string} storeId - ID unik toko UMKM
@@ -25,7 +31,8 @@ export function getStorageKeys(storeId = 'kedai_usaha_mami') {
     QUEUES: `kasir_${safeId}_queues_v1`,
     EXPENSES: `kasir_${safeId}_expenses_v1`,
     QRIS: `kasir_${safeId}_qris_payload_v1`,
-    PROFILE: `kasir_${safeId}_profile_v1`
+    PROFILE: `kasir_${safeId}_profile_v1`,
+    AUTH: `kasir_${safeId}_auth_v1`
   };
 }
 

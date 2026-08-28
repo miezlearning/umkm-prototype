@@ -2,8 +2,61 @@
  * Kasir Mami - Central State Management & Multi-Tenant Storage
  */
 
-import { getStorageKeys, DEFAULT_PRODUCTS, DEFAULT_QRIS_PAYLOAD, DEFAULT_STORE_PROFILE } from './config.js';
+import { 
+  getStorageKeys, 
+  GLOBAL_STORAGE_KEYS,
+  DEFAULT_PRODUCTS, 
+  DEFAULT_QRIS_PAYLOAD, 
+  DEFAULT_STORE_PROFILE 
+} from './config.js';
 import { parseQRISMetadata } from './qris.js';
+
+/**
+ * Dapatkan daftar toko yang tersimpan / pernah dibuka di perangkat ini
+ */
+export function getSavedStoresList() {
+  try {
+    const raw = localStorage.getItem(GLOBAL_STORAGE_KEYS.SAVED_STORES);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {}
+  
+  // Default jika masih kosong: daftarkan Kedai Usaha Mami
+  return [
+    {
+      id: 'kedai_usaha_mami',
+      name: 'Kedai Usaha Mami',
+      ownerName: 'Mami',
+      phone: '081345028895',
+      lastOpened: new Date().toISOString()
+    }
+  ];
+}
+
+export function registerStoreOnDevice(storeInfo) {
+  if (!storeInfo || !storeInfo.id) return;
+  const list = getSavedStoresList().filter(s => s.id !== storeInfo.id);
+  list.unshift({
+    id: storeInfo.id,
+    name: storeInfo.name || storeInfo.id,
+    ownerName: storeInfo.ownerName || 'Pemilik Toko',
+    phone: storeInfo.phone || '',
+    lastOpened: new Date().toISOString()
+  });
+  try {
+    localStorage.setItem(GLOBAL_STORAGE_KEYS.SAVED_STORES, JSON.stringify(list));
+  } catch (e) {}
+}
+
+export function removeStoreFromDevice(storeId) {
+  if (!storeId) return;
+  const list = getSavedStoresList().filter(s => s.id !== storeId);
+  try {
+    localStorage.setItem(GLOBAL_STORAGE_KEYS.SAVED_STORES, JSON.stringify(list));
+  } catch (e) {}
+}
 
 /**
  * Deteksi Store ID dari URL query string (?store=...) atau localStorage
@@ -14,20 +67,34 @@ export function resolveActiveStoreId() {
     const storeParam = params.get('store');
     if (storeParam && storeParam.trim()) {
       const sanitized = storeParam.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
-      localStorage.setItem('kasir_active_store_id', sanitized);
+      localStorage.setItem(GLOBAL_STORAGE_KEYS.ACTIVE_STORE_ID, sanitized);
+      sessionStorage.removeItem('is_logged_out_state');
       return sanitized;
     }
   } catch (e) {}
 
-  return localStorage.getItem('kasir_active_store_id') || 'kedai_usaha_mami';
+  if (sessionStorage.getItem('is_logged_out_state') === '1') {
+    return null;
+  }
+
+  return localStorage.getItem(GLOBAL_STORAGE_KEYS.ACTIVE_STORE_ID) || null;
 }
 
 export const activeStoreId = resolveActiveStoreId();
-export const currentStorageKeys = getStorageKeys(activeStoreId);
+export const currentStorageKeys = getStorageKeys(activeStoreId || 'kedai_usaha_mami');
 
 export const state = {
   storeId: activeStoreId,
-  storeProfile: { ...DEFAULT_STORE_PROFILE, id: activeStoreId },
+  isSessionActive: !!activeStoreId,
+  storeProfile: { ...DEFAULT_STORE_PROFILE, id: activeStoreId || 'toko_baru' },
+  auth: {
+    pin: '1234',
+    ownerName: 'Pemilik Toko',
+    phone: '081345028895',
+    requirePinForAdmin: false
+  },
+  userRole: localStorage.getItem(GLOBAL_STORAGE_KEYS.AUTH_ROLE) || 'owner', // 'owner' or 'cashier'
+  isUnlockedOwner: true,
   products: [],
   transactions: [],
   expenses: [],
@@ -45,7 +112,19 @@ export const state = {
  * Muat seluruh data dari LocalStorage ke State
  */
 export function initState() {
-  const keys = currentStorageKeys;
+  if (!state.storeId) {
+    state.isSessionActive = false;
+    state.storeProfile = { id: '', name: 'Aristotle POS', city: '', nmid: '', acquirer: 'Aristotle POS' };
+    state.products = [];
+    state.transactions = [];
+    state.expenses = [];
+    state.orderQueues = [{ id: 'q_1', name: 'Pesanan #1', cart: {} }];
+    updateUIStoreBranding();
+    return;
+  }
+
+  state.isSessionActive = true;
+  const keys = getStorageKeys(state.storeId);
 
   // 1. Muat QRIS Payload & Ekstrak Profil Toko
   const savedQris = localStorage.getItem(keys.QRIS);
@@ -133,16 +212,59 @@ export function initState() {
     state.orderQueues[0].name = 'Pesanan #1';
   }
 
+  // 7. Muat Auth & PIN Toko
+  const savedAuth = localStorage.getItem(keys.AUTH);
+  if (savedAuth) {
+    try {
+      state.auth = { ...state.auth, ...JSON.parse(savedAuth) };
+    } catch (e) {}
+  }
+
+  // Daftarkan toko aktif ini ke registry perangkat
+  registerStoreOnDevice({
+    id: state.storeId,
+    name: state.storeProfile?.name || state.storeId,
+    ownerName: state.auth?.ownerName || 'Pemilik Toko',
+    phone: state.auth?.phone || ''
+  });
+
   // Update UI Elements with Store Branding
   updateUIStoreBranding();
+}
+
+/**
+ * Simpan konfigurasi auth & PIN toko
+ */
+export function saveStoreAuth(authData) {
+  if (authData) {
+    state.auth = { ...state.auth, ...authData };
+  }
+  localStorage.setItem(currentStorageKeys.AUTH, JSON.stringify(state.auth));
+}
+
+/**
+ * Validasi PIN Toko
+ */
+export function verifyStorePin(pinInput) {
+  const cleanPin = String(pinInput || '').trim();
+  const currentPin = String(state.auth?.pin || '1234').trim();
+  return cleanPin === currentPin;
+}
+
+/**
+ * Atur Role Pengguna ('owner' atau 'cashier')
+ */
+export function setUserRole(role = 'owner') {
+  state.userRole = role;
+  localStorage.setItem(GLOBAL_STORAGE_KEYS.AUTH_ROLE, role);
 }
 
 /**
  * Perbarui teks nama toko & branding di seluruh layar (Header, struk, laporan)
  */
 export function updateUIStoreBranding() {
-  const storeName = state.storeProfile?.name || 'Kedai Usaha Mami';
-  const nmid = state.storeProfile?.nmid || '';
+  const storeName = state.storeId ? (state.storeProfile?.name || state.storeId) : 'Aristotle POS';
+  const nmid = state.storeId ? (state.storeProfile?.nmid || '') : '';
 
   // Header Title
   const headerTitleEl = document.getElementById('appHeaderStoreTitle') || document.querySelector('header h1');
@@ -168,7 +290,7 @@ export function updateUIStoreBranding() {
   }
   const cloudStoreIdEl = document.getElementById('cloudStoreIdDisplay');
   if (cloudStoreIdEl) {
-    cloudStoreIdEl.innerText = `${storeName} (${state.storeId})`;
+    cloudStoreIdEl.innerText = state.storeId ? `${storeName} (${state.storeId})` : 'Belum Ada Toko Terhubung';
   }
 }
 
@@ -177,6 +299,12 @@ export function saveStoreProfile(profile) {
     state.storeProfile = { ...state.storeProfile, ...profile };
   }
   localStorage.setItem(currentStorageKeys.PROFILE, JSON.stringify(state.storeProfile));
+  registerStoreOnDevice({
+    id: state.storeId,
+    name: state.storeProfile?.name || state.storeId,
+    ownerName: state.auth?.ownerName || 'Pemilik Toko',
+    phone: state.auth?.phone || ''
+  });
   updateUIStoreBranding();
 }
 

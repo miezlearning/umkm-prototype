@@ -17,15 +17,33 @@ export const formatRp = (num) => {
 };
 
 let audioCtx = null;
+let hasUserInteracted = false;
+
+const unlockAudio = () => {
+  hasUserInteracted = true;
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+};
+window.addEventListener('click', unlockAudio, { capture: true, passive: true });
+window.addEventListener('touchstart', unlockAudio, { capture: true, passive: true });
+window.addEventListener('keydown', unlockAudio, { capture: true, passive: true });
 
 function getAudioContext() {
+  if (!hasUserInteracted) return null;
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   if (!AudioCtx) return null;
-  if (!audioCtx) audioCtx = new AudioCtx();
+  if (!audioCtx) {
+    try {
+      audioCtx = new AudioCtx();
+    } catch (e) {
+      return null;
+    }
+  }
   if (audioCtx.state === 'suspended') {
     audioCtx.resume().catch(() => {});
   }
-  return audioCtx;
+  return audioCtx.state === 'running' ? audioCtx : null;
 }
 
 /**

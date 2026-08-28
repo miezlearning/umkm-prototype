@@ -5,15 +5,17 @@
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { 
-  getFirestore, 
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
   collection, 
   doc, 
   setDoc, 
   deleteDoc, 
   getDocs, 
   onSnapshot, 
-  writeBatch,
-  enableIndexedDbPersistence 
+  writeBatch
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 import { DEFAULT_PRODUCTS } from './config.js';
@@ -33,9 +35,15 @@ export const firebaseConfig = {
 
 // Store Identification getter
 export function getStoreId() {
-  return state.storeId || 'kedai_usaha_mami';
+  return state.storeId || null;
 }
-export const STORE_ID = getStoreId();
+
+export function unsubscribeAllListeners() {
+  listenersUnsubscribe.forEach(unsub => {
+    try { if (typeof unsub === 'function') unsub(); } catch (e) {}
+  });
+  listenersUnsubscribe = [];
+}
 
 // Internal Firebase & Firestore instance
 let app = null;
@@ -113,28 +121,34 @@ export async function initFirebaseSync() {
 
     // Initialize Firebase App
     app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
-
-    // Try to enable offline persistence for seamless offline work
+    
     try {
-      await enableIndexedDbPersistence(db);
-    } catch (err) {
-      if (err.code === 'failed-precondition') {
-        console.warn('Firebase Persistence failed: Multiple tabs open');
-      } else if (err.code === 'unimplemented') {
-        console.warn('Firebase Persistence not supported by browser');
-      }
+      db = initializeFirestore(app, {
+        localCache: persistentLocalCache({
+          tabManager: persistentMultipleTabManager()
+        })
+      });
+    } catch (cacheErr) {
+      db = getFirestore(app);
     }
 
     isInitialized = true;
-    updateSyncStatusUI('online', 'Online & Terhubung');
 
-    // Setup Realtime Listeners
-    setupRealtimeListeners();
+    // Only subscribe to Firestore if a store is actively selected
+    if (state.storeId) {
+      updateSyncStatusUI('online', 'Online & Terhubung');
+      setupRealtimeListeners();
+    } else {
+      updateSyncStatusUI('offline', 'Belum Masuk Toko');
+    }
 
     // Listen for online/offline browser events
     window.addEventListener('online', () => {
-      updateSyncStatusUI('online', 'Online & Terhubung');
+      if (state.storeId) {
+        updateSyncStatusUI('online', 'Online & Terhubung');
+      } else {
+        updateSyncStatusUI('offline', 'Belum Masuk Toko');
+      }
     });
 
     window.addEventListener('offline', () => {
@@ -150,14 +164,20 @@ export async function initFirebaseSync() {
 /**
  * Setup Realtime Listeners for Products, Transactions, Expenses, Queues, and Store Profile
  */
-function setupRealtimeListeners() {
+export function setupRealtimeListeners() {
   if (!db) return;
 
   const currentStoreId = getStoreId();
 
   // Clear existing listeners if any
-  listenersUnsubscribe.forEach(unsub => unsub && unsub());
-  listenersUnsubscribe = [];
+  unsubscribeAllListeners();
+
+  if (!currentStoreId) {
+    updateSyncStatusUI('offline', 'Belum Masuk Toko');
+    return;
+  }
+
+  updateSyncStatusUI('online', 'Online & Terhubung');
 
   // 1. PRODUCTS LISTENER
   const productsCol = collection(db, 'stores', currentStoreId, 'products');
@@ -269,6 +289,10 @@ function setupRealtimeListeners() {
         localStorage.setItem(currentStorageKeys.PROFILE, JSON.stringify(state.storeProfile));
         updateUIStoreBranding();
       }
+      if (data && data.auth) {
+        state.auth = { ...state.auth, ...data.auth };
+        localStorage.setItem(currentStorageKeys.AUTH, JSON.stringify(state.auth));
+      }
     }
   }, (error) => {
     console.error('Config onSnapshot error:', error);
@@ -284,6 +308,7 @@ export async function syncSaveQrisPayload(qrisPayload) {
     await setDoc(docRef, {
       qrisPayload,
       profile: state.storeProfile || null,
+      auth: state.auth || null,
       updatedAt: new Date().toISOString()
     }, { merge: true });
   } catch (e) {
@@ -302,6 +327,20 @@ export async function syncSaveStoreProfile(profile) {
     }, { merge: true });
   } catch (e) {
     console.error('Failed to sync store profile to cloud:', e);
+  }
+}
+
+export async function syncSaveStoreAuth(authData) {
+  if (!db) return;
+  try {
+    const currentStoreId = getStoreId();
+    const docRef = doc(db, 'stores', currentStoreId, 'data', 'config');
+    await setDoc(docRef, {
+      auth: authData,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (e) {
+    console.error('Failed to sync store auth to cloud:', e);
   }
 }
 

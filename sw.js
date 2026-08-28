@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kasir-mami-v12';
+const CACHE_NAME = 'aristotle-pos-v13';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
@@ -41,12 +41,15 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Let Firebase, WebSockets, and non-GET requests pass directly to network
+  const url = event.request.url;
+
+  // Only handle GET requests with HTTP/HTTPS schemes (filter out chrome-extension://, moz-extension://, etc.)
   if (
     event.request.method !== 'GET' ||
-    event.request.url.includes('firestore.googleapis.com') ||
-    event.request.url.includes('firebase') ||
-    event.request.url.includes('googleapis.com')
+    !url.startsWith('http') ||
+    url.includes('firestore.googleapis.com') ||
+    url.includes('firebase') ||
+    url.includes('googleapis.com')
   ) {
     return;
   }
@@ -55,10 +58,10 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
+        if (networkResponse && networkResponse.status === 200 && (networkResponse.type === 'basic' || networkResponse.type === 'cors')) {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
+            cache.put(event.request, responseToCache).catch(() => {});
           });
         }
         return networkResponse;

@@ -246,7 +246,9 @@ export function openQrisModal() {
   playClick('pop');
   const modal = document.getElementById('qrisConfigModal');
   const inputEl = document.getElementById('qrisPayloadInput');
+  const customNameEl = document.getElementById('qrisCustomStoreName');
   if (inputEl) inputEl.value = state.qrisPayload || '';
+  if (customNameEl) customNameEl.value = state.storeProfile?.name || '';
   renderQrisPreview(state.qrisPayload);
   if (modal) modal.classList.remove('hidden');
 }
@@ -322,7 +324,9 @@ export async function handleQrisImageUpload(event) {
 export function saveQrisSettings(e) {
   if (e) e.preventDefault();
   const inputEl = document.getElementById('qrisPayloadInput');
+  const customNameEl = document.getElementById('qrisCustomStoreName');
   const payload = inputEl ? inputEl.value.trim() : '';
+  const customName = customNameEl ? customNameEl.value.trim() : '';
 
   if (!payload || !payload.startsWith('000201')) {
     showToast('Format kode QRIS tidak valid. Harus diawali dengan "000201".', 'warning');
@@ -330,9 +334,13 @@ export function saveQrisSettings(e) {
   }
 
   saveQrisPayload(payload);
+  if (customName && customName !== state.storeProfile.name) {
+    state.storeProfile.name = customName;
+    saveStoreProfile();
+  }
   syncSaveQrisPayload(payload);
   closeQrisModal();
-  showToast(`Pengaturan QRIS untuk [${state.storeProfile.name}] berhasil disimpan!`, 'success');
+  showToast(`Pengaturan QRIS & nama toko [${state.storeProfile.name}] berhasil disimpan!`, 'success');
 }
 
 // ================= BACKUP & RESTORE DATA (JSON) =================
