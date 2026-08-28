@@ -141,12 +141,11 @@ export function initState() {
  * Perbarui teks nama toko & branding di seluruh layar (Header, struk, laporan)
  */
 export function updateUIStoreBranding() {
-  const storeName = state.storeProfile?.name || 'Kasir Kedai Mami Berkah';
+  const storeName = state.storeProfile?.name || 'Kedai Usaha Mami';
   const nmid = state.storeProfile?.nmid || '';
-  const city = state.storeProfile?.city || '';
 
   // Header Title
-  const headerTitleEl = document.querySelector('header h1');
+  const headerTitleEl = document.getElementById('appHeaderStoreTitle') || document.querySelector('header h1');
   if (headerTitleEl) headerTitleEl.innerText = storeName;
 
   // Struk Header
@@ -163,6 +162,10 @@ export function updateUIStoreBranding() {
   }
 
   // Cloud Store Indicator
+  const cloudStoreNameDisplay = document.getElementById('cloudStoreNameDisplay');
+  if (cloudStoreNameDisplay) {
+    cloudStoreNameDisplay.innerText = storeName;
+  }
   const cloudStoreIdEl = document.getElementById('cloudStoreIdDisplay');
   if (cloudStoreIdEl) {
     cloudStoreIdEl.innerText = `${storeName} (${state.storeId})`;

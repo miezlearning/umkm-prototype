@@ -1,7 +1,7 @@
 {
-  "name": "Kasir Mami - POS UMKM Pintar",
-  "short_name": "Kasir Mami",
-  "description": "Aplikasi Kasir POS Sederhana, Cepat, dan Ramah Lansia untuk UMKM",
+  "name": "Aristotle POS - Kasir UMKM Pintar",
+  "short_name": "Aristotle POS",
+  "description": "Sistem Kasir POS Sederhana, Cepat, dan Ramah Lansia untuk UMKM",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "any",

@@ -340,18 +340,20 @@ export function shareReportWhatsApp() {
 
   const netProfit = totalRevenue - totalExpenses;
   const periodLabel = state.currentPeriod === 'today' ? 'Hari Ini' : (state.currentPeriod === 'month' ? 'Bulan Ini' : 'Semua Periode');
+  const storeName = state.storeProfile?.name || 'Kasir UMKM';
 
-  const message = `📊 *LAPORAN KASIR MAMI* (${periodLabel})
-Tanggal: ${formatDateFull(new Date())}
+  const message = `📊 *REKAP LAPORAN PENJUALAN - ${storeName.toUpperCase()}*
+Periode: ${periodLabel} (${formatDateFull(new Date())})
 
 💰 *Pemasukan (Omset)*: ${formatRp(totalRevenue)} (${filteredTx.length} Transaksi)
    • Tunai di Laci: ${formatRp(totalCash)}
-   • QRIS/Transfer: ${formatRp(totalQris)}
+   • QRIS / Transfer: ${formatRp(totalQris)}
 
 🛒 *Total Pengeluaran*: ${formatRp(totalExpenses)}
-🏆 *LABA BERSIH (Untung)*: ${formatRp(netProfit)}
+🏆 *LABA BERSIH (UNTUNG)*: ${formatRp(netProfit)}
 
-_Laporan otomatis dibuat dari Kasir Mami POS_`;
+_Dibuat otomatis oleh Aristotle POS_
+_Layanan & Bantuan: 081345028895_`;
 
   window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
 }
@@ -363,6 +365,7 @@ export function exportReportCSV() {
     return;
   }
 
+  const storeSlug = (state.storeProfile?.name || 'Toko').replace(/[^a-zA-Z0-9]/g, '_');
   let csv = 'ID Transaksi,Tanggal,Nama Pesanan,Metode,Total,Uang Masuk,Kembalian,Menu Item\n';
   filteredTx.forEach(t => {
     const itemStr = t.items.map(i => `${i.qty}x ${i.name}`).join(' | ').replace(/,/g, ' ');
@@ -372,7 +375,7 @@ export function exportReportCSV() {
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = `Laporan_Kasir_Mami_${Date.now()}.csv`;
+  link.download = `Laporan_${storeSlug}_AristotlePOS_${Date.now()}.csv`;
   link.click();
   link.remove();
   showToast('File Excel CSV berhasil diunduh!', 'success');
