@@ -282,30 +282,46 @@ export function renderProducts() {
   grid.innerHTML = filtered.map(product => {
     const qty = currentCart[product.id] || 0;
     const hasQty = qty > 0;
+    const isReady = product.isAvailable !== false && (!product.trackStock || (product.stock || 0) > 0);
+
     return `
-      <div onclick="window.KasirApp.addToCart('${product.id}')" class="relative bg-white active:scale-[0.97] border-2 ${hasQty ? 'border-emerald-600 bg-emerald-50/50 shadow-md ring-2 ring-emerald-400/30' : 'border-stone-200 hover:border-emerald-300 shadow-sm'} rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between cursor-pointer transition touch-target-large">
+      <div onclick="window.KasirApp.addToCart('${product.id}')" 
+        class="relative bg-white active:scale-[0.97] border-2 ${!isReady ? 'opacity-65 bg-stone-50 border-stone-200 cursor-not-allowed' : (hasQty ? 'border-emerald-600 bg-emerald-50/50 shadow-md ring-2 ring-emerald-400/30' : 'border-stone-200 hover:border-emerald-300 shadow-sm')} rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between transition touch-target-large">
         
         ${hasQty ? `
-          <span class="absolute -top-2 -right-2 bg-emerald-600 text-stone-950 font-black text-xs px-2.5 py-0.5 rounded-full shadow-md">
+          <span class="absolute -top-2 -right-2 bg-emerald-600 text-stone-950 font-black text-xs px-2.5 py-0.5 rounded-full shadow-md z-10">
             ${qty}x
           </span>
         ` : ''}
 
+        ${!isReady ? `
+          <span class="absolute top-2 right-2 bg-red-600 text-white font-black text-[10px] sm:text-xs px-2 py-0.5 rounded-full shadow-md z-10">
+            HABIS
+          </span>
+        ` : ''}
+
         <div class="flex items-start justify-between gap-1">
-          <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl ${hasQty ? 'bg-emerald-600 text-stone-950 font-black' : 'bg-stone-100 text-stone-700'} flex items-center justify-center shrink-0 transition">
+          <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl ${hasQty ? 'bg-emerald-600 text-stone-950 font-black' : (isReady ? 'bg-stone-100 text-stone-700' : 'bg-stone-200 text-stone-400')} flex items-center justify-center shrink-0 transition">
             <span class="material-symbols-rounded text-xl sm:text-2xl">${product.icon || 'lunch_dining'}</span>
           </div>
-          <span class="text-[10px] font-bold text-stone-500 capitalize px-2 py-0.5 rounded-lg bg-stone-100">${escapeHtml(product.category)}</span>
+          <div class="flex flex-col items-end gap-1">
+            <span class="text-[10px] font-bold text-stone-500 capitalize px-2 py-0.5 rounded-lg bg-stone-100">${escapeHtml(product.category)}</span>
+            ${product.trackStock && isReady ? `
+              <span class="text-[9px] font-extrabold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                Sisa: ${product.stock}
+              </span>
+            ` : ''}
+          </div>
         </div>
 
         <div class="mt-2.5">
-          <h3 class="font-extrabold text-stone-900 text-xs sm:text-base leading-tight line-clamp-2">${escapeHtml(product.name)}</h3>
-          <p class="font-black text-emerald-700 text-sm sm:text-lg mt-0.5">${formatRp(product.price)}</p>
+          <h3 class="font-extrabold text-stone-900 text-xs sm:text-base leading-tight line-clamp-2 ${!isReady ? 'text-stone-500 line-through' : ''}">${escapeHtml(product.name)}</h3>
+          <p class="font-black ${isReady ? 'text-emerald-700' : 'text-stone-400'} text-sm sm:text-lg mt-0.5">${formatRp(product.price)}</p>
         </div>
 
-        <div class="mt-2 pt-1.5 border-t border-stone-100 flex items-center justify-between text-[11px] font-extrabold ${hasQty ? 'text-emerald-900' : 'text-stone-500'}">
-          <span>+ Tambah</span>
-          <span class="material-symbols-rounded text-base ${hasQty ? 'text-emerald-700' : 'text-stone-400'}">add_circle</span>
+        <div class="mt-2 pt-1.5 border-t border-stone-100 flex items-center justify-between text-[11px] font-extrabold ${!isReady ? 'text-red-500' : (hasQty ? 'text-emerald-900' : 'text-stone-500')}">
+          <span>${!isReady ? '❌ Stok Kosong' : '+ Tambah'}</span>
+          <span class="material-symbols-rounded text-base ${!isReady ? 'text-red-400' : (hasQty ? 'text-emerald-700' : 'text-stone-400')}">${!isReady ? 'block' : 'add_circle'}</span>
         </div>
       </div>
     `;
@@ -314,20 +330,34 @@ export function renderProducts() {
 
 // ================= CART OPERATIONS =================
 export function addToCart(productId) {
-  playBeep(700, 0.05);
+  const p = state.products.find(prod => prod.id === productId);
+  if (!p) return;
+
+  const isReady = p.isAvailable !== false && (!p.trackStock || (p.stock || 0) > 0);
+  if (!isReady) {
+    playBeep(300, 0.1);
+    showToast(`Menu "${p.name}" sedang HABIS / KOSONG!`, 'warning');
+    return;
+  }
+
   const q = getActiveQueue();
   if (q) {
-    q.cart[productId] = (q.cart[productId] || 0) + 1;
+    const currentQtyInCart = q.cart[productId] || 0;
+    if (p.trackStock && (p.stock || 0) <= currentQtyInCart) {
+      playBeep(300, 0.1);
+      showToast(`Stok "${p.name}" hanya tersisa ${p.stock}!`, 'warning');
+      return;
+    }
+
+    playBeep(700, 0.05);
+    q.cart[productId] = currentQtyInCart + 1;
     saveQueues();
     syncSaveQueues(state.orderQueues);
     renderOrderQueueTabs();
     renderCart();
     renderProducts();
 
-    const p = state.products.find(prod => prod.id === productId);
-    if (p) {
-      showToast(`+1 ${p.name} (${q.name})`, 'info', 1200);
-    }
+    showToast(`+1 ${p.name} (${q.name})`, 'info', 1200);
   }
 }
 

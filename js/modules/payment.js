@@ -1,7 +1,7 @@
-import { state, saveHistory, saveQueues, getCurrentCart, getActiveQueue, calculateCartTotal } from '../state.js';
+import { state, saveProducts, saveHistory, saveQueues, getCurrentCart, getActiveQueue, calculateCartTotal } from '../state.js';
 import { formatRp, formatDateShort, escapeHtml, showToast } from '../utils.js';
 import { renderOrderQueueTabs, renderCart, renderProducts, toggleMobileCartDrawer } from './pos.js';
-import { syncAddTransaction, syncSaveQueues } from '../firebase.js';
+import { syncAddTransaction, syncSaveQueues, syncSaveProduct } from '../firebase.js';
 import { generateDynamicQRIS, renderQRToContainer, parseQRISMetadata } from '../qris.js';
 
 let paymentMethod = 'cash'; // 'cash' or 'qris'
@@ -289,6 +289,24 @@ export function completeTransaction() {
   state.transactions.unshift(newTx);
   saveHistory();
   syncAddTransaction(newTx);
+
+  // Auto decrement stock for tracked items
+  let hasStockUpdate = false;
+  orderItems.forEach(item => {
+    const prod = state.products.find(p => p.id === item.id);
+    if (prod && prod.trackStock) {
+      prod.stock = Math.max(0, (prod.stock || 0) - item.qty);
+      if (prod.stock === 0) {
+        prod.isAvailable = false;
+      }
+      syncSaveProduct(prod);
+      hasStockUpdate = true;
+    }
+  });
+  if (hasStockUpdate) {
+    saveProducts();
+  }
+
   showReceipt(newTx);
 
   if (activeQueue) {

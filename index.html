@@ -1029,6 +1029,32 @@
           </div>
         </div>
 
+        <!-- Status Ketersediaan & Pelacakan Stok (Opsional) -->
+        <div class="bg-stone-50 p-3 rounded-2xl border border-stone-200 flex flex-col gap-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-stone-700">Status Menu:</span>
+            <label class="flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1 rounded-xl border border-stone-200">
+              <input type="checkbox" id="prodIsAvailable" class="w-4 h-4 accent-emerald-600 cursor-pointer" checked>
+              <span id="prodIsAvailableLabel" class="text-xs font-black text-emerald-800 select-none">Ready / Tersedia</span>
+            </label>
+          </div>
+
+          <div class="border-t border-stone-200 pt-2 flex flex-col gap-1.5">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="prodTrackStock" onchange="window.KasirApp.toggleTrackStockInput()" class="w-4 h-4 accent-emerald-600 cursor-pointer">
+              <span class="text-xs font-extrabold text-stone-800 select-none">Hitung Jumlah Stok (Opsional)</span>
+            </label>
+            <p class="text-[10px] text-stone-400 font-medium leading-tight">Biarkan tidak dicentang jika stok tanpa batas (seperti warung makan Mami).</p>
+
+            <div id="stockInputContainer" class="hidden mt-1 flex items-center gap-2">
+              <span class="text-xs font-bold text-stone-700">Sisa Stok:</span>
+              <input type="number" id="prodStock" min="0" step="1" placeholder="Contoh: 20"
+                class="w-24 p-2 rounded-xl border border-stone-300 focus:border-emerald-600 focus:outline-none text-sm font-bold text-right bg-white">
+              <span class="text-xs text-stone-500 font-medium">porsi / item</span>
+            </div>
+          </div>
+        </div>
+
         <div class="flex items-center justify-end gap-2 pt-2 border-t">
           <button type="button" onclick="closeProductModal()"
             class="px-3.5 py-2 rounded-xl bg-stone-100 font-bold text-stone-700 text-xs touch-target-large">Batal</button>
