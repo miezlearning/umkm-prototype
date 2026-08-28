@@ -1,262 +1,431 @@
 /**
- * Aristotle POS - Spotlight Tour Guide (Ramah Lansia)
- * Highlight langsung ke elemen UI + tooltip besar dengan animasi smooth.
- * Zero dependencies — pure CSS box-shadow spotlight trick.
+ * Aristotle POS - Responsive Spotlight Tour Guide (Ramah Lansia)
+ * Sorot langsung ke elemen spesifik dengan SVG Mask cutout + Glow Pulse + Pointer + Kartu Responsif.
  */
 
 import { playClick } from '../utils.js';
 
-// ponytail: box-shadow spotlight, no SVG clip-path or canvas. Upgrade if need custom shape holes.
 const TOUR_STEPS = [
   {
     selector: '#appHeaderStoreTitle',
-    title: '📌 Nama Toko Anda',
-    desc: 'Klik nama toko ini untuk melihat info koneksi cloud, membagikan kasir ke HP lain, atau logout dari toko.',
-    position: 'bottom',
+    fallbackSelector: 'header .cursor-pointer',
+    icon: 'storefront',
+    iconColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    title: 'Nama Toko & Koneksi HP',
+    desc: 'Klik nama toko ini untuk melihat status koneksi Cloud, membagikan link kasir ke HP/tablet karyawan, atau keluar (logout).',
     view: 'pos'
   },
   {
-    selector: '#orderQueueTabs',
-    title: '📋 Antrian / Meja Pelanggan',
-    desc: 'Di sini tampil semua antrian aktif. Klik tab antrian untuk pindah melayani pelanggan yang berbeda.',
-    position: 'bottom',
-    view: 'pos',
-    scrollTo: true
-  },
-  {
-    selectorFn: () => document.querySelector('[onclick="addNewOrderQueue()"]'),
-    title: '➕ Buka Antrian Baru',
-    desc: 'Klik tombol ini untuk membuka antrian/meja baru tanpa menghapus pesanan yang sedang berjalan.',
-    position: 'bottom',
+    selector: '#cat-all',
+    fallbackSelector: '.cat-pill',
+    icon: 'category',
+    iconColor: 'bg-amber-100 text-amber-800 border-amber-300',
+    title: 'Pilih Kategori & Cari Menu',
+    desc: 'Pilih kategori (Makanan, Minuman, Camilan) atau gunakan kolom pencarian untuk menemukan menu dengan cepat saat toko sedang ramai.',
     view: 'pos'
   },
   {
-    selector: '#productGrid',
-    title: '🍽️ Daftar Menu Jualan',
-    desc: 'Sentuh/klik gambar menu untuk menambahkannya ke struk pesanan. Jumlah otomatis bertambah jika disentuh lagi.',
-    position: 'top',
-    view: 'pos',
-    scrollTo: true
+    selector: '#productGrid > *:first-child',
+    fallbackSelector: '#productGrid',
+    icon: 'touch_app',
+    iconColor: 'bg-blue-100 text-blue-800 border-blue-300',
+    title: 'Sentuh Menu untuk Memesan',
+    desc: 'Cukup sentuh gambar menu untuk memasukkannya ke struk pesanan. Sentuh beberapa kali jika pembeli memesan lebih dari satu porsi.',
+    view: 'pos'
+  },
+  {
+    selector: 'button[onclick*="addNewOrderQueue"]',
+    fallbackSelector: '#orderQueueTabs',
+    icon: 'table_restaurant',
+    iconColor: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+    title: 'Buka Antrian / Meja Baru',
+    desc: 'Jika ada pelanggan baru datang saat pesanan sebelumnya belum dibayar, klik tombol "+ Antrian Baru" agar pesanan lama tidak hilang.',
+    view: 'pos'
   },
   {
     selector: '#btnCheckout',
-    title: '💰 Tombol BAYAR',
-    desc: 'Setelah pesanan diisi, klik tombol BAYAR untuk memilih metode pembayaran: Tunai (kembalian otomatis) atau QRIS.',
-    position: 'top',
+    fallbackSelector: '#cartTotalDisplay',
+    icon: 'payments',
+    iconColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    title: 'Bayar Tunai & QRIS Otomatis',
+    desc: 'Klik tombol BAYAR untuk memilih metode bayar: Tunai (uang kembalian dihitung otomatis) atau QRIS (QR Code nominal pas otomatis).',
     view: 'pos'
   },
   {
-    selector: '#btnNavReportMobile, #btnNavReportDesktop',
-    title: '📊 Tab Laporan & Laba',
-    desc: 'Klik tab ini untuk melihat omset penjualan hari ini, catat pengeluaran belanja, dan lihat laba bersih otomatis.',
-    position: 'top',
-    view: null // don't auto-switch, just highlight
+    selector: '#btnNavReportDesktop, #btnNavReportMobile',
+    fallbackSelector: 'button[onclick*="report"]',
+    icon: 'account_balance_wallet',
+    iconColor: 'bg-purple-100 text-purple-800 border-purple-300',
+    title: 'Laporan Omset & Laba Bersih',
+    desc: 'Buka menu Laporan setiap saat untuk melihat total uang masuk, mencatat biaya belanja pasar/operasional, dan melihat laba bersih riil toko.',
+    view: 'report'
   },
   {
-    selector: '#btnNavAdminMobile, #btnNavAdminDesktop',
-    title: '📦 Tab Kelola Menu',
-    desc: 'Klik tab ini untuk menambah menu baru, edit harga, atur stok porsi harian, dan pasang QRIS toko Anda.',
-    position: 'top',
-    view: null
+    selector: '#btnNavAdminDesktop, #btnNavAdminMobile',
+    fallbackSelector: 'button[onclick*="admin"]',
+    icon: 'inventory_2',
+    iconColor: 'bg-rose-100 text-rose-800 border-rose-300',
+    title: 'Kelola Menu & Pasang QRIS',
+    desc: 'Buka menu ini untuk menambah makanan baru, mengganti harga, mengatur stok porsi harian, dan upload barcode QRIS toko Anda sendiri.',
+    view: 'admin'
   }
 ];
 
 let currentStep = -1;
-let spotlightEl = null;
-let tooltipEl = null;
-let backdropEl = null;
+let elementsCreated = false;
 
-function ensureElements() {
-  if (backdropEl) return;
+let overlaySvg = null;
+let cutoutRect = null;
+let glowBox = null;
+let pointerBadge = null;
+let cardEl = null;
 
-  // Backdrop overlay
-  backdropEl = document.createElement('div');
-  backdropEl.id = 'tourBackdrop';
-  backdropEl.style.cssText = 'position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,0.65);opacity:0;transition:opacity 0.3s ease;pointer-events:none;';
-  backdropEl.onclick = () => closeTour();
-  document.body.appendChild(backdropEl);
+function createTourElements() {
+  if (elementsCreated) return;
 
-  // Spotlight hole
-  spotlightEl = document.createElement('div');
-  spotlightEl.id = 'tourSpotlight';
-  spotlightEl.style.cssText = 'position:fixed;z-index:9991;border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,0.65);transition:all 0.4s cubic-bezier(0.4,0,0.2,1);pointer-events:none;';
-  document.body.appendChild(spotlightEl);
+  // 1. SVG Mask Overlay (Smooth dark backdrop with clean rounded hole)
+  const svgNs = 'http://www.w3.org/2000/svg';
+  overlaySvg = document.createElementNS(svgNs, 'svg');
+  overlaySvg.id = 'tourSvgOverlay';
+  overlaySvg.setAttribute('class', 'fixed inset-0 w-full h-full z-[9980] transition-opacity duration-300');
+  overlaySvg.style.cssText = 'position: fixed; inset: 0; width: 100vw; height: 100vh; opacity: 0; pointer-events: none; display: none;';
 
-  // Tooltip
-  tooltipEl = document.createElement('div');
-  tooltipEl.id = 'tourTooltip';
-  tooltipEl.style.cssText = `
-    position:fixed;z-index:9992;
-    background:#fff;border-radius:20px;
-    box-shadow:0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05);
-    padding:20px 22px 16px;max-width:380px;width:calc(100vw - 32px);
-    opacity:0;transition:all 0.35s cubic-bezier(0.4,0,0.2,1);
-    font-family:'Plus Jakarta Sans',sans-serif;
+  const defs = document.createElementNS(svgNs, 'defs');
+  const mask = document.createElementNS(svgNs, 'mask');
+  mask.setAttribute('id', 'tourMaskHole');
+
+  // White base
+  const whiteRect = document.createElementNS(svgNs, 'rect');
+  whiteRect.setAttribute('x', '0');
+  whiteRect.setAttribute('y', '0');
+  whiteRect.setAttribute('width', '100%');
+  whiteRect.setAttribute('height', '100%');
+  whiteRect.setAttribute('fill', '#ffffff');
+  mask.appendChild(whiteRect);
+
+  // Black cutout
+  cutoutRect = document.createElementNS(svgNs, 'rect');
+  cutoutRect.setAttribute('x', '0');
+  cutoutRect.setAttribute('y', '0');
+  cutoutRect.setAttribute('width', '0');
+  cutoutRect.setAttribute('height', '0');
+  cutoutRect.setAttribute('rx', '18');
+  cutoutRect.setAttribute('ry', '18');
+  cutoutRect.setAttribute('fill', '#000000');
+  mask.appendChild(cutoutRect);
+
+  defs.appendChild(mask);
+  overlaySvg.appendChild(defs);
+
+  // Shaded Rect
+  const shadeRect = document.createElementNS(svgNs, 'rect');
+  shadeRect.setAttribute('x', '0');
+  shadeRect.setAttribute('y', '0');
+  shadeRect.setAttribute('width', '100%');
+  shadeRect.setAttribute('height', '100%');
+  shadeRect.setAttribute('fill', 'rgba(15, 23, 42, 0.72)');
+  shadeRect.setAttribute('mask', 'url(#tourMaskHole)');
+  overlaySvg.appendChild(shadeRect);
+
+  document.body.appendChild(overlaySvg);
+
+  // 2. Animated Glow Ring Box
+  glowBox = document.createElement('div');
+  glowBox.id = 'tourGlowBox';
+  glowBox.className = 'tour-pulse-glow';
+  glowBox.style.cssText = `
+    position: fixed; z-index: 9985; pointer-events: none;
+    border-radius: 18px; border: 3px solid #10b981;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    display: none;
   `;
-  document.body.appendChild(tooltipEl);
+  document.body.appendChild(glowBox);
+
+  // 3. Bouncing Pointer Hand
+  pointerBadge = document.createElement('div');
+  pointerBadge.id = 'tourPointerBadge';
+  pointerBadge.className = 'tour-bounce-pointer';
+  pointerBadge.style.cssText = `
+    position: fixed; z-index: 9988; pointer-events: none;
+    display: none; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 99px;
+    background: #10b981; color: white; font-size: 24px;
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.5);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  `;
+  pointerBadge.innerHTML = '👆';
+  document.body.appendChild(pointerBadge);
+
+  // 4. Responsive Guide Card
+  cardEl = document.createElement('div');
+  cardEl.id = 'tourCard';
+  cardEl.style.cssText = `
+    position: fixed; z-index: 9990;
+    width: min(430px, calc(100vw - 28px));
+    background: #ffffff; border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.08);
+    padding: 20px 22px 18px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    display: none; opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  `;
+  document.body.appendChild(cardEl);
+
+  // Click on background closes tour
+  overlaySvg.addEventListener('click', () => {
+    closeGuideTour();
+  });
+
+  elementsCreated = true;
 }
 
-function getTargetEl(step) {
-  if (step.selectorFn) return step.selectorFn();
-  const selectors = step.selector.split(',').map(s => s.trim());
-  for (const sel of selectors) {
-    const el = document.querySelector(sel);
-    if (el && el.offsetParent !== null) return el;
+function resolveTarget(step) {
+  if (step.selector) {
+    const selectors = step.selector.split(',').map(s => s.trim());
+    for (const sel of selectors) {
+      const el = document.querySelector(sel);
+      if (el && el.offsetParent !== null && el.getBoundingClientRect().width > 0) {
+        return el;
+      }
+    }
   }
-  // Fallback: return first match even if hidden
-  return document.querySelector(selectors[0]);
+
+  if (step.fallbackSelector) {
+    const fallbacks = step.fallbackSelector.split(',').map(s => s.trim());
+    for (const sel of fallbacks) {
+      const el = document.querySelector(sel);
+      if (el && el.offsetParent !== null) {
+        return el;
+      }
+    }
+  }
+
+  return null;
 }
 
-function positionSpotlight(targetEl) {
+function updateHighlight(targetEl) {
+  if (!targetEl) return;
+
   const rect = targetEl.getBoundingClientRect();
   const pad = 8;
-  spotlightEl.style.top = (rect.top - pad) + 'px';
-  spotlightEl.style.left = (rect.left - pad) + 'px';
-  spotlightEl.style.width = (rect.width + pad * 2) + 'px';
-  spotlightEl.style.height = (rect.height + pad * 2) + 'px';
+
+  const x = Math.max(4, rect.left - pad);
+  const y = Math.max(4, rect.top - pad);
+  const width = Math.min(window.innerWidth - x - 4, rect.width + pad * 2);
+  const height = Math.min(window.innerHeight - y - 4, rect.height + pad * 2);
+
+  // Update SVG Mask cutout
+  cutoutRect.setAttribute('x', x);
+  cutoutRect.setAttribute('y', y);
+  cutoutRect.setAttribute('width', width);
+  cutoutRect.setAttribute('height', height);
+
+  // Update Glow Box
+  glowBox.style.display = 'block';
+  glowBox.style.left = `${x}px`;
+  glowBox.style.top = `${y}px`;
+  glowBox.style.width = `${width}px`;
+  glowBox.style.height = `${height}px`;
+
+  // Update Pointer Hand
+  pointerBadge.style.display = 'flex';
+  const pointerX = x + width / 2 - 22;
+  let pointerY = y - 48;
+  if (pointerY < 10) {
+    pointerY = y + height + 10;
+    pointerBadge.innerHTML = '👇';
+  } else {
+    pointerBadge.innerHTML = '👆';
+  }
+  pointerBadge.style.left = `${pointerX}px`;
+  pointerBadge.style.top = `${pointerY}px`;
 }
 
-function positionTooltip(targetEl, position) {
+function updateCardPosition(targetEl) {
+  if (!targetEl || !cardEl) return;
+
   const rect = targetEl.getBoundingClientRect();
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
-  // Reset
-  tooltipEl.style.top = '';
-  tooltipEl.style.bottom = '';
-  tooltipEl.style.left = '';
-  tooltipEl.style.right = '';
+  const cardRect = cardEl.getBoundingClientRect();
+  const cardWidth = cardRect.width || 380;
+  const cardHeight = cardRect.height || 260;
 
-  // Measure tooltip
-  tooltipEl.style.opacity = '0';
-  tooltipEl.style.display = 'block';
-  const ttRect = tooltipEl.getBoundingClientRect();
+  let top = 0;
+  let left = 0;
 
-  const gap = 16;
-
-  if (position === 'bottom') {
-    let top = rect.bottom + gap;
-    // If tooltip goes below viewport, flip to top
-    if (top + ttRect.height > vh - 20) {
-      top = rect.top - ttRect.height - gap;
+  // Mobile View (< 768px): Dock safely to bottom or top
+  if (vw < 768) {
+    left = (vw - cardWidth) / 2;
+    // If target is in top half, dock card at bottom
+    if (rect.top < vh * 0.52) {
+      top = vh - cardHeight - 16;
+    } else {
+      // Dock card at top
+      top = 16;
     }
-    tooltipEl.style.top = Math.max(8, top) + 'px';
   } else {
-    let top = rect.top - ttRect.height - gap;
-    // If tooltip goes above viewport, flip to bottom
-    if (top < 8) {
-      top = rect.bottom + gap;
+    // Desktop View: Smart Adjacent Placement
+    // Try placing below target
+    if (rect.bottom + cardHeight + 20 < vh) {
+      top = rect.bottom + 16;
+      left = rect.left + rect.width / 2 - cardWidth / 2;
+    } else if (rect.top - cardHeight - 20 > 0) {
+      // Place above target
+      top = rect.top - cardHeight - 16;
+      left = rect.left + rect.width / 2 - cardWidth / 2;
+    } else {
+      // Place beside
+      top = Math.max(16, rect.top);
+      if (rect.right + cardWidth + 20 < vw) {
+        left = rect.right + 16;
+      } else {
+        left = Math.max(16, rect.left - cardWidth - 16);
+      }
     }
-    tooltipEl.style.top = Math.max(8, top) + 'px';
   }
 
-  // Horizontal: center on target, clamped to viewport
-  let left = rect.left + rect.width / 2 - ttRect.width / 2;
-  left = Math.max(16, Math.min(left, vw - ttRect.width - 16));
-  tooltipEl.style.left = left + 'px';
+  // Viewport boundary clamp
+  left = Math.max(14, Math.min(left, vw - cardWidth - 14));
+  top = Math.max(14, Math.min(top, vh - cardHeight - 14));
 
-  // Animate in
+  cardEl.style.left = `${left}px`;
+  cardEl.style.top = `${top}px`;
+  cardEl.style.display = 'block';
+
   requestAnimationFrame(() => {
-    tooltipEl.style.opacity = '1';
-    tooltipEl.style.transform = 'translateY(0)';
+    cardEl.style.opacity = '1';
+    cardEl.style.transform = 'translateY(0)';
   });
 }
 
-function renderTooltip(step, stepIdx) {
+function renderCard(step, idx) {
   const total = TOUR_STEPS.length;
-  const isLast = stepIdx === total - 1;
-  const isFirst = stepIdx === 0;
+  const isFirst = idx === 0;
+  const isLast = idx === total - 1;
 
-  // Progress dots
-  const dots = TOUR_STEPS.map((_, i) =>
-    `<span style="display:inline-block;width:${i === stepIdx ? '24px' : '8px'};height:8px;border-radius:99px;background:${i === stepIdx ? '#059669' : '#d6d3d1'};transition:all 0.3s;"></span>`
-  ).join('');
+  // Progress Dots
+  const dotsHtml = TOUR_STEPS.map((_, i) => `
+    <button type="button" onclick="KasirApp.goToTourStep(${i})" title="Langkah ${i + 1}"
+      class="h-2 rounded-full transition-all duration-300 ${i === idx ? 'w-6 bg-emerald-700' : 'w-2 bg-stone-300 hover:bg-stone-400'}">
+    </button>
+  `).join('');
 
-  tooltipEl.innerHTML = `
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;">
-      <span style="font-size:11px;font-weight:900;color:#065f46;background:#d1fae5;border:1px solid #a7f3d0;padding:3px 10px;border-radius:99px;letter-spacing:0.5px;white-space:nowrap;">
-        ${stepIdx + 1} / ${total}
-      </span>
-      <button id="tourCloseBtn" style="background:none;border:none;cursor:pointer;color:#a8a29e;font-size:22px;line-height:1;padding:2px 4px;border-radius:8px;transition:color 0.2s;" onmouseover="this.style.color='#1c1917'" onmouseout="this.style.color='#a8a29e'">✕</button>
+  cardEl.innerHTML = `
+    <!-- Top Header -->
+    <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
+        <span class="text-xs font-black text-emerald-950 uppercase tracking-wide">
+          Langkah ${idx + 1} dari ${total}
+        </span>
+      </div>
+      <button type="button" onclick="KasirApp.closeGuideTour()"
+        class="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition touch-target-large" title="Lewati / Tutup Panduan">
+        <span class="material-symbols-rounded text-xl">close</span>
+      </button>
     </div>
-    <h3 style="font-size:18px;font-weight:900;color:#1c1917;margin:0 0 6px 0;line-height:1.3;">${step.title}</h3>
-    <p style="font-size:14px;color:#57534e;font-weight:500;line-height:1.6;margin:0 0 16px 0;">${step.desc}</p>
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-      <div style="display:flex;align-items:center;gap:4px;">${dots}</div>
-      <div style="display:flex;gap:8px;">
-        ${!isFirst ? `<button id="tourPrevBtn" style="padding:10px 16px;border-radius:14px;border:1.5px solid #d6d3d1;background:#fff;color:#44403c;font-weight:800;font-size:13px;cursor:pointer;transition:all 0.2s;font-family:inherit;" onmouseover="this.style.background='#f5f5f4'" onmouseout="this.style.background='#fff'">← Sebelum</button>` : ''}
-        <button id="tourNextBtn" style="padding:10px 20px;border-radius:14px;border:none;background:#059669;color:#fff;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 4px 12px rgba(5,150,105,0.3);transition:all 0.2s;font-family:inherit;" onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">
-          ${isLast ? 'Selesai ✓' : 'Lanjut →'}
+
+    <!-- Body -->
+    <div class="py-4 flex items-start gap-3.5">
+      <div class="w-12 h-12 rounded-2xl flex items-center justify-center border-2 shrink-0 ${step.iconColor} shadow-sm">
+        <span class="material-symbols-rounded text-2xl">${step.icon}</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h4 class="text-base sm:text-lg font-black text-stone-900 leading-snug">${step.title}</h4>
+        <p class="text-xs sm:text-sm text-stone-600 font-medium mt-1 leading-relaxed">${step.desc}</p>
+      </div>
+    </div>
+
+    <!-- Footer Controls -->
+    <div class="pt-3 border-t border-stone-100 flex items-center justify-between gap-2">
+      <button type="button" onclick="KasirApp.closeGuideTour()"
+        class="text-xs font-bold text-stone-400 hover:text-stone-700 px-2 py-1.5 transition">
+        Lewati
+      </button>
+
+      <div class="flex items-center gap-1.5">
+        ${dotsHtml}
+      </div>
+
+      <div class="flex items-center gap-2">
+        ${!isFirst ? `
+          <button type="button" onclick="KasirApp.prevTourStep()"
+            class="py-2.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center gap-1 transition active:scale-95 touch-target-large">
+            <span class="material-symbols-rounded text-base">arrow_back</span>
+            <span>Balik</span>
+          </button>
+        ` : ''}
+
+        <button type="button" onclick="${isLast ? 'KasirApp.closeGuideTour()' : 'KasirApp.nextTourStep()'}"
+          class="py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md hover:shadow-lg transition active:scale-95 touch-target-large">
+          <span>${isLast ? 'Mulai Kasir 🚀' : 'Lanjut'}</span>
+          <span class="material-symbols-rounded text-base">${isLast ? 'check_circle' : 'arrow_forward'}</span>
         </button>
       </div>
     </div>
   `;
-
-  // Wire up buttons
-  const closeBtn = tooltipEl.querySelector('#tourCloseBtn');
-  const prevBtn = tooltipEl.querySelector('#tourPrevBtn');
-  const nextBtn = tooltipEl.querySelector('#tourNextBtn');
-
-  if (closeBtn) closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeTour(); });
-  if (prevBtn) prevBtn.addEventListener('click', (e) => { e.stopPropagation(); prevStep(); });
-  if (nextBtn) nextBtn.addEventListener('click', (e) => { e.stopPropagation(); isLast ? closeTour() : nextStep(); });
 }
 
-function showStep(idx) {
-  const step = TOUR_STEPS[idx];
+function showStep(stepIdx) {
+  createTourElements();
+  const step = TOUR_STEPS[stepIdx];
   if (!step) return;
-  currentStep = idx;
 
-  // Auto-switch view before highlighting
+  currentStep = stepIdx;
+
+  // Auto-switch view if needed
   if (step.view && window.KasirApp && window.KasirApp.switchView) {
-    // Temporarily bypass PIN protection for tour
     window.KasirApp.switchView(step.view);
   }
 
-  // Small delay to let view render
-  requestAnimationFrame(() => {
+  // Small delay for view DOM rendering
+  setTimeout(() => {
+    const target = resolveTarget(step);
+    if (!target) {
+      if (stepIdx < TOUR_STEPS.length - 1) {
+        showStep(stepIdx + 1);
+      } else {
+        closeGuideTour();
+      }
+      return;
+    }
+
+    // Scroll into view if needed
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
     setTimeout(() => {
-      const targetEl = getTargetEl(step);
-      if (!targetEl) {
-        // Skip to next if element not found
-        if (idx < TOUR_STEPS.length - 1) showStep(idx + 1);
-        else closeTour();
-        return;
-      }
-
-      // Scroll target into view if needed
-      if (step.scrollTo) {
-        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-
-      setTimeout(() => {
-        positionSpotlight(targetEl);
-        renderTooltip(step, idx);
-        positionTooltip(targetEl, step.position);
-      }, step.scrollTo ? 350 : 50);
-    }, 80);
-  });
+      renderCard(step, stepIdx);
+      updateHighlight(target);
+      updateCardPosition(target);
+    }, 200);
+  }, 100);
 }
 
-// Reposition on scroll/resize
 function handleReposition() {
-  if (currentStep < 0) return;
+  if (currentStep < 0 || currentStep >= TOUR_STEPS.length) return;
   const step = TOUR_STEPS[currentStep];
   if (!step) return;
-  const targetEl = getTargetEl(step);
-  if (!targetEl) return;
-  positionSpotlight(targetEl);
-  positionTooltip(targetEl, step.position);
+
+  const target = resolveTarget(step);
+  if (target) {
+    updateHighlight(target);
+    updateCardPosition(target);
+  }
 }
 
 export function openGuideTour(stepIdx = 0) {
   playClick('pop');
-  ensureElements();
+  createTourElements();
 
-  // Show backdrop
-  backdropEl.style.pointerEvents = 'auto';
-  requestAnimationFrame(() => { backdropEl.style.opacity = '1'; });
-  spotlightEl.style.display = 'block';
+  if (overlaySvg) {
+    overlaySvg.style.display = 'block';
+    overlaySvg.style.pointerEvents = 'auto';
+    requestAnimationFrame(() => {
+      if (overlaySvg) overlaySvg.style.opacity = '1';
+    });
+  }
 
   window.addEventListener('resize', handleReposition);
   window.addEventListener('scroll', handleReposition, true);
@@ -265,43 +434,60 @@ export function openGuideTour(stepIdx = 0) {
 }
 
 export function closeGuideTour() {
-  closeTour();
-}
-
-function closeTour() {
   playClick('pop');
   currentStep = -1;
 
-  if (backdropEl) {
-    backdropEl.style.opacity = '0';
-    backdropEl.style.pointerEvents = 'none';
+  if (overlaySvg) {
+    overlaySvg.style.opacity = '0';
+    overlaySvg.style.pointerEvents = 'none';
+    setTimeout(() => {
+      if (overlaySvg && currentStep === -1) {
+        overlaySvg.style.display = 'none';
+      }
+    }, 300);
   }
-  if (spotlightEl) spotlightEl.style.display = 'none';
-  if (tooltipEl) {
-    tooltipEl.style.opacity = '0';
-    tooltipEl.style.transform = 'translateY(8px)';
+
+  if (glowBox) glowBox.style.display = 'none';
+  if (pointerBadge) pointerBadge.style.display = 'none';
+
+  if (cardEl) {
+    cardEl.style.opacity = '0';
+    cardEl.style.transform = 'translateY(12px)';
+    setTimeout(() => {
+      if (cardEl && currentStep === -1) {
+        cardEl.style.display = 'none';
+      }
+    }, 300);
   }
 
   window.removeEventListener('resize', handleReposition);
   window.removeEventListener('scroll', handleReposition, true);
+
+  // Return smoothly to POS Kasir view so user is ready to make orders
+  if (window.KasirApp && window.KasirApp.switchView) {
+    window.KasirApp.switchView('pos');
+  }
 }
 
-export function nextTourStep() { nextStep(); }
-export function prevTourStep() { prevStep(); }
-export function goToTourStep(idx) { showStep(idx); }
-
-function nextStep() {
+export function nextTourStep() {
   playClick('tap');
   if (currentStep < TOUR_STEPS.length - 1) {
     showStep(currentStep + 1);
   } else {
-    closeTour();
+    closeGuideTour();
   }
 }
 
-function prevStep() {
+export function prevTourStep() {
   playClick('tap');
   if (currentStep > 0) {
     showStep(currentStep - 1);
+  }
+}
+
+export function goToTourStep(idx) {
+  playClick('tap');
+  if (idx >= 0 && idx < TOUR_STEPS.length) {
+    showStep(idx);
   }
 }

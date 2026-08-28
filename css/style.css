@@ -164,3 +164,33 @@ body {
   animation: splashPulseRing 2s infinite ease-in-out;
 }
 
+/* ==================== SPOTLIGHT TOUR GUIDE STYLES ==================== */
+@keyframes tourPulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6), 0 0 0 4px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.2), 0 0 0 16px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6), 0 0 0 4px rgba(16, 185, 129, 0.3);
+  }
+}
+
+@keyframes tourBouncePointer {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.08);
+  }
+}
+
+.tour-pulse-glow {
+  animation: tourPulseGlow 2s infinite ease-in-out;
+}
+
+.tour-bounce-pointer {
+  animation: tourBouncePointer 1.4s infinite ease-in-out;
+}
+

@@ -26,7 +26,8 @@ import {
   syncSaveStoreAuth,
   syncSaveStoreProfile,
   setupRealtimeListeners,
-  unsubscribeAllListeners
+  unsubscribeAllListeners,
+  authenticateStoreLogin
 } from './firebase.js';
 
 let pendingTargetView = null;
@@ -210,7 +211,7 @@ export function renderSavedStoresList() {
     const isCurrent = state.isSessionActive && s.id === state.storeId;
     return `
       <div class="flex items-center justify-between p-2.5 rounded-xl border ${isCurrent ? 'bg-emerald-50 border-emerald-300' : 'bg-white border-stone-200 hover:border-emerald-200'} transition">
-        <div class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0" onclick="quickSelectStore('${escapeHtml(s.id)}')">
+        <div class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0" onclick="KasirApp.selectStoreForLogin('${escapeHtml(s.id)}', '${escapeHtml(s.name)}')">
           <div class="w-8 h-8 rounded-lg ${isCurrent ? 'bg-emerald-700 text-white' : 'bg-stone-100 text-stone-700'} flex items-center justify-center font-black text-xs shrink-0">
             <span class="material-symbols-rounded text-lg">storefront</span>
           </div>
@@ -220,11 +221,11 @@ export function renderSavedStoresList() {
           </div>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
-          <button type="button" onclick="quickSelectStore('${escapeHtml(s.id)}')"
+          <button type="button" onclick="KasirApp.selectStoreForLogin('${escapeHtml(s.id)}', '${escapeHtml(s.name)}')"
             class="px-2.5 py-1 rounded-lg ${isCurrent ? 'bg-emerald-700 text-white' : 'bg-stone-100 hover:bg-emerald-100 text-stone-800'} font-bold text-[11px] transition">
             ${isCurrent ? 'Aktif' : 'Buka'}
           </button>
-          <button type="button" onclick="deleteSavedStoreCard('${escapeHtml(s.id)}')" title="Hapus dari daftar cepat"
+          <button type="button" onclick="KasirApp.deleteSavedStoreCard('${escapeHtml(s.id)}')" title="Hapus dari daftar cepat"
             class="p-1 text-stone-400 hover:text-rose-600 rounded-md transition">
             <span class="material-symbols-rounded text-base">delete</span>
           </button>
@@ -232,6 +233,20 @@ export function renderSavedStoresList() {
       </div>
     `;
   }).join('');
+}
+
+export function selectStoreForLogin(storeId, storeName) {
+  playClick('tap');
+  const storeInput = document.getElementById('loginStoreIdInput');
+  const pinInput = document.getElementById('loginPinInput');
+  if (storeInput) {
+    storeInput.value = storeId;
+  }
+  if (pinInput) {
+    pinInput.value = '';
+    pinInput.focus();
+  }
+  showToast(`Ketik 4 digit PIN toko [${storeName || storeId}] lalu klik Buka Kasir`, 'info', 3000);
 }
 
 export function quickSelectStore(storeId) {
@@ -275,11 +290,20 @@ export function deleteSavedStoreCard(storeId) {
   showToast('Toko dihapus dari daftar perangkat.', 'info');
 }
 
-export function handleStoreLoginSubmit(e) {
+export async function handleStoreLoginSubmit(e) {
   if (e) e.preventDefault();
   const input = document.getElementById('loginStoreIdInput');
+  const pinInput = document.getElementById('loginPinInput');
+  const submitBtn = e?.target?.querySelector('button[type="submit"]');
+
   let rawValue = input ? input.value.trim() : '';
-  if (!rawValue) return;
+  let inputPin = pinInput ? pinInput.value.trim() : '';
+
+  if (!rawValue) {
+    showToast('Harap masukkan nama / ID toko', 'warning');
+    if (input) input.focus();
+    return;
+  }
 
   // Jika user mem-paste URL lengkap (?store=nama_toko)
   if (rawValue.includes('?store=')) {
@@ -299,12 +323,49 @@ export function handleStoreLoginSubmit(e) {
     return;
   }
 
-  registerStoreOnDevice({
-    id: cleanId,
-    name: cleanId.replace(/_/g, ' ').toUpperCase()
-  });
+  if (!inputPin || inputPin.length !== 4) {
+    showToast('⚠️ Harap masukkan 4 digit PIN toko (contoh: 1234).', 'warning', 3000);
+    if (pinInput) pinInput.focus();
+    return;
+  }
 
-  quickSelectStore(cleanId);
+  // Disable submit button temporarily during verification
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span>Memverifikasi Akun & PIN...</span>`;
+  }
+
+  try {
+    const authResult = await authenticateStoreLogin(cleanId, inputPin);
+
+    if (!authResult.success) {
+      playClick('error');
+      showToast(`❌ ${authResult.message}`, 'error', 4500);
+      if (pinInput) {
+        pinInput.value = '';
+        pinInput.focus();
+      }
+      return;
+    }
+
+    // Autentikasi Berhasil -> Daftarkan ke perangkat dan buka kasir
+    registerStoreOnDevice({
+      id: cleanId,
+      name: authResult.storeName
+    });
+
+    quickSelectStore(cleanId);
+    if (pinInput) pinInput.value = '';
+    showToast(`✅ Login Berhasil! Kasir [${authResult.storeName}] siap melayani.`, 'success');
+  } catch (err) {
+    console.error('Login error:', err);
+    showToast('Terjadi kesalahan saat memverifikasi: ' + err.message, 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `<span>Buka Kasir Toko Ini</span>`;
+    }
+  }
 }
 
 export function handleStoreRegisterSubmit(e) {
@@ -574,6 +635,7 @@ const KasirApp = {
   closeUniversalLoginModal,
   switchAuthTab,
   renderSavedStoresList,
+  selectStoreForLogin,
   quickSelectStore,
   deleteSavedStoreCard,
   handleStoreLoginSubmit,

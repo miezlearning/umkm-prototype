@@ -62,20 +62,19 @@ export function removeStoreFromDevice(storeId) {
  * Deteksi Store ID dari URL query string (?store=...) atau localStorage
  */
 export function resolveActiveStoreId() {
+  if (sessionStorage.getItem('is_logged_out_state') === '1') {
+    return null;
+  }
+
   try {
     const params = new URLSearchParams(window.location.search);
     const storeParam = params.get('store');
     if (storeParam && storeParam.trim()) {
       const sanitized = storeParam.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
       localStorage.setItem(GLOBAL_STORAGE_KEYS.ACTIVE_STORE_ID, sanitized);
-      sessionStorage.removeItem('is_logged_out_state');
       return sanitized;
     }
   } catch (e) {}
-
-  if (sessionStorage.getItem('is_logged_out_state') === '1') {
-    return null;
-  }
 
   return localStorage.getItem(GLOBAL_STORAGE_KEYS.ACTIVE_STORE_ID) || null;
 }

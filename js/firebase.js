@@ -11,6 +11,7 @@ import {
   persistentMultipleTabManager,
   collection, 
   doc, 
+  getDoc,
   setDoc, 
   deleteDoc, 
   getDocs, 
@@ -18,8 +19,8 @@ import {
   writeBatch
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-import { DEFAULT_PRODUCTS } from './config.js';
-import { state, currentStorageKeys, updateUIStoreBranding } from './state.js';
+import { DEFAULT_PRODUCTS, getStorageKeys } from './config.js';
+import { state, currentStorageKeys, updateUIStoreBranding, getSavedStoresList } from './state.js';
 import { showToast } from './utils.js';
 
 // Firebase Configuration from user
@@ -342,6 +343,120 @@ export async function syncSaveStoreAuth(authData) {
   } catch (e) {
     console.error('Failed to sync store auth to cloud:', e);
   }
+}
+
+/**
+ * Middleware Autentikasi & Verifikasi PIN Toko (Cloud & Local Multi-Tenant Auth)
+ * Menolak toko yang belum terdaftar dan menolak PIN yang salah.
+ */
+export async function authenticateStoreLogin(storeId, inputPin) {
+  const cleanId = (storeId || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+  if (!cleanId) {
+    return { success: false, exists: false, message: 'Harap masukkan nama / ID toko dengan benar' };
+  }
+
+  const trimmedPin = String(inputPin || '').trim();
+  if (!trimmedPin || trimmedPin.length !== 4) {
+    return { success: false, exists: true, message: 'Harap masukkan 4 digit PIN toko' };
+  }
+
+  // 1. Cek dari Local Storage
+  const localKeys = getStorageKeys(cleanId);
+  let localAuth = null;
+  let localProfile = null;
+  try {
+    const authStr = localStorage.getItem(localKeys.AUTH);
+    if (authStr) localAuth = JSON.parse(authStr);
+    const profStr = localStorage.getItem(localKeys.PROFILE);
+    if (profStr) localProfile = JSON.parse(profStr);
+  } catch (e) {}
+
+  // 2. Cek dari Cloud Firestore
+  let cloudAuth = null;
+  let cloudProfile = null;
+  let storeDocExists = false;
+
+  if (db) {
+    try {
+      const configRef = doc(db, 'stores', cleanId, 'data', 'config');
+      const snap = await getDoc(configRef);
+      if (snap.exists()) {
+        storeDocExists = true;
+        const data = snap.data();
+        if (data) {
+          cloudAuth = data.auth || null;
+          cloudProfile = data.profile || null;
+        }
+      }
+    } catch (e) {
+      console.warn('Firestore lookup error:', e);
+    }
+  }
+
+  const activeAuth = cloudAuth || localAuth;
+  const activeProfile = cloudProfile || localProfile;
+  const storeName = activeProfile?.name || cleanId.replace(/_/g, ' ').toUpperCase();
+
+  // Jika toko tidak ada di local storage dan tidak ada di Firestore
+  if (!activeAuth && !storeDocExists) {
+    const savedStores = getSavedStoresList();
+    const isSaved = savedStores.some(s => s.id === cleanId);
+    if (!isSaved) {
+      return {
+        success: false,
+        exists: false,
+        storeName,
+        message: `Toko "${storeName}" belum terdaftar di sistem. Silakan mendaftar di tab "+ Daftar Toko Baru".`
+      };
+    }
+  }
+
+  // Cek apakah PIN cocok
+  const expectedPin = String(activeAuth?.pin || '1234').trim();
+
+  if (trimmedPin !== expectedPin) {
+    return {
+      success: false,
+      exists: true,
+      storeName,
+      message: `PIN salah untuk toko "${storeName}". Masukkan 4 digit PIN yang sesuai.`
+    };
+  }
+
+  // Jika lolos autentikasi -> Cache profile & auth ke local storage
+  try {
+    if (cloudAuth) localStorage.setItem(localKeys.AUTH, JSON.stringify(cloudAuth));
+    if (cloudProfile) localStorage.setItem(localKeys.PROFILE, JSON.stringify(cloudProfile));
+  } catch (err) {}
+
+  return {
+    success: true,
+    exists: true,
+    storeName,
+    cleanId,
+    profile: activeProfile || { id: cleanId, name: storeName }
+  };
+}
+
+export async function verifyStorePin(storeId, inputPin) {
+  const res = await authenticateStoreLogin(storeId, inputPin);
+  return res.success;
+}
+
+/**
+ * Ambil konfigurasi (Profile & Auth) toko dari Cloud
+ */
+export async function fetchStoreConfigFromCloud(storeId) {
+  const cleanId = (storeId || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+  if (!cleanId || !db) return null;
+  try {
+    const docRef = doc(db, 'stores', cleanId, 'data', 'config');
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      return snap.data();
+    }
+  } catch (e) {}
+  return null;
 }
 
 /**
