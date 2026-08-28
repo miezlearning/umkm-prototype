@@ -144,9 +144,27 @@ export function closeQrisModal() {
 
 export function renderQrisPreview(payload) {
   const containerEl = document.getElementById('qrisPreviewContainer');
-  const text = payload || state.qrisPayload;
+  const text = (payload || state.qrisPayload || '').trim();
   if (containerEl && text) {
-    renderQRToContainer(containerEl, text, 120);
+    renderQRToContainer(containerEl, text, 140);
+  }
+
+  // Parse and display metadata in preview
+  if (text.startsWith('000201')) {
+    const meta = parseQRISMetadata(text);
+    const metaInfoEl = document.getElementById('qrisMetaInfoArea');
+    if (metaInfoEl) {
+      metaInfoEl.innerHTML = `
+        <div class="bg-amber-50 rounded-xl p-2.5 border border-amber-200 text-left text-xs flex flex-col gap-1 w-full">
+          <div class="flex items-center justify-between">
+            <span class="font-extrabold text-amber-950">${escapeHtml(meta.merchantName)}</span>
+            <span class="px-2 py-0.5 rounded bg-amber-200 text-amber-900 text-[10px] font-black">${escapeHtml(meta.acquirer)}</span>
+          </div>
+          <p class="text-[11px] text-stone-600">NMID: <strong class="text-stone-900">${meta.nmid || '-'}</strong> | Kota: ${escapeHtml(meta.city || '-')}</p>
+        </div>
+      `;
+      metaInfoEl.classList.remove('hidden');
+    }
   }
 }
 
@@ -171,8 +189,9 @@ export async function handleQrisImageUpload(event) {
 
     renderQrisPreview(rawPayload);
 
+    const meta = parseQRISMetadata(rawPayload);
     if (statusEl) {
-      statusEl.innerText = '✅ Berhasil memindai QRIS! Klik "Simpan QRIS" di bawah.';
+      statusEl.innerText = `✅ Berhasil membaca QRIS "${meta.merchantName}"! Klik "Simpan QRIS" di bawah.`;
       statusEl.className = 'text-xs font-bold text-emerald-700 block';
     }
   } catch (err) {
@@ -198,7 +217,7 @@ export function saveQrisSettings(e) {
   saveQrisPayload(payload);
   syncSaveQrisPayload(payload);
   closeQrisModal();
-  alert('✓ Pengaturan QRIS Toko berhasil disimpan dan disinkronkan ke Cloud!');
+  alert(`✓ Pengaturan QRIS untuk [${state.storeProfile.name}] berhasil disimpan dan disinkronkan ke Cloud!`);
 }
 
 // ================= BACKUP & RESTORE DATA (JSON) =================

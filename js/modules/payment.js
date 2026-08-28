@@ -2,7 +2,7 @@ import { state, saveHistory, saveQueues, getCurrentCart, getActiveQueue, calcula
 import { formatRp, formatDateShort, escapeHtml } from '../utils.js';
 import { renderOrderQueueTabs, renderCart, renderProducts, toggleMobileCartDrawer } from './pos.js';
 import { syncAddTransaction, syncSaveQueues } from '../firebase.js';
-import { generateDynamicQRIS, renderQRToContainer } from '../qris.js';
+import { generateDynamicQRIS, renderQRToContainer, parseQRISMetadata } from '../qris.js';
 
 let paymentMethod = 'cash'; // 'cash' or 'qris'
 let cashGiven = 0;
@@ -12,14 +12,37 @@ export function renderDynamicQrisCode() {
   const { total } = calculateCartTotal();
   const qrisContainer = document.getElementById('qrisDynamicContainer');
   const qrisTotalEl = document.getElementById('qrisDynamicTotal');
+  const merchantNameEl = document.getElementById('qrisMerchantName');
+  const nmidEl = document.getElementById('qrisNmidDisplay');
+  const acquirerEl = document.getElementById('qrisAcquirerDisplay');
+  const badgeEl = document.getElementById('qrisModeBadge');
 
   if (qrisTotalEl) qrisTotalEl.innerText = formatRp(total);
 
+  const meta = parseQRISMetadata(state.qrisPayload);
+  if (merchantNameEl) merchantNameEl.innerText = state.storeProfile?.name || meta.merchantName || 'Kedai Usaha Mami';
+  if (nmidEl) nmidEl.innerText = meta.nmid ? `NMID: ${meta.nmid}` : (state.storeProfile?.nmid ? `NMID: ${state.storeProfile.nmid}` : '');
+  if (acquirerEl) acquirerEl.innerText = meta.acquirer || state.storeProfile?.acquirer || 'QRIS GPN';
+
+  const isDynamic = state.qrisMode !== 'static';
+  if (badgeEl) {
+    badgeEl.innerText = isDynamic ? 'Nominal Pas' : 'Nominal Bebas';
+    badgeEl.className = isDynamic 
+      ? 'px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black'
+      : 'px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black';
+  }
+
   if (qrisContainer) {
-    const dynamicPayload = generateDynamicQRIS(state.qrisPayload, total);
-    renderQRToContainer(qrisContainer, dynamicPayload, 220);
+    const payload = isDynamic ? generateDynamicQRIS(state.qrisPayload, total) : state.qrisPayload;
+    renderQRToContainer(qrisContainer, payload, 220);
   }
 }
+
+export function toggleQrisPaymentMode() {
+  state.qrisMode = (state.qrisMode === 'static') ? 'dynamic' : 'static';
+  renderDynamicQrisCode();
+}
+
 
 export function openPaymentModal() {
   const { total } = calculateCartTotal();

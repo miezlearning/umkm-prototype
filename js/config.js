@@ -2,16 +2,34 @@
  * Kasir Mami - Configuration & Constants
  */
 
-export const STORAGE_KEYS = {
-  PRODUCTS: 'kasir_mami_products_v1',
-  HISTORY: 'kasir_mami_history_v1',
-  QUEUES: 'kasir_mami_queues_v1',
-  EXPENSES: 'kasir_mami_expenses_v1',
-  QRIS: 'kasir_mami_qris_payload_v1'
+// Default QRIS Statis Merchant (Kedai Usaha Mami - Mandiri Livin')
+export const DEFAULT_QRIS_PAYLOAD = '00020101021126690021ID.CO.BANKMANDIRI.WWW01189360000801942889650211719428896580303UMI51440014ID.CO.QRIS.WWW0215ID10254505223350303UMI5204581253033605802ID5916KEDAI USAHA MAMI6015Samarinda (Kota61057511962070703A016304EA56';
+
+export const DEFAULT_STORE_PROFILE = {
+  id: 'kedai_usaha_mami',
+  name: 'Kedai Usaha Mami',
+  city: 'Samarinda (Kota)',
+  nmid: 'ID1025450522335',
+  acquirer: "Livin' by Mandiri"
 };
 
-// Default QRIS Statis Merchant (Kedai Mami Berkah)
-export const DEFAULT_QRIS_PAYLOAD = '00020101021126590014ID.GO.GPN.WWW01189360091400000000000215000000000000000051440014ID.CO.QRIS.WWW02150000000000000005204581253033605802ID5923KEDAI MAMI BERKAH UMKM6007JAKARTA61051234062070703A01630489AB';
+/**
+ * Generate isolated localStorage keys per store ID (Multi-Tenant)
+ * @param {string} storeId - ID unik toko UMKM
+ */
+export function getStorageKeys(storeId = 'kedai_usaha_mami') {
+  const safeId = (storeId || 'kedai_usaha_mami').toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+  return {
+    PRODUCTS: `kasir_${safeId}_products_v1`,
+    HISTORY: `kasir_${safeId}_history_v1`,
+    QUEUES: `kasir_${safeId}_queues_v1`,
+    EXPENSES: `kasir_${safeId}_expenses_v1`,
+    QRIS: `kasir_${safeId}_qris_payload_v1`,
+    PROFILE: `kasir_${safeId}_profile_v1`
+  };
+}
+
+export const STORAGE_KEYS = getStorageKeys('kedai_usaha_mami');
 
 export const DEFAULT_PRODUCTS = [
   { id: 'p1', name: 'Nasi Goreng Spesial', price: 18000, category: 'makanan', icon: 'lunch_dining' },
@@ -32,3 +50,4 @@ export const CATEGORIES = [
   { id: 'minuman', label: 'Minuman', icon: 'local_cafe' },
   { id: 'camilan', label: 'Camilan', icon: 'bakery_dining' }
 ];
+

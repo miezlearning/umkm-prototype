@@ -509,11 +509,14 @@
             class="hidden bg-stone-50 border-2 border-amber-400 p-3 sm:p-4 rounded-3xl flex flex-col items-center text-center gap-2.5">
             
             <!-- QRIS Card Container -->
-            <div class="bg-white p-3.5 rounded-2xl shadow-md border border-stone-200 flex flex-col items-center max-w-[260px] w-full">
+            <div class="bg-white p-3.5 rounded-2xl shadow-md border border-stone-200 flex flex-col items-center max-w-[270px] w-full">
               <!-- QRIS Header Label -->
               <div class="flex items-center justify-between w-full pb-2 border-b border-stone-100 mb-2">
-                <span class="font-black text-xs text-stone-900 tracking-wider">QRIS DINAMIS</span>
-                <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">Nominal Pas</span>
+                <span class="font-black text-xs text-stone-900 tracking-wider flex items-center gap-1">
+                  <span class="material-symbols-rounded text-base text-amber-600">qr_code_2</span>
+                  <span>QRIS</span>
+                </span>
+                <span id="qrisModeBadge" class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">Nominal Pas</span>
               </div>
 
               <!-- Canvas / QR Code Container -->
@@ -522,9 +525,10 @@
               </div>
 
               <!-- Store Name & Amount -->
-              <div class="mt-2 text-center w-full pt-1.5 border-t border-stone-100">
-                <p class="text-[11px] font-extrabold text-stone-600 truncate">Kedai Mami Berkah</p>
-                <p id="qrisDynamicTotal" class="text-xl font-black text-stone-950 mt-0.5">Rp 0</p>
+              <div class="mt-2 text-center w-full pt-1.5 border-t border-stone-100 flex flex-col gap-0.5">
+                <p id="qrisMerchantName" class="text-xs font-black text-stone-900 truncate">Kedai Usaha Mami</p>
+                <p id="qrisNmidDisplay" class="text-[10px] text-stone-500 font-mono font-bold">NMID: ID1025450522335</p>
+                <p id="qrisDynamicTotal" class="text-xl font-black text-amber-900 mt-0.5">Rp 0</p>
               </div>
             </div>
 
@@ -534,8 +538,13 @@
                 📱 Tunjukkan QR Code ini ke pembeli
               </p>
               <p class="text-[11px] text-stone-500 font-medium leading-relaxed">
-                Nominal pembayaran otomatis terisi pas di aplikasi pembeli (BCA, Livin, GoPay, OVO, DANA, ShopeePay, dll).
+                Nominal pembayaran otomatis terisi pas di aplikasi pembeli (Livin' Mandiri, BCA, GoPay, OVO, DANA, ShopeePay, dll).
               </p>
+              <button type="button" onclick="toggleQrisPaymentMode()"
+                class="mt-1 text-[11px] text-amber-700 hover:text-amber-900 font-bold underline flex items-center justify-center gap-1 transition">
+                <span class="material-symbols-rounded text-sm">swap_horiz</span>
+                <span>Ganti Mode: Dinamis / Statis</span>
+              </button>
             </div>
           </div>
         </div>
@@ -939,7 +948,7 @@
       <div id="printArea"
         class="bg-stone-50 p-3 rounded-2xl border border-dashed border-stone-300 text-left text-xs font-mono flex flex-col gap-1">
         <div class="text-center pb-1 border-b border-stone-300">
-          <h4 class="font-black text-sm">KASIR MAMI</h4>
+          <h4 id="receiptStoreName" class="font-black text-sm uppercase">KEDAI USAHA MAMI</h4>
           <p class="text-[9px] text-stone-400" id="receiptDate"></p>
           <p class="text-[9px] text-stone-500 font-bold" id="receiptOrderName"></p>
           <p class="text-[9px] text-amber-800 font-bold" id="receiptPaymentType"></p>
@@ -1025,6 +1034,9 @@
           <span id="qrisScanStatus" class="hidden text-xs font-bold mt-1"></span>
         </div>
 
+        <!-- Metadata Info Area -->
+        <div id="qrisMetaInfoArea" class="w-full hidden"></div>
+
         <!-- Preview QR Code & Kode Teks -->
         <div class="bg-stone-50 border border-stone-200 rounded-2xl p-3.5 flex flex-col sm:flex-row items-center gap-3.5">
           <!-- Canvas / QR Preview Container -->
@@ -1040,7 +1052,7 @@
               placeholder="000201010211..."
               class="w-full p-2 text-xs font-mono rounded-xl border border-stone-300 focus:border-amber-500 focus:outline-none bg-white resize-none"></textarea>
             <p class="text-[10px] text-stone-500 leading-tight">
-              Kode dasar QRIS statis warung Mami. Diperoleh otomatis dari upload gambar atau paste manual.
+              Kode dasar QRIS statis merchant. Diperoleh otomatis dari upload gambar atau paste manual.
             </p>
           </div>
         </div>
@@ -1094,17 +1106,17 @@
           </p>
         </div>
 
-        <!-- Store ID / Toko Info -->
+        <!-- Store ID / Multi-Tenant UMKM Info -->
         <div class="bg-stone-50 border border-stone-200 rounded-2xl p-3 flex flex-col gap-2">
           <div>
-            <span class="text-[11px] font-bold text-stone-500 uppercase">Database Toko:</span>
-            <div class="flex items-center justify-between mt-0.5">
-              <span class="font-black text-stone-900 text-sm">kedai_mami_berkah</span>
-              <span class="text-[10px] font-extrabold px-2 py-0.5 bg-stone-200 text-stone-700 rounded-md">ID Toko</span>
+            <span class="text-[11px] font-bold text-stone-500 uppercase">Database & ID Toko UMKM:</span>
+            <div class="flex items-center justify-between mt-1">
+              <span id="cloudStoreIdDisplay" class="font-black text-stone-900 text-xs sm:text-sm truncate">Kedai Usaha Mami (kedai_usaha_mami)</span>
+              <span class="text-[10px] font-extrabold px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 rounded-md shrink-0">Multi-Tenant</span>
             </div>
           </div>
           <p class="text-[11px] text-stone-600 leading-relaxed">
-            Data menu, omset penjualan, dan catatan pengeluaran tersinkron otomatis antar perangkat (Tablet Kasir & HP Mami) secara detik itu juga (*real-time*).
+            Data menu, transaksi, dan pengeluaran terisolasi per toko. Anda dapat membuat banyak kasir untuk berbagai UMKM klien berbeda dalam satu sistem.
           </p>
         </div>
 
@@ -1113,14 +1125,22 @@
           <button onclick="copyStoreShareLink()"
             class="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-sm transition touch-target-large">
             <span class="material-symbols-rounded text-lg">share</span>
-            <span>Salin Link Toko untuk HP Mami</span>
+            <span>Salin Link Toko Ini (WhatsApp)</span>
           </button>
 
-          <button onclick="forceSyncCloud()"
-            class="w-full py-2.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs flex items-center justify-center gap-1.5 border border-stone-200 transition touch-target-large">
-            <span class="material-symbols-rounded text-lg">upload_file</span>
-            <span>Unggah & Sinkronkan Ulang Semua Data</span>
-          </button>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="promptCreateNewStore()"
+              class="py-2.5 px-3 rounded-xl bg-stone-900 hover:bg-black text-amber-300 font-bold text-xs flex items-center justify-center gap-1 transition touch-target-large shadow-sm">
+              <span class="material-symbols-rounded text-base text-amber-400">add_business</span>
+              <span>+ Toko UMKM Baru</span>
+            </button>
+
+            <button onclick="forceSyncCloud()"
+              class="py-2.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs flex items-center justify-center gap-1 border border-stone-200 transition touch-target-large">
+              <span class="material-symbols-rounded text-base">cloud_upload</span>
+              <span>Sinkron Ulang</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

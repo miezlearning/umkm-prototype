@@ -45,9 +45,13 @@ export function switchView(viewName) {
   if (viewName === 'pos') pos.renderProducts();
 }
 
-// ================= CLOUD MODAL HELPERS =================
+// ================= CLOUD MODAL & MULTI-STORE HELPERS =================
 export function openCloudModal() {
   const modal = document.getElementById('cloudModal');
+  const storeInput = document.getElementById('cloudStoreIdInput');
+  if (storeInput) {
+    storeInput.value = state.storeId || 'kedai_usaha_mami';
+  }
   if (modal) modal.classList.remove('hidden');
 }
 
@@ -57,16 +61,39 @@ export function closeCloudModal() {
 }
 
 export function copyStoreShareLink() {
-  const url = window.location.href.split('#')[0];
+  const baseUrl = window.location.origin + window.location.pathname;
+  const storeUrl = `${baseUrl}?store=${encodeURIComponent(state.storeId)}`;
+  const storeName = state.storeProfile?.name || 'Kasir UMKM';
+
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(url).then(() => {
-      alert(`✓ Link Toko berhasil disalin!\n\n${url}\n\nKirimkan link ini ke WhatsApp HP Mami / Karyawan untuk langsung terhubung.`);
+    navigator.clipboard.writeText(storeUrl).then(() => {
+      alert(`✓ Link Toko [${storeName}] berhasil disalin!\n\n${storeUrl}\n\nKirimkan link ini ke WhatsApp HP Owner / Karyawan untuk langsung terhubung.`);
     }).catch(() => {
-      prompt('Salin link ini untuk HP Mami:', url);
+      prompt(`Salin link untuk Toko [${storeName}]:`, storeUrl);
     });
   } else {
-    prompt('Salin link ini untuk HP Mami:', url);
+    prompt(`Salin link untuk Toko [${storeName}]:`, storeUrl);
   }
+}
+
+export function switchStore(newStoreId) {
+  if (!newStoreId) return;
+  const cleanId = newStoreId.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+  if (cleanId) {
+    const baseUrl = window.location.origin + window.location.pathname;
+    window.location.href = `${baseUrl}?store=${encodeURIComponent(cleanId)}`;
+  }
+}
+
+export function promptCreateNewStore() {
+  const storeName = prompt('Masukkan Nama UMKM / Toko Baru:\n(Contoh: Warung Kopi Berkah, Bakso Mas Budi, Salon Cantik)', '');
+  if (!storeName || !storeName.trim()) return;
+
+  const rawId = storeName.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const storeId = prompt('Tentukan ID Toko (huruf kecil & angka tanpa spasi):', rawId);
+  if (!storeId || !storeId.trim()) return;
+
+  switchStore(storeId);
 }
 
 export function forceSyncCloud() {
@@ -111,12 +138,14 @@ export function init() {
 
 // ================= EXPORT GLOBAL NAMESPACE FOR HTML HANDLERS =================
 const KasirApp = {
-  // App
+  // App & Multi-Store
   init,
   switchView,
   openCloudModal,
   closeCloudModal,
   copyStoreShareLink,
+  switchStore,
+  promptCreateNewStore,
   forceSyncCloud,
 
   // POS
@@ -135,7 +164,7 @@ const KasirApp = {
   renderCart: pos.renderCart,
   toggleMobileCartDrawer: pos.toggleMobileCartDrawer,
 
-  // Payment
+  // Payment & QRIS
   openPaymentModal: payment.openPaymentModal,
   closePaymentModal: payment.closePaymentModal,
   setPaymentMethod: payment.setPaymentMethod,
@@ -150,6 +179,7 @@ const KasirApp = {
   completeTransaction: payment.completeTransaction,
   showReceipt: payment.showReceipt,
   closeReceiptModal: payment.closeReceiptModal,
+  toggleQrisPaymentMode: payment.toggleQrisPaymentMode,
 
   // Admin & Backup & QRIS
   renderAdminTable: admin.renderAdminTable,
@@ -194,3 +224,4 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+

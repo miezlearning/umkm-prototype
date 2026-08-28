@@ -17,7 +17,8 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 import { state } from './state.js';
-import { DEFAULT_PRODUCTS, STORAGE_KEYS } from './config.js';
+import { DEFAULT_PRODUCTS } from './config.js';
+import { state, currentStorageKeys, updateUIStoreBranding } from './state.js';
 
 // Firebase Configuration from user
 export const firebaseConfig = {
@@ -30,8 +31,11 @@ export const firebaseConfig = {
   measurementId: "G-QW6CMQMM6P"
 };
 
-// Store Identification
-export const STORE_ID = localStorage.getItem('kasir_mami_store_id') || 'kedai_mami_berkah';
+// Store Identification getter
+export function getStoreId() {
+  return state.storeId || 'kedai_usaha_mami';
+}
+export const STORE_ID = getStoreId();
 
 // Internal Firebase & Firestore instance
 let app = null;
@@ -157,19 +161,19 @@ export async function initFirebaseSync() {
 }
 
 /**
- * Setup Realtime Listeners for Products, Transactions, Expenses, and Queues
+ * Setup Realtime Listeners for Products, Transactions, Expenses, Queues, and Store Profile
  */
 function setupRealtimeListeners() {
   if (!db) return;
+
+  const currentStoreId = getStoreId();
 
   // Clear existing listeners if any
   listenersUnsubscribe.forEach(unsub => unsub && unsub());
   listenersUnsubscribe = [];
 
-  const storeRef = doc(db, 'stores', STORE_ID);
-
   // 1. PRODUCTS LISTENER
-  const productsCol = collection(db, 'stores', STORE_ID, 'products');
+  const productsCol = collection(db, 'stores', currentStoreId, 'products');
   const unsubProducts = onSnapshot(productsCol, (snapshot) => {
     if (snapshot.empty) {
       // First time initialization in cloud: seed default or local products
@@ -182,7 +186,7 @@ function setupRealtimeListeners() {
 
       // Update state and localStorage
       state.products = cloudProducts;
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(cloudProducts));
+      localStorage.setItem(currentStorageKeys.PRODUCTS, JSON.stringify(cloudProducts));
 
       if (onRemoteUpdateCallback) onRemoteUpdateCallback('products');
     }
@@ -192,7 +196,7 @@ function setupRealtimeListeners() {
   listenersUnsubscribe.push(unsubProducts);
 
   // 2. TRANSACTIONS LISTENER
-  const txCol = collection(db, 'stores', STORE_ID, 'transactions');
+  const txCol = collection(db, 'stores', currentStoreId, 'transactions');
   const unsubTx = onSnapshot(txCol, (snapshot) => {
     const cloudTransactions = [];
     snapshot.forEach(docSnap => {
@@ -204,7 +208,7 @@ function setupRealtimeListeners() {
 
     // Update state and localStorage
     state.transactions = cloudTransactions;
-    localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(cloudTransactions));
+    localStorage.setItem(currentStorageKeys.HISTORY, JSON.stringify(cloudTransactions));
 
     if (onRemoteUpdateCallback) onRemoteUpdateCallback('transactions');
   }, (error) => {
@@ -213,7 +217,7 @@ function setupRealtimeListeners() {
   listenersUnsubscribe.push(unsubTx);
 
   // 3. EXPENSES LISTENER
-  const expCol = collection(db, 'stores', STORE_ID, 'expenses');
+  const expCol = collection(db, 'stores', currentStoreId, 'expenses');
   const unsubExp = onSnapshot(expCol, (snapshot) => {
     const cloudExpenses = [];
     snapshot.forEach(docSnap => {
@@ -225,7 +229,7 @@ function setupRealtimeListeners() {
 
     // Update state and localStorage
     state.expenses = cloudExpenses;
-    localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(cloudExpenses));
+    localStorage.setItem(currentStorageKeys.EXPENSES, JSON.stringify(cloudExpenses));
 
     if (onRemoteUpdateCallback) onRemoteUpdateCallback('expenses');
   }, (error) => {
@@ -234,7 +238,7 @@ function setupRealtimeListeners() {
   listenersUnsubscribe.push(unsubExp);
 
   // 4. ORDER QUEUES LISTENER (Shared Antrian / Meja)
-  const queuesDocRef = doc(db, 'stores', STORE_ID, 'data', 'queues');
+  const queuesDocRef = doc(db, 'stores', currentStoreId, 'data', 'queues');
   const unsubQueues = onSnapshot(queuesDocRef, (docSnap) => {
     if (docSnap.exists()) {
       const data = docSnap.data();
@@ -243,7 +247,7 @@ function setupRealtimeListeners() {
         if (!state.orderQueues.some(q => q.id === state.activeQueueId)) {
           state.activeQueueId = state.orderQueues[0].id;
         }
-        localStorage.setItem(STORAGE_KEYS.QUEUES, JSON.stringify(state.orderQueues));
+        localStorage.setItem(currentStorageKeys.QUEUES, JSON.stringify(state.orderQueues));
         if (onRemoteUpdateCallback) onRemoteUpdateCallback('queues');
       }
     }
@@ -253,14 +257,19 @@ function setupRealtimeListeners() {
   listenersUnsubscribe.push(unsubQueues);
 
   // 5. CONFIG (QRIS Payload) LISTENER
-  const configDocRef = doc(db, 'stores', STORE_ID, 'data', 'config');
+  const configDocRef = doc(db, 'stores', currentStoreId, 'data', 'config');
   const unsubConfig = onSnapshot(configDocRef, (docSnap) => {
     if (docSnap.exists()) {
       const data = docSnap.data();
       if (data && data.qrisPayload) {
         state.qrisPayload = data.qrisPayload;
-        localStorage.setItem(STORAGE_KEYS.QRIS, data.qrisPayload);
+        localStorage.setItem(currentStorageKeys.QRIS, data.qrisPayload);
         if (onRemoteUpdateCallback) onRemoteUpdateCallback('config');
+      }
+      if (data && data.profile) {
+        state.storeProfile = { ...state.storeProfile, ...data.profile };
+        localStorage.setItem(currentStorageKeys.PROFILE, JSON.stringify(state.storeProfile));
+        updateUIStoreBranding();
       }
     }
   }, (error) => {
@@ -272,13 +281,29 @@ function setupRealtimeListeners() {
 export async function syncSaveQrisPayload(qrisPayload) {
   if (!db) return;
   try {
-    const docRef = doc(db, 'stores', STORE_ID, 'data', 'config');
+    const currentStoreId = getStoreId();
+    const docRef = doc(db, 'stores', currentStoreId, 'data', 'config');
     await setDoc(docRef, {
       qrisPayload,
+      profile: state.storeProfile || null,
       updatedAt: new Date().toISOString()
     }, { merge: true });
   } catch (e) {
     console.error('Failed to sync QRIS payload to cloud:', e);
+  }
+}
+
+export async function syncSaveStoreProfile(profile) {
+  if (!db) return;
+  try {
+    const currentStoreId = getStoreId();
+    const docRef = doc(db, 'stores', currentStoreId, 'data', 'config');
+    await setDoc(docRef, {
+      profile,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (e) {
+    console.error('Failed to sync store profile to cloud:', e);
   }
 }
 
@@ -288,10 +313,11 @@ export async function syncSaveQrisPayload(qrisPayload) {
 async function seedInitialProducts() {
   if (!db) return;
   try {
+    const currentStoreId = getStoreId();
     const localProds = state.products && state.products.length > 0 ? state.products : DEFAULT_PRODUCTS;
     const batch = writeBatch(db);
     localProds.forEach(p => {
-      const docRef = doc(db, 'stores', STORE_ID, 'products', p.id);
+      const docRef = doc(db, 'stores', currentStoreId, 'products', p.id);
       batch.set(docRef, {
         name: p.name,
         price: p.price,
@@ -314,7 +340,8 @@ async function seedInitialProducts() {
 export async function syncSaveProduct(product) {
   if (!db) return;
   try {
-    const docRef = doc(db, 'stores', STORE_ID, 'products', product.id);
+    const currentStoreId = getStoreId();
+    const docRef = doc(db, 'stores', currentStoreId, 'products', product.id);
     await setDoc(docRef, {
       name: product.name,
       price: product.price,
@@ -333,7 +360,8 @@ export async function syncSaveProduct(product) {
 export async function syncDeleteProduct(productId) {
   if (!db) return;
   try {
-    const docRef = doc(db, 'stores', STORE_ID, 'products', productId);
+    const currentStoreId = getStoreId();
+    const docRef = doc(db, 'stores', currentStoreId, 'products', productId);
     await deleteDoc(docRef);
   } catch (e) {
     console.error('Failed to delete product in cloud:', e);
@@ -346,7 +374,8 @@ export async function syncDeleteProduct(productId) {
 export async function syncAddTransaction(transaction) {
   if (!db) return;
   try {
-    const docRef = doc(db, 'stores', STORE_ID, 'transactions', transaction.id);
+    const currentStoreId = getStoreId();
+    const docRef = doc(db, 'stores', currentStoreId, 'transactions', transaction.id);
     await setDoc(docRef, {
       ...transaction,
       syncedAt: new Date().toISOString()
@@ -362,7 +391,8 @@ export async function syncAddTransaction(transaction) {
 export async function syncDeleteTransaction(transactionId) {
   if (!db) return;
   try {
-    const docRef = doc(db, 'stores', STORE_ID, 'transactions', transactionId);
+    const currentStoreId = getStoreId();
+    const docRef = doc(db, 'stores', currentStoreId, 'transactions', transactionId);
     await deleteDoc(docRef);
   } catch (e) {
     console.error('Failed to delete transaction in cloud:', e);
@@ -375,7 +405,8 @@ export async function syncDeleteTransaction(transactionId) {
 export async function syncClearAllHistory() {
   if (!db) return;
   try {
-    const txCol = collection(db, 'stores', STORE_ID, 'transactions');
+    const currentStoreId = getStoreId();
+    const txCol = collection(db, 'stores', currentStoreId, 'transactions');
     const snap = await getDocs(txCol);
     const batch = writeBatch(db);
     snap.forEach(d => batch.delete(d.ref));
@@ -391,11 +422,12 @@ export async function syncClearAllHistory() {
 export async function syncClearTodayData() {
   if (!db) return;
   try {
+    const currentStoreId = getStoreId();
     const nowStr = new Date().toDateString();
     const batch = writeBatch(db);
 
     // Filter tx
-    const txCol = collection(db, 'stores', STORE_ID, 'transactions');
+    const txCol = collection(db, 'stores', currentStoreId, 'transactions');
     const txSnap = await getDocs(txCol);
     txSnap.forEach(d => {
       const data = d.data();
@@ -405,7 +437,7 @@ export async function syncClearTodayData() {
     });
 
     // Filter exp
-    const expCol = collection(db, 'stores', STORE_ID, 'expenses');
+    const expCol = collection(db, 'stores', currentStoreId, 'expenses');
     const expSnap = await getDocs(expCol);
     expSnap.forEach(d => {
       const data = d.data();
@@ -426,7 +458,8 @@ export async function syncClearTodayData() {
 export async function syncAddExpense(expense) {
   if (!db) return;
   try {
-    const docRef = doc(db, 'stores', STORE_ID, 'expenses', expense.id);
+    const currentStoreId = getStoreId();
+    const docRef = doc(db, 'stores', currentStoreId, 'expenses', expense.id);
     await setDoc(docRef, {
       ...expense,
       syncedAt: new Date().toISOString()
@@ -442,7 +475,8 @@ export async function syncAddExpense(expense) {
 export async function syncDeleteExpense(expenseId) {
   if (!db) return;
   try {
-    const docRef = doc(db, 'stores', STORE_ID, 'expenses', expenseId);
+    const currentStoreId = getStoreId();
+    const docRef = doc(db, 'stores', currentStoreId, 'expenses', expenseId);
     await deleteDoc(docRef);
   } catch (e) {
     console.error('Failed to delete expense in cloud:', e);
@@ -455,7 +489,8 @@ export async function syncDeleteExpense(expenseId) {
 export async function syncSaveQueues(queues) {
   if (!db) return;
   try {
-    const docRef = doc(db, 'stores', STORE_ID, 'data', 'queues');
+    const currentStoreId = getStoreId();
+    const docRef = doc(db, 'stores', currentStoreId, 'data', 'queues');
     await setDoc(docRef, {
       list: queues,
       updatedAt: new Date().toISOString()
@@ -474,13 +509,14 @@ export async function forceUploadAllToCloud() {
     return;
   }
 
+  const currentStoreId = getStoreId();
   updateSyncStatusUI('syncing', 'Mengunggah semua data lokal ke Cloud...');
   try {
     const batch = writeBatch(db);
 
     // 1. Upload Products
     state.products.forEach(p => {
-      const docRef = doc(db, 'stores', STORE_ID, 'products', p.id);
+      const docRef = doc(db, 'stores', currentStoreId, 'products', p.id);
       batch.set(docRef, {
         name: p.name,
         price: p.price,
@@ -492,33 +528,34 @@ export async function forceUploadAllToCloud() {
 
     // 2. Upload Transactions
     state.transactions.forEach(t => {
-      const docRef = doc(db, 'stores', STORE_ID, 'transactions', t.id);
+      const docRef = doc(db, 'stores', currentStoreId, 'transactions', t.id);
       batch.set(docRef, { ...t, syncedAt: new Date().toISOString() }, { merge: true });
     });
 
     // 3. Upload Expenses
     state.expenses.forEach(e => {
-      const docRef = doc(db, 'stores', STORE_ID, 'expenses', e.id);
+      const docRef = doc(db, 'stores', currentStoreId, 'expenses', e.id);
       batch.set(docRef, { ...e, syncedAt: new Date().toISOString() }, { merge: true });
     });
 
     // 4. Upload Queues
-    const queuesRef = doc(db, 'stores', STORE_ID, 'data', 'queues');
+    const queuesRef = doc(db, 'stores', currentStoreId, 'data', 'queues');
     batch.set(queuesRef, {
       list: state.orderQueues,
       updatedAt: new Date().toISOString()
     });
 
-    // 5. Upload Config (QRIS Payload)
-    const configRef = doc(db, 'stores', STORE_ID, 'data', 'config');
+    // 5. Upload Config (QRIS Payload & Store Profile)
+    const configRef = doc(db, 'stores', currentStoreId, 'data', 'config');
     batch.set(configRef, {
       qrisPayload: state.qrisPayload,
+      profile: state.storeProfile || null,
       updatedAt: new Date().toISOString()
     }, { merge: true });
 
     await batch.commit();
     updateSyncStatusUI('online', '🟢 Semua data lokal berhasil diunggah ke Cloud!');
-    alert('✅ Berhasil menyinkronkan seluruh data lokal ke Cloud Firestore!');
+    alert(`✅ Berhasil menyinkronkan seluruh data toko [${state.storeProfile.name}] ke Cloud!`);
   } catch (e) {
     console.error('Force upload error:', e);
     updateSyncStatusUI('error', 'Gagal mengunggah data ke cloud');

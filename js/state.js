@@ -1,10 +1,33 @@
 /**
- * Kasir Mami - Central State Management & Storage
+ * Kasir Mami - Central State Management & Multi-Tenant Storage
  */
 
-import { STORAGE_KEYS, DEFAULT_PRODUCTS, DEFAULT_QRIS_PAYLOAD } from './config.js';
+import { getStorageKeys, DEFAULT_PRODUCTS, DEFAULT_QRIS_PAYLOAD, DEFAULT_STORE_PROFILE } from './config.js';
+import { parseQRISMetadata } from './qris.js';
+
+/**
+ * Deteksi Store ID dari URL query string (?store=...) atau localStorage
+ */
+export function resolveActiveStoreId() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const storeParam = params.get('store');
+    if (storeParam && storeParam.trim()) {
+      const sanitized = storeParam.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+      localStorage.setItem('kasir_active_store_id', sanitized);
+      return sanitized;
+    }
+  } catch (e) {}
+
+  return localStorage.getItem('kasir_active_store_id') || 'kedai_usaha_mami';
+}
+
+export const activeStoreId = resolveActiveStoreId();
+export const currentStorageKeys = getStorageKeys(activeStoreId);
 
 export const state = {
+  storeId: activeStoreId,
+  storeProfile: { ...DEFAULT_STORE_PROFILE, id: activeStoreId },
   products: [],
   transactions: [],
   expenses: [],
@@ -14,15 +37,47 @@ export const state = {
   activeQueueId: 'q_1',
   currentCategory: 'all',
   currentPeriod: 'today', // 'today', 'month', 'all'
-  qrisPayload: DEFAULT_QRIS_PAYLOAD
+  qrisPayload: DEFAULT_QRIS_PAYLOAD,
+  qrisMode: 'dynamic' // 'dynamic' (nominal pas otomatis) or 'static' (nominal manual)
 };
 
 /**
  * Muat seluruh data dari LocalStorage ke State
  */
 export function initState() {
-  // 1. Muat Produk
-  const savedProducts = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+  const keys = currentStorageKeys;
+
+  // 1. Muat QRIS Payload & Ekstrak Profil Toko
+  const savedQris = localStorage.getItem(keys.QRIS);
+  if (savedQris && savedQris.trim()) {
+    state.qrisPayload = savedQris.trim();
+  } else {
+    state.qrisPayload = DEFAULT_QRIS_PAYLOAD;
+  }
+
+  // 2. Muat Profil Toko (atau ekstrak dari QRIS)
+  const savedProfile = localStorage.getItem(keys.PROFILE);
+  if (savedProfile) {
+    try {
+      state.storeProfile = { ...DEFAULT_STORE_PROFILE, ...JSON.parse(savedProfile), id: state.storeId };
+    } catch (e) {
+      state.storeProfile = { ...DEFAULT_STORE_PROFILE, id: state.storeId };
+    }
+  } else {
+    // Auto-ekstrak dari payload QRIS
+    const meta = parseQRISMetadata(state.qrisPayload);
+    state.storeProfile = {
+      id: state.storeId,
+      name: meta.merchantName || 'Kedai Usaha Mami',
+      city: meta.city || 'Samarinda (Kota)',
+      nmid: meta.nmid || 'ID1025450522335',
+      acquirer: meta.acquirer || "Livin' by Mandiri"
+    };
+    saveStoreProfile();
+  }
+
+  // 3. Muat Produk
+  const savedProducts = localStorage.getItem(keys.PRODUCTS);
   if (savedProducts) {
     try {
       state.products = JSON.parse(savedProducts);
@@ -34,8 +89,8 @@ export function initState() {
     saveProducts();
   }
 
-  // 2. Muat Transaksi
-  const savedHistory = localStorage.getItem(STORAGE_KEYS.HISTORY);
+  // 4. Muat Transaksi
+  const savedHistory = localStorage.getItem(keys.HISTORY);
   if (savedHistory) {
     try {
       state.transactions = JSON.parse(savedHistory);
@@ -44,8 +99,8 @@ export function initState() {
     }
   }
 
-  // 3. Muat Pengeluaran
-  const savedExpenses = localStorage.getItem(STORAGE_KEYS.EXPENSES);
+  // 5. Muat Pengeluaran
+  const savedExpenses = localStorage.getItem(keys.EXPENSES);
   if (savedExpenses) {
     try {
       state.expenses = JSON.parse(savedExpenses);
@@ -54,8 +109,8 @@ export function initState() {
     }
   }
 
-  // 4. Muat Antrian Pesanan
-  const savedQueues = localStorage.getItem(STORAGE_KEYS.QUEUES);
+  // 6. Muat Antrian Pesanan
+  const savedQueues = localStorage.getItem(keys.QUEUES);
   if (savedQueues) {
     try {
       state.orderQueues = JSON.parse(savedQueues);
@@ -70,14 +125,6 @@ export function initState() {
     }
   }
 
-  // 5. Muat QRIS Payload
-  const savedQris = localStorage.getItem(STORAGE_KEYS.QRIS);
-  if (savedQris && savedQris.trim()) {
-    state.qrisPayload = savedQris.trim();
-  } else {
-    state.qrisPayload = DEFAULT_QRIS_PAYLOAD;
-  }
-
   if (
     state.orderQueues.length === 1 &&
     Object.keys(state.orderQueues[0].cart).length === 0 &&
@@ -85,27 +132,80 @@ export function initState() {
   ) {
     state.orderQueues[0].name = 'Pesanan #1';
   }
+
+  // Update UI Elements with Store Branding
+  updateUIStoreBranding();
+}
+
+/**
+ * Perbarui teks nama toko & branding di seluruh layar (Header, struk, laporan)
+ */
+export function updateUIStoreBranding() {
+  const storeName = state.storeProfile?.name || 'Kasir Kedai Mami Berkah';
+  const nmid = state.storeProfile?.nmid || '';
+  const city = state.storeProfile?.city || '';
+
+  // Header Title
+  const headerTitleEl = document.querySelector('header h1');
+  if (headerTitleEl) headerTitleEl.innerText = storeName;
+
+  // Struk Header
+  const receiptStoreNameEl = document.getElementById('receiptStoreName');
+  if (receiptStoreNameEl) receiptStoreNameEl.innerText = storeName;
+
+  // QRIS Payment Card Merchant Info
+  const qrisMerchantNameEl = document.getElementById('qrisMerchantName');
+  if (qrisMerchantNameEl) qrisMerchantNameEl.innerText = storeName;
+
+  const qrisNmidEl = document.getElementById('qrisNmidDisplay');
+  if (qrisNmidEl) {
+    qrisNmidEl.innerText = nmid ? `NMID: ${nmid}` : '';
+  }
+
+  // Cloud Store Indicator
+  const cloudStoreIdEl = document.getElementById('cloudStoreIdDisplay');
+  if (cloudStoreIdEl) {
+    cloudStoreIdEl.innerText = `${storeName} (${state.storeId})`;
+  }
+}
+
+export function saveStoreProfile(profile) {
+  if (profile) {
+    state.storeProfile = { ...state.storeProfile, ...profile };
+  }
+  localStorage.setItem(currentStorageKeys.PROFILE, JSON.stringify(state.storeProfile));
+  updateUIStoreBranding();
 }
 
 export function saveProducts() {
-  localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(state.products));
+  localStorage.setItem(currentStorageKeys.PRODUCTS, JSON.stringify(state.products));
 }
 
 export function saveHistory() {
-  localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(state.transactions));
+  localStorage.setItem(currentStorageKeys.HISTORY, JSON.stringify(state.transactions));
 }
 
 export function saveExpenses() {
-  localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(state.expenses));
+  localStorage.setItem(currentStorageKeys.EXPENSES, JSON.stringify(state.expenses));
 }
 
 export function saveQueues() {
-  localStorage.setItem(STORAGE_KEYS.QUEUES, JSON.stringify(state.orderQueues));
+  localStorage.setItem(currentStorageKeys.QUEUES, JSON.stringify(state.orderQueues));
 }
 
 export function saveQrisPayload(payload) {
   state.qrisPayload = (payload || DEFAULT_QRIS_PAYLOAD).trim();
-  localStorage.setItem(STORAGE_KEYS.QRIS, state.qrisPayload);
+  localStorage.setItem(currentStorageKeys.QRIS, state.qrisPayload);
+
+  // Otomatis sinkronkan profil toko dari metadata QRIS yang baru
+  const meta = parseQRISMetadata(state.qrisPayload);
+  if (meta && meta.merchantName) {
+    state.storeProfile.name = meta.merchantName;
+    state.storeProfile.city = meta.city;
+    state.storeProfile.nmid = meta.nmid;
+    state.storeProfile.acquirer = meta.acquirer;
+    saveStoreProfile();
+  }
 }
 
 /**
@@ -139,3 +239,4 @@ export function calculateCartTotal() {
   });
   return { total, count };
 }
+
