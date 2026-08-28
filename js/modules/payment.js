@@ -1,5 +1,5 @@
 import { state, saveHistory, saveQueues, getCurrentCart, getActiveQueue, calculateCartTotal } from '../state.js';
-import { formatRp, formatDateShort, escapeHtml } from '../utils.js';
+import { formatRp, formatDateShort, escapeHtml, showToast } from '../utils.js';
 import { renderOrderQueueTabs, renderCart, renderProducts, toggleMobileCartDrawer } from './pos.js';
 import { syncAddTransaction, syncSaveQueues } from '../firebase.js';
 import { generateDynamicQRIS, renderQRToContainer, parseQRISMetadata } from '../qris.js';
@@ -307,6 +307,7 @@ export function completeTransaction() {
   renderOrderQueueTabs();
   renderCart();
   renderProducts();
+  showToast(`Pembayaran ${formatRp(total)} Berhasil (${newTx.method})!`, 'success');
 }
 
 export function showReceipt(tx) {

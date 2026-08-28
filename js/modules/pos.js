@@ -3,7 +3,7 @@
  */
 
 import { state, saveQueues, getCurrentCart, getActiveQueue, calculateCartTotal } from '../state.js';
-import { formatRp, playBeep, escapeHtml } from '../utils.js';
+import { formatRp, playBeep, escapeHtml, showToast } from '../utils.js';
 import { syncSaveQueues } from '../firebase.js';
 
 // ================= MULTI-ORDER QUEUE =================
@@ -115,9 +115,10 @@ export function addNewOrderQueue() {
   }
 
   const newId = 'q_' + Date.now();
+  const newName = `Pesanan #${nextNum}`;
   state.orderQueues.push({
     id: newId,
-    name: `Pesanan #${nextNum}`,
+    name: newName,
     cart: {}
   });
   state.activeQueueId = newId;
@@ -126,6 +127,7 @@ export function addNewOrderQueue() {
   renderOrderQueueTabs();
   renderCart();
   renderProducts();
+  showToast(`Antrian "${newName}" siap digunakan`, 'info');
 
   // Scroll to the newest tab on the far right
   setTimeout(() => {
@@ -144,14 +146,42 @@ export function switchOrderQueue(queueId) {
 }
 
 export function promptRenameQueue() {
+  openRenameQueueModal();
+}
+
+export function openRenameQueueModal() {
   const cur = getActiveQueue();
   if (!cur) return;
-  const newName = prompt('Ganti Nama Antrian / Nomor Meja:\n(Contoh: Meja 5, Mas Joko, Bungkus)', cur.name);
-  if (newName && newName.trim()) {
-    cur.name = newName.trim();
+  const modal = document.getElementById('renameQueueModal');
+  const input = document.getElementById('renameQueueInput');
+  if (input) input.value = cur.name;
+  if (modal) modal.classList.remove('hidden');
+  if (input) setTimeout(() => { input.focus(); input.select(); }, 100);
+}
+
+export function closeRenameQueueModal() {
+  const modal = document.getElementById('renameQueueModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+export function setPresetQueueName(name) {
+  const input = document.getElementById('renameQueueInput');
+  if (input) input.value = name;
+}
+
+export function saveQueueRename(e) {
+  if (e) e.preventDefault();
+  const cur = getActiveQueue();
+  if (!cur) return;
+  const input = document.getElementById('renameQueueInput');
+  const newName = input ? input.value.trim() : '';
+  if (newName) {
+    cur.name = newName;
     saveQueues();
     syncSaveQueues(state.orderQueues);
     renderOrderQueueTabs();
+    closeRenameQueueModal();
+    showToast(`Nama antrian diubah menjadi "${newName}"`, 'success');
   }
 }
 
@@ -293,6 +323,11 @@ export function addToCart(productId) {
     renderOrderQueueTabs();
     renderCart();
     renderProducts();
+
+    const p = state.products.find(prod => prod.id === productId);
+    if (p) {
+      showToast(`+1 ${p.name} (${q.name})`, 'info', 1200);
+    }
   }
 }
 

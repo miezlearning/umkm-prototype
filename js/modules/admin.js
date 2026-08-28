@@ -111,6 +111,7 @@ export function saveProduct(e) {
   closeProductModal();
   renderAdminTable();
   renderProducts();
+  showToast(id ? `Menu "${name}" berhasil diperbarui!` : `Menu "${name}" berhasil ditambahkan!`, 'success');
 }
 
 export function deleteProduct(id) {
@@ -125,6 +126,7 @@ export function deleteProduct(id) {
     renderAdminTable();
     renderProducts();
     renderCart();
+    showToast(`Menu "${prodName}" telah dihapus.`, 'info');
   }
 }
 

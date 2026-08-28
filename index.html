@@ -343,19 +343,18 @@
     <div id="paymentModal"
       class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
       <div
-        class="bg-white w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[92vh]">
+        class="bg-white w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[92vh] transition-all">
 
         <!-- Modal Header -->
-        <div class="bg-stone-900 text-white p-3 sm:p-4 flex items-center justify-between border-b border-stone-800">
-          <div class="flex items-center gap-2">
+        <div class="bg-stone-900 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-stone-800">
+          <div class="flex items-center gap-2.5">
             <button onclick="closePaymentModal()"
               class="p-1.5 hover:bg-white/20 rounded-xl transition touch-target-large flex items-center justify-center">
               <span class="material-symbols-rounded text-2xl">arrow_back</span>
             </button>
             <div>
               <h3 class="text-lg sm:text-2xl font-black">Pembayaran Kasir</h3>
-              <p class="text-[10px] sm:text-xs text-emerald-200/90 font-medium">Pilih Tunai / QRIS, patungan & hitung
-                kembalian</p>
+              <p class="text-[10px] sm:text-xs text-emerald-300 font-medium">Pilih Tunai / QRIS, patungan & hitung kembalian</p>
             </div>
           </div>
           <button onclick="closePaymentModal()" class="p-1.5 hover:bg-white/20 rounded-full">
@@ -364,205 +363,219 @@
         </div>
 
         <!-- Modal Body -->
-        <div class="p-3 sm:p-5 overflow-y-auto custom-scroll flex flex-col gap-3">
+        <div class="p-3.5 sm:p-6 overflow-y-auto custom-scroll flex flex-col gap-4 flex-1">
 
-          <!-- Total Due Banner -->
-          <div class="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-3 text-center flex flex-col items-center">
-            <span class="text-emerald-950 font-bold text-xs uppercase tracking-wider">Total Harus Dibayar</span>
-            <span id="payModalTotal" class="text-2xl sm:text-4xl font-black text-stone-950 mt-0.5">Rp 0</span>
-          </div>
-
-          <!-- PILIH METODE BAYAR: TUNAI VS QRIS/TRANSFER -->
-          <div>
-            <label class="text-stone-700 font-extrabold text-xs sm:text-sm mb-1.5 block">Metode Pembayaran:</label>
-            <div class="grid grid-cols-2 gap-2">
-              <button onclick="setPaymentMethod('cash')" id="btnPayMethodCash"
-                class="py-2.5 px-3 rounded-2xl border-2 border-emerald-600 bg-emerald-50 text-stone-950 font-black text-sm flex items-center justify-center gap-2 transition touch-target-large shadow-sm">
-                <span class="material-symbols-rounded text-xl text-emerald-700">payments</span>
-                <span>Uang Tunai (Cash)</span>
-              </button>
-              <button onclick="setPaymentMethod('qris')" id="btnPayMethodQris"
-                class="py-2.5 px-3 rounded-2xl border-2 border-stone-200 bg-white text-stone-700 font-bold text-sm flex items-center justify-center gap-2 transition touch-target-large">
-                <span class="material-symbols-rounded text-xl text-stone-600">qr_code_scanner</span>
-                <span>QRIS / Transfer</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- AREA TUNAI: PATUNGAN & QUICK CASH -->
-          <div id="cashPaymentSection" class="flex flex-col gap-3">
-            <!-- Solusi Patungan -->
-            <div class="bg-emerald-50/90 border border-emerald-300 p-2.5 rounded-2xl flex flex-col gap-1.5">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-black text-emerald-950 flex items-center gap-1">
-                  <span class="material-symbols-rounded text-base text-emerald-700">group</span>
-                  Rombongan Patungan? (Bagi Rata):
-                </span>
-                <button onclick="resetSplitBill()" id="btnResetSplit"
-                  class="hidden text-xs text-red-600 font-bold underline">Batal</button>
-              </div>
-              <div class="grid grid-cols-4 gap-1">
-                <button onclick="calculateSplitBill(2)"
-                  class="split-btn py-1.5 px-1 rounded-xl bg-white border border-emerald-300 hover:bg-emerald-100 font-black text-xs text-stone-900 transition touch-target-large text-center">÷
-                  2 Org</button>
-                <button onclick="calculateSplitBill(3)"
-                  class="split-btn py-1.5 px-1 rounded-xl bg-white border border-emerald-300 hover:bg-emerald-100 font-black text-xs text-stone-900 transition touch-target-large text-center">÷
-                  3 Org</button>
-                <button onclick="calculateSplitBill(4)"
-                  class="split-btn py-1.5 px-1 rounded-xl bg-white border border-emerald-300 hover:bg-emerald-100 font-black text-xs text-stone-900 transition touch-target-large text-center">÷
-                  4 Org</button>
-                <button onclick="calculateSplitBill(5)"
-                  class="split-btn py-1.5 px-1 rounded-xl bg-white border border-emerald-300 hover:bg-emerald-100 font-black text-xs text-stone-900 transition touch-target-large text-center">÷
-                  5 Org</button>
-              </div>
-              <div id="splitResultBanner"
-                class="hidden p-2 rounded-xl bg-emerald-100 text-emerald-950 font-black text-xs text-center border border-emerald-300">
-              </div>
+          <!-- Top Row: Total Due & Payment Method Tabs -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch">
+            <!-- Total Due Banner -->
+            <div class="md:col-span-5 bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-3.5 sm:p-4 text-center flex flex-col items-center justify-center shadow-sm">
+              <span class="text-emerald-950 font-bold text-xs uppercase tracking-wider">Total Harus Dibayar</span>
+              <span id="payModalTotal" class="text-2xl sm:text-3xl lg:text-4xl font-black text-stone-950 mt-0.5">Rp 0</span>
             </div>
 
-            <!-- Quick Cash Chips -->
-            <div>
-              <div class="flex items-center justify-between mb-1.5">
-                <label class="text-stone-700 font-extrabold text-xs sm:text-sm">Pilih Uang Masuk:</label>
-                <label
-                  class="flex items-center gap-1.5 cursor-pointer bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg">
-                  <input type="checkbox" id="toggleAccumulateCash" class="w-3.5 h-3.5 accent-emerald-700 cursor-pointer">
-                  <span class="text-[11px] font-bold text-emerald-950 select-none">+ Gabung Uang</span>
-                </label>
-              </div>
-
-              <div class="grid grid-cols-3 gap-1.5 sm:gap-2">
-                <button onclick="selectQuickCash('exact')"
-                  class="p-2 sm:p-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 border-2 border-emerald-400 font-black text-stone-950 text-xs sm:text-base flex flex-col items-center justify-center transition active:scale-95 touch-target-large shadow-sm">
-                  <span class="material-symbols-rounded text-lg sm:text-xl text-stone-950">check_circle</span>
-                  <span>Uang Pas</span>
+            <!-- PILIH METODE BAYAR: TUNAI VS QRIS/TRANSFER -->
+            <div class="md:col-span-7 flex flex-col justify-center gap-1.5">
+              <label class="text-stone-700 font-extrabold text-xs sm:text-sm">Pilih Metode Pembayaran:</label>
+              <div class="grid grid-cols-2 gap-2 h-full">
+                <button onclick="setPaymentMethod('cash')" id="btnPayMethodCash"
+                  class="py-3 px-3 rounded-2xl border-2 border-emerald-600 bg-emerald-50 text-stone-950 font-black text-xs sm:text-base flex items-center justify-center gap-2 transition touch-target-large shadow-sm">
+                  <span class="material-symbols-rounded text-2xl text-emerald-700">payments</span>
+                  <span>Uang Tunai (Cash)</span>
                 </button>
-                <button onclick="selectQuickCash(10000)"
-                  class="p-2 sm:p-3 rounded-xl bg-stone-100 hover:bg-emerald-100 border-2 border-stone-200 font-black text-stone-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>10.000</span></button>
-                <button onclick="selectQuickCash(20000)"
-                  class="p-2 sm:p-3 rounded-xl bg-stone-100 hover:bg-emerald-100 border-2 border-stone-200 font-black text-stone-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>20.000</span></button>
-                <button onclick="selectQuickCash(50000)"
-                  class="p-2 sm:p-3 rounded-xl bg-stone-100 hover:bg-emerald-100 border-2 border-stone-200 font-black text-stone-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>50.000</span></button>
-                <button onclick="selectQuickCash(100000)"
-                  class="p-2 sm:p-3 rounded-xl bg-stone-100 hover:bg-emerald-100 border-2 border-stone-200 font-black text-stone-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>100.000</span></button>
-                <button onclick="toggleCustomKeypad()"
-                  class="p-2 sm:p-3 rounded-xl bg-stone-100 hover:bg-emerald-100 border-2 border-emerald-400 font-black text-stone-800 text-xs sm:text-base flex items-center justify-center gap-1 transition active:scale-95 touch-target-large">
-                  <span class="material-symbols-rounded text-base">dialpad</span>
-                  <span>BEBAS</span>
+                <button onclick="setPaymentMethod('qris')" id="btnPayMethodQris"
+                  class="py-3 px-3 rounded-2xl border-2 border-stone-200 bg-white text-stone-700 font-bold text-xs sm:text-base flex items-center justify-center gap-2 transition touch-target-large">
+                  <span class="material-symbols-rounded text-2xl text-stone-600">qr_code_scanner</span>
+                  <span>QRIS / Transfer</span>
                 </button>
               </div>
             </div>
+          </div>
 
-            <!-- History Uang Gabungan -->
-            <div id="cashContributionsArea"
-              class="hidden bg-stone-50 p-2 rounded-xl border border-stone-200 flex flex-col gap-1">
-              <span class="text-[10px] font-bold text-stone-500">Rincian Uang yang Terkumpul:</span>
-              <div id="cashContributionList" class="flex flex-wrap gap-1 text-[11px] font-bold"></div>
+          <!-- AREA TUNAI: RESPONSIVE 2-COLUMN ON TABLET -->
+          <div id="cashPaymentSection" class="grid grid-cols-1 md:grid-cols-12 gap-3.5">
+            <!-- Kolom Kiri: Quick Cash & Keypad -->
+            <div class="md:col-span-7 flex flex-col gap-3">
+              <!-- Quick Cash Chips -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="text-stone-700 font-extrabold text-xs sm:text-sm">Pilih Uang Masuk:</label>
+                  <label
+                    class="flex items-center gap-1.5 cursor-pointer bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
+                    <input type="checkbox" id="toggleAccumulateCash" class="w-3.5 h-3.5 accent-emerald-700 cursor-pointer">
+                    <span class="text-[11px] font-bold text-emerald-950 select-none">+ Gabung Uang</span>
+                  </label>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                  <button onclick="selectQuickCash('exact')"
+                    class="p-2.5 sm:p-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 border-2 border-emerald-400 font-black text-stone-950 text-xs sm:text-base flex flex-col items-center justify-center transition active:scale-95 touch-target-large shadow-sm">
+                    <span class="material-symbols-rounded text-xl sm:text-2xl text-stone-950">check_circle</span>
+                    <span>Uang Pas</span>
+                  </button>
+                  <button onclick="selectQuickCash(10000)"
+                    class="p-2.5 sm:p-3 rounded-xl bg-stone-100 hover:bg-emerald-100 border-2 border-stone-200 font-black text-stone-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>10.000</span></button>
+                  <button onclick="selectQuickCash(20000)"
+                    class="p-2.5 sm:p-3 rounded-xl bg-stone-100 hover:bg-emerald-100 border-2 border-stone-200 font-black text-stone-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>20.000</span></button>
+                  <button onclick="selectQuickCash(50000)"
+                    class="p-2.5 sm:p-3 rounded-xl bg-stone-100 hover:bg-emerald-100 border-2 border-stone-200 font-black text-stone-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>50.000</span></button>
+                  <button onclick="selectQuickCash(100000)"
+                    class="p-2.5 sm:p-3 rounded-xl bg-stone-100 hover:bg-emerald-100 border-2 border-stone-200 font-black text-stone-800 text-xs sm:text-base flex items-center justify-center transition active:scale-95 touch-target-large"><span>100.000</span></button>
+                  <button onclick="toggleCustomKeypad()"
+                    class="p-2.5 sm:p-3 rounded-xl bg-stone-100 hover:bg-emerald-100 border-2 border-emerald-400 font-black text-stone-800 text-xs sm:text-base flex items-center justify-center gap-1 transition active:scale-95 touch-target-large">
+                    <span class="material-symbols-rounded text-base sm:text-lg">dialpad</span>
+                    <span>BEBAS</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- History Uang Gabungan -->
+              <div id="cashContributionsArea"
+                class="hidden bg-stone-50 p-2.5 rounded-xl border border-stone-200 flex flex-col gap-1">
+                <span class="text-[10px] font-bold text-stone-500">Rincian Uang yang Terkumpul:</span>
+                <div id="cashContributionList" class="flex flex-wrap gap-1 text-[11px] font-bold"></div>
+              </div>
+
+              <!-- Custom Cash Input & Numeric Keypad -->
+              <div id="customKeypadArea"
+                class="hidden bg-emerald-50/60 p-3 rounded-2xl border-2 border-emerald-300 flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="font-extrabold text-stone-700 text-xs sm:text-sm">Nominal:</span>
+                  <input type="number" id="cashInputManual" oninput="handleManualCashInput()" placeholder="Rp..."
+                    class="flex-1 p-2 text-lg sm:text-xl font-black rounded-xl border-2 border-emerald-400 bg-white text-right focus:outline-none">
+                  <button onclick="clearManualCash()"
+                    class="px-3 py-2 bg-red-100 text-red-600 rounded-xl font-bold text-xs sm:text-sm touch-target-large">Hapus</button>
+                </div>
+                <div class="grid grid-cols-3 gap-1.5">
+                  <button onclick="addKeypadDigit('1')"
+                    class="p-2.5 bg-white border rounded-xl font-black text-lg">1</button>
+                  <button onclick="addKeypadDigit('2')"
+                    class="p-2.5 bg-white border rounded-xl font-black text-lg">2</button>
+                  <button onclick="addKeypadDigit('3')"
+                    class="p-2.5 bg-white border rounded-xl font-black text-lg">3</button>
+                  <button onclick="addKeypadDigit('4')"
+                    class="p-2.5 bg-white border rounded-xl font-black text-lg">4</button>
+                  <button onclick="addKeypadDigit('5')"
+                    class="p-2.5 bg-white border rounded-xl font-black text-lg">5</button>
+                  <button onclick="addKeypadDigit('6')"
+                    class="p-2.5 bg-white border rounded-xl font-black text-lg">6</button>
+                  <button onclick="addKeypadDigit('7')"
+                    class="p-2.5 bg-white border rounded-xl font-black text-lg">7</button>
+                  <button onclick="addKeypadDigit('8')"
+                    class="p-2.5 bg-white border rounded-xl font-black text-lg">8</button>
+                  <button onclick="addKeypadDigit('9')"
+                    class="p-2.5 bg-white border rounded-xl font-black text-lg">9</button>
+                  <button onclick="addKeypadDigit('000')"
+                    class="p-2.5 bg-stone-200 border rounded-xl font-black text-xs sm:text-sm">000</button>
+                  <button onclick="addKeypadDigit('0')"
+                    class="p-2.5 bg-white border rounded-xl font-black text-lg">0</button>
+                  <button onclick="backspaceKeypad()"
+                    class="p-2.5 bg-emerald-100 text-emerald-800 border rounded-xl font-black flex items-center justify-center">
+                    <span class="material-symbols-rounded text-lg">backspace</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <!-- Custom Cash Input & Numeric Keypad -->
-            <div id="customKeypadArea"
-              class="hidden bg-emerald-50/60 p-2.5 rounded-2xl border-2 border-emerald-300 flex flex-col gap-2">
-              <div class="flex items-center gap-1.5">
-                <span class="font-extrabold text-stone-700 text-xs">Nominal:</span>
-                <input type="number" id="cashInputManual" oninput="handleManualCashInput()" placeholder="Rp..."
-                  class="flex-1 p-2 text-lg font-black rounded-xl border-2 border-emerald-400 bg-white text-right focus:outline-none">
-                <button onclick="clearManualCash()"
-                  class="px-2.5 py-1.5 bg-red-100 text-red-600 rounded-xl font-bold text-xs touch-target-large">Hapus</button>
+            <!-- Kolom Kanan: Patungan & Perhitungan Kembalian -->
+            <div class="md:col-span-5 flex flex-col gap-3">
+              <!-- Solusi Patungan -->
+              <div class="bg-stone-50 border border-stone-200 p-3 rounded-2xl flex flex-col gap-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-stone-900 flex items-center gap-1">
+                    <span class="material-symbols-rounded text-base text-emerald-700">group</span>
+                    Patungan Rombongan? (Bagi Rata):
+                  </span>
+                  <button onclick="resetSplitBill()" id="btnResetSplit"
+                    class="hidden text-xs text-red-600 font-bold underline">Batal</button>
+                </div>
+                <div class="grid grid-cols-4 gap-1">
+                  <button onclick="calculateSplitBill(2)"
+                    class="split-btn py-1.5 px-1 rounded-xl bg-white border border-stone-200 hover:bg-emerald-50 font-black text-xs text-stone-900 transition touch-target-large text-center">÷ 2</button>
+                  <button onclick="calculateSplitBill(3)"
+                    class="split-btn py-1.5 px-1 rounded-xl bg-white border border-stone-200 hover:bg-emerald-50 font-black text-xs text-stone-900 transition touch-target-large text-center">÷ 3</button>
+                  <button onclick="calculateSplitBill(4)"
+                    class="split-btn py-1.5 px-1 rounded-xl bg-white border border-stone-200 hover:bg-emerald-50 font-black text-xs text-stone-900 transition touch-target-large text-center">÷ 4</button>
+                  <button onclick="calculateSplitBill(5)"
+                    class="split-btn py-1.5 px-1 rounded-xl bg-white border border-stone-200 hover:bg-emerald-50 font-black text-xs text-stone-900 transition touch-target-large text-center">÷ 5</button>
+                </div>
+                <div id="splitResultBanner"
+                  class="hidden p-2 rounded-xl bg-emerald-100 text-emerald-950 font-black text-xs text-center border border-emerald-300">
+                </div>
               </div>
-              <div class="grid grid-cols-3 gap-1">
-                <button onclick="addKeypadDigit('1')"
-                  class="p-2 bg-white border rounded-xl font-black text-base">1</button>
-                <button onclick="addKeypadDigit('2')"
-                  class="p-2 bg-white border rounded-xl font-black text-base">2</button>
-                <button onclick="addKeypadDigit('3')"
-                  class="p-2 bg-white border rounded-xl font-black text-base">3</button>
-                <button onclick="addKeypadDigit('4')"
-                  class="p-2 bg-white border rounded-xl font-black text-base">4</button>
-                <button onclick="addKeypadDigit('5')"
-                  class="p-2 bg-white border rounded-xl font-black text-base">5</button>
-                <button onclick="addKeypadDigit('6')"
-                  class="p-2 bg-white border rounded-xl font-black text-base">6</button>
-                <button onclick="addKeypadDigit('7')"
-                  class="p-2 bg-white border rounded-xl font-black text-base">7</button>
-                <button onclick="addKeypadDigit('8')"
-                  class="p-2 bg-white border rounded-xl font-black text-base">8</button>
-                <button onclick="addKeypadDigit('9')"
-                  class="p-2 bg-white border rounded-xl font-black text-base">9</button>
-                <button onclick="addKeypadDigit('000')"
-                  class="p-2 bg-stone-200 border rounded-xl font-black text-xs">000</button>
-                <button onclick="addKeypadDigit('0')"
-                  class="p-2 bg-white border rounded-xl font-black text-base">0</button>
-                <button onclick="backspaceKeypad()"
-                  class="p-2 bg-emerald-100 text-emerald-800 border rounded-xl font-black flex items-center justify-center">
-                  <span class="material-symbols-rounded text-base">backspace</span>
-                </button>
-              </div>
-            </div>
 
-            <!-- Cash Calculation Display -->
-            <div class="bg-emerald-50 border-2 border-emerald-400/80 rounded-2xl p-2.5 sm:p-4 flex flex-col gap-1">
-              <div class="flex justify-between items-center text-stone-700 font-bold text-xs sm:text-sm">
-                <span>Total Uang Diterima:</span>
-                <span id="cashGivenDisplay" class="font-extrabold text-sm sm:text-base text-stone-900">Rp 0</span>
+              <!-- Cash Calculation Display (Big & Ultra Clear) -->
+              <div class="bg-emerald-50 border-2 border-emerald-400/80 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-2 flex-1 justify-between shadow-inner">
+                <div class="flex justify-between items-center text-stone-700 font-bold text-xs sm:text-sm">
+                  <span>Total Uang Diterima:</span>
+                  <span id="cashGivenDisplay" class="font-black text-base sm:text-lg text-stone-900">Rp 0</span>
+                </div>
+                <div class="h-[1px] bg-emerald-200"></div>
+                <div class="flex flex-col gap-0.5">
+                  <span class="font-extrabold text-stone-700 text-xs sm:text-sm">Kembalian:</span>
+                  <span id="changeDisplay" class="text-2xl sm:text-4xl lg:text-5xl font-black text-emerald-800 tracking-tight">Rp 0</span>
+                </div>
+                <p id="changeNotice" class="text-[11px] font-semibold text-emerald-800 text-right min-h-[16px]"></p>
               </div>
-              <div class="h-0.5 bg-emerald-200"></div>
-              <div class="flex justify-between items-center">
-                <span class="font-extrabold text-stone-800 text-xs sm:text-sm">Kembalian:</span>
-                <span id="changeDisplay" class="text-xl sm:text-3xl font-black text-emerald-700">Rp 0</span>
-              </div>
-              <p id="changeNotice" class="text-[10px] sm:text-xs font-semibold text-emerald-800 text-right"></p>
             </div>
           </div>
 
-          <!-- AREA QRIS DINAMIS -->
+          <!-- AREA QRIS DINAMIS: SPACIOUS 2-COLUMN ON TABLET -->
           <div id="qrisPaymentSection"
-            class="hidden bg-stone-50 border-2 border-emerald-400 p-3 sm:p-4 rounded-3xl flex flex-col items-center text-center gap-2.5">
+            class="hidden bg-stone-50 border-2 border-emerald-400 p-4 sm:p-6 rounded-3xl grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
             
             <!-- QRIS Card Container -->
-            <div class="bg-white p-3.5 rounded-2xl shadow-md border border-stone-200 flex flex-col items-center max-w-[270px] w-full">
-              <!-- QRIS Header Label -->
-              <div class="flex items-center justify-center w-full pb-2 border-b border-stone-100 mb-2">
-                <span class="font-extrabold text-xs text-stone-800 tracking-wider flex items-center gap-1.5">
-                  <span class="material-symbols-rounded text-base text-emerald-700">qr_code_2</span>
-                  <span>PEMBAYARAN QRIS</span>
-                </span>
-              </div>
+            <div class="md:col-span-6 flex justify-center">
+              <div class="bg-white p-4 rounded-2xl shadow-lg border border-stone-200 flex flex-col items-center max-w-[280px] w-full">
+                <!-- QRIS Header Label -->
+                <div class="flex items-center justify-center w-full pb-2 border-b border-stone-100 mb-2">
+                  <span class="font-extrabold text-xs text-stone-800 tracking-wider flex items-center gap-1.5">
+                    <span class="material-symbols-rounded text-base text-emerald-700">qr_code_2</span>
+                    <span>PEMBAYARAN QRIS</span>
+                  </span>
+                </div>
 
-              <!-- Canvas / QR Code Container -->
-              <div class="bg-white p-1 rounded-xl flex items-center justify-center min-h-[220px]">
-                <div id="qrisDynamicContainer" class="flex items-center justify-center"></div>
-              </div>
+                <!-- Canvas / QR Code Container -->
+                <div class="bg-white p-1 rounded-xl flex items-center justify-center min-h-[220px]">
+                  <div id="qrisDynamicContainer" class="flex items-center justify-center"></div>
+                </div>
 
-              <!-- Store Name & Amount -->
-              <div class="mt-2 text-center w-full pt-1.5 border-t border-stone-100 flex flex-col gap-0.5">
-                <p id="qrisMerchantName" class="text-xs font-black text-stone-900 truncate">Kedai Usaha Mami</p>
-                <p id="qrisNmidDisplay" class="text-[10px] text-stone-500 font-mono font-bold">NMID: ID1025450522335</p>
-                <p id="qrisDynamicTotal" class="text-xl font-black text-emerald-900 mt-0.5">Rp 0</p>
+                <!-- Store Name & Amount -->
+                <div class="mt-2 text-center w-full pt-2 border-t border-stone-100 flex flex-col gap-0.5">
+                  <p id="qrisMerchantName" class="text-xs sm:text-sm font-black text-stone-900 truncate">Kedai Usaha Mami</p>
+                  <p id="qrisNmidDisplay" class="text-[10px] text-stone-500 font-mono font-bold">NMID: ID1025450522335</p>
+                  <p id="qrisDynamicTotal" class="text-xl sm:text-2xl font-black text-emerald-800 mt-0.5">Rp 0</p>
+                </div>
               </div>
             </div>
 
             <!-- Notice & Instructions -->
-            <div class="flex flex-col gap-1 max-w-sm">
-              <p class="text-xs font-black text-stone-900">
-                📱 Tunjukkan QR Code ini ke pembeli
-              </p>
-              <p class="text-[11px] text-stone-500 font-medium leading-relaxed">
-                Nominal pembayaran otomatis terisi pas di aplikasi pembeli (Livin' Mandiri, BCA, GoPay, OVO, DANA, ShopeePay, dll).
-              </p>
-              <button type="button" onclick="toggleQrisPaymentMode()"
-                class="mt-1 text-[11px] text-emerald-700 hover:text-emerald-900 font-bold underline flex items-center justify-center gap-1 transition">
-                <span class="material-symbols-rounded text-sm">swap_horiz</span>
-                <span>Ganti Mode: Dinamis / Statis</span>
-              </button>
+            <div class="md:col-span-6 flex flex-col gap-3 text-center md:text-left">
+              <div class="bg-white p-4 rounded-2xl border border-stone-200 flex flex-col gap-2">
+                <div class="flex items-center gap-2 text-stone-900 font-extrabold text-sm sm:text-base">
+                  <span class="material-symbols-rounded text-2xl text-emerald-700">smartphone</span>
+                  <span>Tunjukkan QR ke Pembeli</span>
+                </div>
+                <p class="text-xs text-stone-600 leading-relaxed font-medium">
+                  Nominal pembayaran otomatis terisi pas di aplikasi perbankan & e-wallet pembeli (Livin' Mandiri, BCA, GoPay, OVO, DANA, ShopeePay, dll).
+                </p>
+              </div>
+
+              <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl flex items-center justify-between">
+                <span class="text-xs font-bold text-emerald-950">Mode QRIS:</span>
+                <button type="button" onclick="toggleQrisPaymentMode()"
+                  class="text-xs font-extrabold text-emerald-800 hover:text-emerald-950 underline flex items-center gap-1">
+                  <span class="material-symbols-rounded text-base">swap_horiz</span>
+                  <span>Ganti (Dinamis / Statis)</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Modal Action Footer -->
-        <div class="p-3 bg-stone-50 border-t border-stone-200">
+        <div class="p-3.5 sm:p-4 bg-stone-50 border-t border-stone-200">
           <button id="btnFinishPayment" onclick="completeTransaction()" disabled
-            class="w-full py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-stone-300 disabled:text-stone-500 disabled:cursor-not-allowed text-stone-950 font-black text-base sm:text-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition touch-target-large">
+            class="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-stone-300 disabled:text-stone-500 disabled:cursor-not-allowed text-stone-950 font-black text-base sm:text-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition touch-target-large">
             <span class="material-symbols-rounded text-2xl">task_alt</span>
             <span>SELESAI & SIMPAN</span>
           </button>
@@ -824,6 +837,97 @@
       <span>Menu</span>
     </button>
   </nav>
+
+  <!-- ==================== MODAL: GANTI NAMA ANTRIAN / MEJA ==================== -->
+  <div id="renameQueueModal"
+    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div
+      class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-200">
+      <div class="bg-stone-900 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-stone-800">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+            <span class="material-symbols-rounded text-xl text-emerald-400">table_restaurant</span>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black leading-tight">Nama Antrian / Meja</h3>
+            <p class="text-[10px] sm:text-xs text-stone-400 font-medium">Beri nama meja atau nama pelanggan</p>
+          </div>
+        </div>
+        <button onclick="closeRenameQueueModal()" class="p-1 hover:bg-white/20 rounded-full">
+          <span class="material-symbols-rounded text-2xl">close</span>
+        </button>
+      </div>
+
+      <form id="renameQueueForm" onsubmit="saveQueueRename(event)" class="p-4 flex flex-col gap-3.5">
+        <!-- Quick Preset Buttons -->
+        <div>
+          <label class="block text-stone-700 font-bold mb-1.5 text-xs">Pilihan Cepat (1-Klik):</label>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button type="button" onclick="setPresetQueueName('Meja 1')" class="py-2 px-1 rounded-xl bg-stone-100 hover:bg-emerald-100 font-black text-xs text-stone-800 border border-stone-200 transition touch-target-large text-center">Meja 1</button>
+            <button type="button" onclick="setPresetQueueName('Meja 2')" class="py-2 px-1 rounded-xl bg-stone-100 hover:bg-emerald-100 font-black text-xs text-stone-800 border border-stone-200 transition touch-target-large text-center">Meja 2</button>
+            <button type="button" onclick="setPresetQueueName('Meja 3')" class="py-2 px-1 rounded-xl bg-stone-100 hover:bg-emerald-100 font-black text-xs text-stone-800 border border-stone-200 transition touch-target-large text-center">Meja 3</button>
+            <button type="button" onclick="setPresetQueueName('Meja 4')" class="py-2 px-1 rounded-xl bg-stone-100 hover:bg-emerald-100 font-black text-xs text-stone-800 border border-stone-200 transition touch-target-large text-center">Meja 4</button>
+            <button type="button" onclick="setPresetQueueName('Meja 5')" class="py-2 px-1 rounded-xl bg-stone-100 hover:bg-emerald-100 font-black text-xs text-stone-800 border border-stone-200 transition touch-target-large text-center">Meja 5</button>
+            <button type="button" onclick="setPresetQueueName('Meja 6')" class="py-2 px-1 rounded-xl bg-stone-100 hover:bg-emerald-100 font-black text-xs text-stone-800 border border-stone-200 transition touch-target-large text-center">Meja 6</button>
+            <button type="button" onclick="setPresetQueueName('Bungkus')" class="py-2 px-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-950 font-black text-xs border border-emerald-300 transition touch-target-large text-center">Bungkus</button>
+            <button type="button" onclick="setPresetQueueName('Online/Ojol')" class="py-2 px-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-950 font-black text-xs border border-emerald-300 transition touch-target-large text-center">Online</button>
+          </div>
+        </div>
+
+        <!-- Custom Input -->
+        <div>
+          <label class="block text-stone-700 font-bold mb-1 text-xs sm:text-sm">Atau Ketik Nama Bebas:</label>
+          <input type="text" id="renameQueueInput" required placeholder="Contoh: Meja 7 / Mas Joko / Ibu Rani"
+            class="w-full p-3 rounded-xl border-2 border-stone-300 focus:border-emerald-600 focus:outline-none text-base font-extrabold text-stone-900 bg-stone-50">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
+          <button type="button" onclick="closeRenameQueueModal()"
+            class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 font-bold text-stone-700 text-xs touch-target-large">Batal</button>
+          <button type="submit"
+            class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-stone-950 font-black text-xs sm:text-sm touch-target-large shadow">Simpan Nama</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: BUAT TOKO UMKM BARU ==================== -->
+  <div id="createStoreModal"
+    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div
+      class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-200">
+      <div class="bg-stone-900 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-stone-800">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+            <span class="material-symbols-rounded text-xl text-emerald-400">add_business</span>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black leading-tight">Buat Kasir UMKM Baru</h3>
+            <p class="text-[10px] sm:text-xs text-stone-400 font-medium">Buat toko baru untuk klien UMKM lain</p>
+          </div>
+        </div>
+        <button onclick="closeCreateStoreModal()" class="p-1 hover:bg-white/20 rounded-full">
+          <span class="material-symbols-rounded text-2xl">close</span>
+        </button>
+      </div>
+
+      <form id="createStoreForm" onsubmit="saveNewStoreCreation(event)" class="p-4 flex flex-col gap-3.5">
+        <div>
+          <label class="block text-stone-700 font-bold mb-1 text-xs sm:text-sm">Nama Toko / Usaha Baru *</label>
+          <input type="text" id="newStoreNameInput" required placeholder="Contoh: Warung Kopi Senja, Bakso Mas Budi"
+            class="w-full p-3 rounded-xl border-2 border-stone-300 focus:border-emerald-600 focus:outline-none text-base font-extrabold text-stone-900 bg-stone-50">
+          <p class="text-[11px] text-stone-500 mt-1">Sistem akan otomatis membuat database dan link kasir khusus untuk toko ini.</p>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
+          <button type="button" onclick="closeCreateStoreModal()"
+            class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 font-bold text-stone-700 text-xs touch-target-large">Batal</button>
+          <button type="submit"
+            class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-stone-950 font-black text-xs sm:text-sm touch-target-large shadow">Buat Toko Sekarang</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- ==================== MODAL: CATAT PENGELUARAN BARU ==================== -->
   <div id="expenseModal"

@@ -109,14 +109,37 @@ export function switchStore(newStoreId) {
 }
 
 export function promptCreateNewStore() {
-  const storeName = prompt('Masukkan Nama UMKM / Toko Baru:\n(Contoh: Warung Kopi Berkah, Bakso Mas Budi, Salon Cantik)', '');
-  if (!storeName || !storeName.trim()) return;
+  openCreateStoreModal();
+}
 
-  const rawId = storeName.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
-  const storeId = prompt('Tentukan ID Toko (huruf kecil & angka tanpa spasi):', rawId);
-  if (!storeId || !storeId.trim()) return;
+export function openCreateStoreModal() {
+  const modal = document.getElementById('createStoreModal');
+  const input = document.getElementById('newStoreNameInput');
+  if (input) input.value = '';
+  if (modal) modal.classList.remove('hidden');
+  if (input) setTimeout(() => input.focus(), 100);
+}
 
-  switchStore(storeId);
+export function closeCreateStoreModal() {
+  const modal = document.getElementById('createStoreModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+export function saveNewStoreCreation(e) {
+  if (e) e.preventDefault();
+  const input = document.getElementById('newStoreNameInput');
+  const storeName = input ? input.value.trim() : '';
+  if (!storeName) return;
+
+  const cleanId = storeName.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+  if (cleanId) {
+    const baseUrl = window.location.origin + window.location.pathname;
+    closeCreateStoreModal();
+    showToast(`Membuka toko baru: ${storeName}...`, 'success');
+    setTimeout(() => {
+      window.location.href = `${baseUrl}?store=${encodeURIComponent(cleanId)}`;
+    }, 600);
+  }
 }
 
 export function forceSyncCloud() {
@@ -157,6 +180,11 @@ export function init() {
   });
 
   initFirebaseSync();
+
+  // Welcome Toast Notification
+  setTimeout(() => {
+    showToast(`Kasir [${state.storeProfile?.name || 'Toko'}] siap melayani`, 'success', 2500);
+  }, 400);
 }
 
 // ================= EXPORT GLOBAL NAMESPACE FOR HTML HANDLERS =================
@@ -169,13 +197,21 @@ const KasirApp = {
   copyStoreShareLink,
   switchStore,
   promptCreateNewStore,
+  openCreateStoreModal,
+  closeCreateStoreModal,
+  saveNewStoreCreation,
   forceSyncCloud,
+  showToast,
 
-  // POS
+  // POS & Queue Modals
   renderOrderQueueTabs: pos.renderOrderQueueTabs,
   addNewOrderQueue: pos.addNewOrderQueue,
   switchOrderQueue: pos.switchOrderQueue,
   promptRenameQueue: pos.promptRenameQueue,
+  openRenameQueueModal: pos.openRenameQueueModal,
+  closeRenameQueueModal: pos.closeRenameQueueModal,
+  setPresetQueueName: pos.setPresetQueueName,
+  saveQueueRename: pos.saveQueueRename,
   deleteCurrentActiveQueue: pos.deleteCurrentActiveQueue,
   deleteOrderQueue: pos.deleteOrderQueue,
   scrollQueueTabs: pos.scrollQueueTabs,
@@ -219,33 +255,35 @@ const KasirApp = {
   exportDataBackup: admin.exportDataBackup,
   importDataBackup: admin.importDataBackup,
 
-  // Reports & Data Deletion
+  // Report & Bookkeeping
   setReportPeriod: report.setReportPeriod,
   renderFinancialReport: report.renderFinancialReport,
   openExpenseModal: report.openExpenseModal,
   closeExpenseModal: report.closeExpenseModal,
   saveExpense: report.saveExpense,
   deleteExpense: report.deleteExpense,
+  deleteTransaction: report.deleteTransaction,
+  clearTodayData: report.clearTodayData,
+  clearAllHistory: report.clearAllHistory,
+  clearTransactionHistory: report.clearTransactionHistory,
   shareReportWhatsApp: report.shareReportWhatsApp,
   exportReportCSV: report.exportReportCSV,
-  clearTransactionHistory: report.clearTransactionHistory,
-  clearTodayData: report.clearTodayData,
-  deleteTransaction: report.deleteTransaction,
-  clearAllHistory: report.clearAllHistory,
   reprintTx: report.reprintTx
 };
 
+// Expose to window for inline onclick HTML handlers
 window.KasirApp = KasirApp;
 
-// Attach to window object for seamless inline HTML onclick/onsubmit attributes
-Object.keys(KasirApp).forEach(fnKey => {
-  window[fnKey] = KasirApp[fnKey];
+// Auto-bind window shortcuts for standard HTML event handlers
+Object.keys(KasirApp).forEach(key => {
+  if (typeof window[key] === 'undefined') {
+    window[key] = KasirApp[key];
+  }
 });
 
-// Run init on DOM ready
+// Auto-start on DOMContentLoaded
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {
   init();
 }
-
