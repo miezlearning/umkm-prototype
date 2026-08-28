@@ -5,6 +5,7 @@
 import { state, saveProducts, saveQueues, saveHistory, saveExpenses } from '../state.js';
 import { formatRp, escapeHtml } from '../utils.js';
 import { renderProducts, renderCart } from './pos.js';
+import { syncSaveProduct, syncDeleteProduct, forceUploadAllToCloud } from '../firebase.js';
 
 export function renderAdminTable() {
   const container = document.getElementById('adminProductCardList');
@@ -86,22 +87,30 @@ export function saveProduct(e) {
 
   if (!name || isNaN(price) || price <= 0) return;
 
+  let productObj = null;
+
   if (id) {
     const index = state.products.findIndex(p => p.id === id);
     if (index !== -1) {
-      state.products[index] = { ...state.products[index], name, price, category, icon };
+      productObj = { ...state.products[index], name, price, category, icon };
+      state.products[index] = productObj;
     }
   } else {
-    state.products.push({
+    productObj = {
       id: 'p_' + Date.now(),
       name,
       price,
       category,
       icon
-    });
+    };
+    state.products.push(productObj);
   }
 
   saveProducts();
+  if (productObj) {
+    syncSaveProduct(productObj);
+  }
+
   closeProductModal();
   renderAdminTable();
   renderProducts();
@@ -115,6 +124,7 @@ export function deleteProduct(id) {
     state.orderQueues.forEach(q => delete q.cart[id]);
     saveProducts();
     saveQueues();
+    syncDeleteProduct(id);
     renderAdminTable();
     renderProducts();
     renderCart();
@@ -167,6 +177,7 @@ export function importDataBackup(event) {
         saveQueues();
       }
       alert('✓ Data Kasir Mami berhasil dipulihkan dari file backup!');
+      forceUploadAllToCloud();
       renderProducts();
       renderCart();
       renderAdminTable();

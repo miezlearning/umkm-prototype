@@ -5,6 +5,7 @@
 import { state, saveHistory, saveQueues, getCurrentCart, getActiveQueue, calculateCartTotal } from '../state.js';
 import { formatRp, formatDateShort, escapeHtml } from '../utils.js';
 import { renderOrderQueueTabs, renderCart, renderProducts, toggleMobileCartDrawer } from './pos.js';
+import { syncAddTransaction, syncSaveQueues } from '../firebase.js';
 
 let paymentMethod = 'cash'; // 'cash' or 'qris'
 let cashGiven = 0;
@@ -253,6 +254,7 @@ export function completeTransaction() {
 
   state.transactions.unshift(newTx);
   saveHistory();
+  syncAddTransaction(newTx);
   showReceipt(newTx);
 
   if (activeQueue) {
@@ -265,6 +267,7 @@ export function completeTransaction() {
   }
 
   saveQueues();
+  syncSaveQueues(state.orderQueues);
   closePaymentModal();
   toggleMobileCartDrawer(false);
   renderOrderQueueTabs();

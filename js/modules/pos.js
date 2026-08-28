@@ -4,6 +4,7 @@
 
 import { state, saveQueues, getCurrentCart, getActiveQueue, calculateCartTotal } from '../state.js';
 import { formatRp, playBeep, escapeHtml } from '../utils.js';
+import { syncSaveQueues } from '../firebase.js';
 
 // ================= MULTI-ORDER QUEUE =================
 export function renderOrderQueueTabs() {
@@ -77,6 +78,7 @@ export function addNewOrderQueue() {
   });
   state.activeQueueId = newId;
   saveQueues();
+  syncSaveQueues(state.orderQueues);
   renderOrderQueueTabs();
   renderCart();
   renderProducts();
@@ -104,6 +106,7 @@ export function promptRenameQueue() {
   if (newName && newName.trim()) {
     cur.name = newName.trim();
     saveQueues();
+    syncSaveQueues(state.orderQueues);
     renderOrderQueueTabs();
   }
 }
@@ -135,6 +138,7 @@ export function deleteOrderQueue(queueId, event) {
   }
 
   saveQueues();
+  syncSaveQueues(state.orderQueues);
   renderOrderQueueTabs();
   renderCart();
   renderProducts();
@@ -217,6 +221,7 @@ export function addToCart(productId) {
   if (q) {
     q.cart[productId] = (q.cart[productId] || 0) + 1;
     saveQueues();
+    syncSaveQueues(state.orderQueues);
     renderOrderQueueTabs();
     renderCart();
     renderProducts();
@@ -230,6 +235,7 @@ export function updateCartQty(productId, delta) {
   q.cart[productId] += delta;
   if (q.cart[productId] <= 0) delete q.cart[productId];
   saveQueues();
+  syncSaveQueues(state.orderQueues);
   renderOrderQueueTabs();
   renderCart();
   renderProducts();
@@ -241,6 +247,7 @@ export function confirmClearCart() {
   if (confirm(`Kosongkan semua pesanan di ${q.name}?`)) {
     q.cart = {};
     saveQueues();
+    syncSaveQueues(state.orderQueues);
     toggleMobileCartDrawer(false);
     renderOrderQueueTabs();
     renderCart();

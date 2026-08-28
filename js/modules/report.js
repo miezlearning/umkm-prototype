@@ -5,6 +5,13 @@
 import { state, saveExpenses, saveHistory } from '../state.js';
 import { formatRp, formatDateShort, formatDateFull, escapeHtml } from '../utils.js';
 import { showReceipt } from './payment.js';
+import { 
+  syncAddExpense, 
+  syncDeleteExpense, 
+  syncDeleteTransaction, 
+  syncClearTodayData, 
+  syncClearAllHistory 
+} from '../firebase.js';
 
 export function setReportPeriod(period) {
   state.currentPeriod = period;
@@ -197,6 +204,7 @@ export function clearTodayData() {
     state.expenses = state.expenses.filter(e => new Date(e.date).toDateString() !== todayStr);
     saveHistory();
     saveExpenses();
+    syncClearTodayData();
     renderFinancialReport();
     alert('✓ Data penjualan dan pengeluaran hari ini berhasil dihapus!');
   }
@@ -215,6 +223,7 @@ export function deleteTransaction(txId) {
   if (confirm(confirmMsg)) {
     state.transactions = state.transactions.filter(t => t.id !== txId);
     saveHistory();
+    syncDeleteTransaction(txId);
     renderFinancialReport();
   }
 }
@@ -243,15 +252,18 @@ export function saveExpense(e) {
 
   if (!name || isNaN(amount) || amount <= 0) return;
 
-  state.expenses.unshift({
+  const newExp = {
     id: 'exp_' + Date.now(),
     date: new Date().toISOString(),
     name,
     amount,
     category
-  });
+  };
+
+  state.expenses.unshift(newExp);
 
   saveExpenses();
+  syncAddExpense(newExp);
   closeExpenseModal();
   renderFinancialReport();
 }
@@ -262,6 +274,7 @@ export function deleteExpense(id) {
   if (confirm(`Hapus catatan pengeluaran ${expName}?`)) {
     state.expenses = state.expenses.filter(e => e.id !== id);
     saveExpenses();
+    syncDeleteExpense(id);
     renderFinancialReport();
   }
 }
@@ -338,6 +351,7 @@ export function clearAllHistory() {
     state.expenses = [];
     saveHistory();
     saveExpenses();
+    syncClearAllHistory();
     renderFinancialReport();
     alert('✓ Seluruh riwayat penjualan & pengeluaran telah dikosongkan.');
   }

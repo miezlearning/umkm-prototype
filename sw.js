@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kasir-mami-v7';
+const CACHE_NAME = 'kasir-mami-v8';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const PRECACHE_ASSETS = [
   './js/config.js',
   './js/state.js',
   './js/utils.js',
+  './js/firebase.js',
   './js/modules/pos.js',
   './js/modules/payment.js',
   './js/modules/admin.js',
@@ -21,7 +22,7 @@ const PRECACHE_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS).catch((err) => {
+      return cache.addAll(PRECACHE_ASSETS).catch(() => {
         return cache.addAll([
           './',
           './index.html',
@@ -32,6 +33,7 @@ self.addEventListener('install', (event) => {
           './js/config.js',
           './js/state.js',
           './js/utils.js',
+          './js/firebase.js',
           './js/modules/pos.js',
           './js/modules/payment.js',
           './js/modules/admin.js',
@@ -53,6 +55,16 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Let Firebase, WebSockets, and non-GET requests pass directly
+  if (
+    event.request.method !== 'GET' ||
+    event.request.url.includes('firestore.googleapis.com') ||
+    event.request.url.includes('firebase') ||
+    event.request.url.includes('googleapis.com/google.firestore')
+  ) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {

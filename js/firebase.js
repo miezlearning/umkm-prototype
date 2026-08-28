@@ -1,0 +1,491 @@
+/**
+ * Kasir Mami - Real-time Cloud Synchronization with Firebase Firestore
+ * Enables seamless multi-device usage (Tablet Kasir & HP Mami)
+ */
+
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { 
+  getFirestore, 
+  collection, 
+  doc, 
+  setDoc, 
+  deleteDoc, 
+  getDocs, 
+  onSnapshot, 
+  writeBatch,
+  enableIndexedDbPersistence 
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+import { state } from './state.js';
+import { DEFAULT_PRODUCTS, STORAGE_KEYS } from './config.js';
+
+// Firebase Configuration from user
+export const firebaseConfig = {
+  apiKey: "AIzaSyBkSoXy_F41bOdz4U9gldw0zQIaK1FHMNQ",
+  authDomain: "kedai-mami.firebaseapp.com",
+  projectId: "kedai-mami",
+  storageBucket: "kedai-mami.firebasestorage.app",
+  messagingSenderId: "827309609612",
+  appId: "1:827309609612:web:0a37ebf2c49696d0ace1a9",
+  measurementId: "G-QW6CMQMM6P"
+};
+
+// Store Identification
+export const STORE_ID = localStorage.getItem('kasir_mami_store_id') || 'kedai_mami_berkah';
+
+// Internal Firebase & Firestore instance
+let app = null;
+let db = null;
+let isInitialized = false;
+let isSyncing = false;
+let syncStatus = 'connecting'; // 'connecting', 'online', 'offline', 'error'
+let listenersUnsubscribe = [];
+
+// Callback for UI updates on remote changes
+let onRemoteUpdateCallback = null;
+
+export function setRemoteUpdateCallback(cb) {
+  onRemoteUpdateCallback = cb;
+}
+
+/**
+ * Update the UI Cloud Sync indicator
+ */
+export function updateSyncStatusUI(status, message) {
+  syncStatus = status;
+  const dotEl = document.getElementById('cloudStatusDot');
+  const textEl = document.getElementById('cloudStatusText');
+  const badgeEl = document.getElementById('cloudStatusBadge');
+  const modalStatusEl = document.getElementById('cloudModalStatusText');
+  const modalBadgeEl = document.getElementById('cloudModalStatusBadge');
+
+  const statusMap = {
+    online: {
+      dot: 'bg-emerald-400',
+      pulse: true,
+      text: 'Cloud Sinkron',
+      badge: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+      label: '🟢 Terhubung Real-time'
+    },
+    syncing: {
+      dot: 'bg-amber-400',
+      pulse: true,
+      text: 'Menyinkronkan...',
+      badge: 'bg-amber-100 text-amber-900 border-amber-300',
+      label: '🔄 Menyinkronkan...'
+    },
+    offline: {
+      dot: 'bg-stone-400',
+      pulse: false,
+      text: 'Mode Offline',
+      badge: 'bg-stone-100 text-stone-700 border-stone-300',
+      label: '⚪ Mode Offline'
+    },
+    error: {
+      dot: 'bg-red-500',
+      pulse: false,
+      text: 'Koneksi Gangguan',
+      badge: 'bg-red-100 text-red-700 border-red-300',
+      label: '⚠️ Gangguan Cloud'
+    }
+  };
+
+  const current = statusMap[status] || statusMap.offline;
+
+  if (dotEl) {
+    dotEl.className = `w-2 h-2 rounded-full ${current.dot} ${current.pulse ? 'animate-pulse' : ''}`;
+  }
+  if (textEl) {
+    textEl.innerText = current.text;
+  }
+  if (badgeEl) {
+    badgeEl.className = `px-2 py-0.5 rounded-full text-[10px] font-black border ${current.badge}`;
+    badgeEl.innerText = current.label;
+  }
+  if (modalBadgeEl) {
+    modalBadgeEl.className = `px-2.5 py-1 rounded-full text-xs font-bold border ${current.badge}`;
+    modalBadgeEl.innerText = current.text;
+  }
+  if (modalStatusEl) {
+    modalStatusEl.innerText = message || current.label;
+  }
+}
+
+/**
+ * Initialize Firebase & Firestore Realtime Listeners
+ */
+export async function initFirebaseSync() {
+  if (isInitialized) return;
+
+  try {
+    updateSyncStatusUI('syncing', 'Menghubungkan ke Google Firebase...');
+
+    // Initialize Firebase App
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+
+    // Try to enable offline persistence for seamless offline work
+    try {
+      await enableIndexedDbPersistence(db);
+    } catch (err) {
+      if (err.code === 'failed-precondition') {
+        console.warn('Firebase Persistence failed: Multiple tabs open');
+      } else if (err.code === 'unimplemented') {
+        console.warn('Firebase Persistence not supported by browser');
+      }
+    }
+
+    isInitialized = true;
+    updateSyncStatusUI('online', '🟢 Terhubung ke Cloud Firestore (Real-time)');
+
+    // Setup Realtime Listeners
+    setupRealtimeListeners();
+
+    // Listen for online/offline browser events
+    window.addEventListener('online', () => {
+      updateSyncStatusUI('online', '🟢 Internet Tersambung. Data Sinkron Real-time');
+    });
+
+    window.addEventListener('offline', () => {
+      updateSyncStatusUI('offline', '⚪ Internet Terputus. Kasir tetap berfungsi via Local Storage');
+    });
+
+  } catch (error) {
+    console.error('Failed to initialize Firebase:', error);
+    updateSyncStatusUI('offline', '⚪ Menggunakan Database Lokal (Offline)');
+  }
+}
+
+/**
+ * Setup Realtime Listeners for Products, Transactions, Expenses, and Queues
+ */
+function setupRealtimeListeners() {
+  if (!db) return;
+
+  // Clear existing listeners if any
+  listenersUnsubscribe.forEach(unsub => unsub && unsub());
+  listenersUnsubscribe = [];
+
+  const storeRef = doc(db, 'stores', STORE_ID);
+
+  // 1. PRODUCTS LISTENER
+  const productsCol = collection(db, 'stores', STORE_ID, 'products');
+  const unsubProducts = onSnapshot(productsCol, (snapshot) => {
+    if (snapshot.empty) {
+      // First time initialization in cloud: seed default or local products
+      seedInitialProducts();
+    } else {
+      const cloudProducts = [];
+      snapshot.forEach(docSnap => {
+        cloudProducts.push({ id: docSnap.id, ...docSnap.data() });
+      });
+
+      // Update state and localStorage
+      state.products = cloudProducts;
+      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(cloudProducts));
+
+      if (onRemoteUpdateCallback) onRemoteUpdateCallback('products');
+    }
+  }, (error) => {
+    console.error('Products onSnapshot error:', error);
+  });
+  listenersUnsubscribe.push(unsubProducts);
+
+  // 2. TRANSACTIONS LISTENER
+  const txCol = collection(db, 'stores', STORE_ID, 'transactions');
+  const unsubTx = onSnapshot(txCol, (snapshot) => {
+    const cloudTransactions = [];
+    snapshot.forEach(docSnap => {
+      cloudTransactions.push({ id: docSnap.id, ...docSnap.data() });
+    });
+
+    // Sort newest first
+    cloudTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Update state and localStorage
+    state.transactions = cloudTransactions;
+    localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(cloudTransactions));
+
+    if (onRemoteUpdateCallback) onRemoteUpdateCallback('transactions');
+  }, (error) => {
+    console.error('Transactions onSnapshot error:', error);
+  });
+  listenersUnsubscribe.push(unsubTx);
+
+  // 3. EXPENSES LISTENER
+  const expCol = collection(db, 'stores', STORE_ID, 'expenses');
+  const unsubExp = onSnapshot(expCol, (snapshot) => {
+    const cloudExpenses = [];
+    snapshot.forEach(docSnap => {
+      cloudExpenses.push({ id: docSnap.id, ...docSnap.data() });
+    });
+
+    // Sort newest first
+    cloudExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Update state and localStorage
+    state.expenses = cloudExpenses;
+    localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(cloudExpenses));
+
+    if (onRemoteUpdateCallback) onRemoteUpdateCallback('expenses');
+  }, (error) => {
+    console.error('Expenses onSnapshot error:', error);
+  });
+  listenersUnsubscribe.push(unsubExp);
+
+  // 4. ORDER QUEUES LISTENER (Shared Antrian / Meja)
+  const queuesDocRef = doc(db, 'stores', STORE_ID, 'data', 'queues');
+  const unsubQueues = onSnapshot(queuesDocRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data && Array.isArray(data.list) && data.list.length > 0) {
+        state.orderQueues = data.list;
+        if (!state.orderQueues.some(q => q.id === state.activeQueueId)) {
+          state.activeQueueId = state.orderQueues[0].id;
+        }
+        localStorage.setItem(STORAGE_KEYS.QUEUES, JSON.stringify(state.orderQueues));
+        if (onRemoteUpdateCallback) onRemoteUpdateCallback('queues');
+      }
+    }
+  }, (error) => {
+    console.error('Queues onSnapshot error:', error);
+  });
+  listenersUnsubscribe.push(unsubQueues);
+}
+
+/**
+ * Seed initial products to cloud if Firestore collection is empty
+ */
+async function seedInitialProducts() {
+  if (!db) return;
+  try {
+    const localProds = state.products && state.products.length > 0 ? state.products : DEFAULT_PRODUCTS;
+    const batch = writeBatch(db);
+    localProds.forEach(p => {
+      const docRef = doc(db, 'stores', STORE_ID, 'products', p.id);
+      batch.set(docRef, {
+        name: p.name,
+        price: p.price,
+        category: p.category,
+        icon: p.icon || 'lunch_dining',
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    });
+    await batch.commit();
+  } catch (e) {
+    console.error('Error seeding initial products:', e);
+  }
+}
+
+// ================= CLOUD MUTATION HELPERS =================
+
+/**
+ * Save or update single product in cloud
+ */
+export async function syncSaveProduct(product) {
+  if (!db) return;
+  try {
+    const docRef = doc(db, 'stores', STORE_ID, 'products', product.id);
+    await setDoc(docRef, {
+      name: product.name,
+      price: product.price,
+      category: product.category,
+      icon: product.icon || 'lunch_dining',
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (e) {
+    console.error('Failed to sync product to cloud:', e);
+  }
+}
+
+/**
+ * Delete product in cloud
+ */
+export async function syncDeleteProduct(productId) {
+  if (!db) return;
+  try {
+    const docRef = doc(db, 'stores', STORE_ID, 'products', productId);
+    await deleteDoc(docRef);
+  } catch (e) {
+    console.error('Failed to delete product in cloud:', e);
+  }
+}
+
+/**
+ * Add new completed transaction to cloud
+ */
+export async function syncAddTransaction(transaction) {
+  if (!db) return;
+  try {
+    const docRef = doc(db, 'stores', STORE_ID, 'transactions', transaction.id);
+    await setDoc(docRef, {
+      ...transaction,
+      syncedAt: new Date().toISOString()
+    });
+  } catch (e) {
+    console.error('Failed to sync transaction to cloud:', e);
+  }
+}
+
+/**
+ * Delete single transaction in cloud
+ */
+export async function syncDeleteTransaction(transactionId) {
+  if (!db) return;
+  try {
+    const docRef = doc(db, 'stores', STORE_ID, 'transactions', transactionId);
+    await deleteDoc(docRef);
+  } catch (e) {
+    console.error('Failed to delete transaction in cloud:', e);
+  }
+}
+
+/**
+ * Clear all transaction history in cloud
+ */
+export async function syncClearAllHistory() {
+  if (!db) return;
+  try {
+    const txCol = collection(db, 'stores', STORE_ID, 'transactions');
+    const snap = await getDocs(txCol);
+    const batch = writeBatch(db);
+    snap.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+  } catch (e) {
+    console.error('Failed to clear history in cloud:', e);
+  }
+}
+
+/**
+ * Clear today transactions and expenses in cloud
+ */
+export async function syncClearTodayData() {
+  if (!db) return;
+  try {
+    const nowStr = new Date().toDateString();
+    const batch = writeBatch(db);
+
+    // Filter tx
+    const txCol = collection(db, 'stores', STORE_ID, 'transactions');
+    const txSnap = await getDocs(txCol);
+    txSnap.forEach(d => {
+      const data = d.data();
+      if (data.date && new Date(data.date).toDateString() === nowStr) {
+        batch.delete(d.ref);
+      }
+    });
+
+    // Filter exp
+    const expCol = collection(db, 'stores', STORE_ID, 'expenses');
+    const expSnap = await getDocs(expCol);
+    expSnap.forEach(d => {
+      const data = d.data();
+      if (data.date && new Date(data.date).toDateString() === nowStr) {
+        batch.delete(d.ref);
+      }
+    });
+
+    await batch.commit();
+  } catch (e) {
+    console.error('Failed to clear today data in cloud:', e);
+  }
+}
+
+/**
+ * Add new expense record in cloud
+ */
+export async function syncAddExpense(expense) {
+  if (!db) return;
+  try {
+    const docRef = doc(db, 'stores', STORE_ID, 'expenses', expense.id);
+    await setDoc(docRef, {
+      ...expense,
+      syncedAt: new Date().toISOString()
+    });
+  } catch (e) {
+    console.error('Failed to sync expense to cloud:', e);
+  }
+}
+
+/**
+ * Delete expense record in cloud
+ */
+export async function syncDeleteExpense(expenseId) {
+  if (!db) return;
+  try {
+    const docRef = doc(db, 'stores', STORE_ID, 'expenses', expenseId);
+    await deleteDoc(docRef);
+  } catch (e) {
+    console.error('Failed to delete expense in cloud:', e);
+  }
+}
+
+/**
+ * Sync Order Queues (Keranjang Antrian Aktif) to Cloud
+ */
+export async function syncSaveQueues(queues) {
+  if (!db) return;
+  try {
+    const docRef = doc(db, 'stores', STORE_ID, 'data', 'queues');
+    await setDoc(docRef, {
+      list: queues,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (e) {
+    console.error('Failed to sync queues to cloud:', e);
+  }
+}
+
+/**
+ * Force Push Local Data to Cloud (Manual Full Sync)
+ */
+export async function forceUploadAllToCloud() {
+  if (!db) {
+    alert('Firebase belum terhubung. Periksa koneksi internet Anda.');
+    return;
+  }
+
+  updateSyncStatusUI('syncing', 'Mengunggah semua data lokal ke Cloud...');
+  try {
+    const batch = writeBatch(db);
+
+    // 1. Upload Products
+    state.products.forEach(p => {
+      const docRef = doc(db, 'stores', STORE_ID, 'products', p.id);
+      batch.set(docRef, {
+        name: p.name,
+        price: p.price,
+        category: p.category,
+        icon: p.icon || 'lunch_dining',
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    });
+
+    // 2. Upload Transactions
+    state.transactions.forEach(t => {
+      const docRef = doc(db, 'stores', STORE_ID, 'transactions', t.id);
+      batch.set(docRef, { ...t, syncedAt: new Date().toISOString() }, { merge: true });
+    });
+
+    // 3. Upload Expenses
+    state.expenses.forEach(e => {
+      const docRef = doc(db, 'stores', STORE_ID, 'expenses', e.id);
+      batch.set(docRef, { ...e, syncedAt: new Date().toISOString() }, { merge: true });
+    });
+
+    // 4. Upload Queues
+    const queuesRef = doc(db, 'stores', STORE_ID, 'data', 'queues');
+    batch.set(queuesRef, {
+      list: state.orderQueues,
+      updatedAt: new Date().toISOString()
+    });
+
+    await batch.commit();
+    updateSyncStatusUI('online', '🟢 Semua data lokal berhasil diunggah ke Cloud!');
+    alert('✅ Berhasil menyinkronkan seluruh data lokal ke Cloud Firestore!');
+  } catch (e) {
+    console.error('Force upload error:', e);
+    updateSyncStatusUI('error', 'Gagal mengunggah data ke cloud');
+    alert('Gagal menyinkronkan data: ' + e.message);
+  }
+}

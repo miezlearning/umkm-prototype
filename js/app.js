@@ -1,5 +1,5 @@
 /**
- * Kasir Mami - Main Application Entry Point
+ * Kasir Mami - Main Application Entry Point & Module Orchestrator
  */
 
 import { initState } from './state.js';
@@ -7,6 +7,12 @@ import * as pos from './modules/pos.js';
 import * as payment from './modules/payment.js';
 import * as admin from './modules/admin.js';
 import * as report from './modules/report.js';
+import { 
+  initFirebaseSync, 
+  setRemoteUpdateCallback, 
+  forceUploadAllToCloud,
+  STORE_ID 
+} from './firebase.js';
 
 // ================= VIEW NAVIGATION =================
 export function switchView(viewName) {
@@ -39,6 +45,34 @@ export function switchView(viewName) {
   if (viewName === 'pos') pos.renderProducts();
 }
 
+// ================= CLOUD MODAL HELPERS =================
+export function openCloudModal() {
+  const modal = document.getElementById('cloudModal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+export function closeCloudModal() {
+  const modal = document.getElementById('cloudModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+export function copyStoreShareLink() {
+  const url = window.location.href.split('#')[0];
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      alert(`✓ Link Toko berhasil disalin!\n\n${url}\n\nKirimkan link ini ke WhatsApp HP Mami / Karyawan untuk langsung terhubung.`);
+    }).catch(() => {
+      prompt('Salin link ini untuk HP Mami:', url);
+    });
+  } else {
+    prompt('Salin link ini untuk HP Mami:', url);
+  }
+}
+
+export function forceSyncCloud() {
+  forceUploadAllToCloud();
+}
+
 // ================= SERVICE WORKER REGISTRATION =================
 function registerSW() {
   if ('serviceWorker' in navigator) {
@@ -48,11 +82,31 @@ function registerSW() {
 
 // ================= APP INITIALIZATION =================
 export function init() {
+  // 1. Instant load from local storage (0ms first paint)
   initState();
   pos.renderOrderQueueTabs();
   pos.renderProducts();
   pos.renderCart();
+
+  // 2. Setup Service Worker for offline PWA
   registerSW();
+
+  // 3. Setup Firebase Realtime Cloud Sync
+  setRemoteUpdateCallback((type) => {
+    if (type === 'products') {
+      pos.renderProducts();
+      admin.renderAdminTable();
+      pos.renderCart();
+    } else if (type === 'transactions' || type === 'expenses') {
+      report.renderFinancialReport();
+    } else if (type === 'queues') {
+      pos.renderOrderQueueTabs();
+      pos.renderCart();
+      pos.renderProducts();
+    }
+  });
+
+  initFirebaseSync();
 }
 
 // ================= EXPORT GLOBAL NAMESPACE FOR HTML HANDLERS =================
@@ -60,6 +114,10 @@ const KasirApp = {
   // App
   init,
   switchView,
+  openCloudModal,
+  closeCloudModal,
+  copyStoreShareLink,
+  forceSyncCloud,
 
   // POS
   renderOrderQueueTabs: pos.renderOrderQueueTabs,
