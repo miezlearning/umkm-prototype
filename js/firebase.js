@@ -16,7 +16,6 @@ import {
   enableIndexedDbPersistence 
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-import { state } from './state.js';
 import { DEFAULT_PRODUCTS } from './config.js';
 import { state, currentStorageKeys, updateUIStoreBranding } from './state.js';
 
