@@ -155,7 +155,7 @@
   </header>
 
   <!-- MAIN CONTAINER -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-2.5 sm:p-4 lg:p-5 flex flex-col pb-28 lg:pb-5">
+  <main class="flex-1 max-w-7xl w-full mx-auto p-2.5 sm:p-4 lg:p-5 flex flex-col pb-36 lg:pb-5">
 
     <!-- ==================== SCREEN 1: MAIN POS ==================== -->
     <div id="viewPos" class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4">
@@ -305,28 +305,28 @@
     <div id="mobileFloatingCart"
       class="lg:hidden fixed bottom-16 left-3 right-3 z-30 transition-all duration-300 translate-y-28 opacity-0 pointer-events-none">
       <div
-        class="bg-stone-900 text-white rounded-2xl shadow-2xl p-2.5 flex items-center justify-between border-2 border-emerald-600">
+        class="bg-stone-900 text-white rounded-2xl shadow-2xl p-2.5 flex items-center justify-between border-2 border-emerald-500">
         <div onclick="toggleMobileCartDrawer()" class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0 pr-2">
           <div
-            class="w-9 h-9 rounded-xl bg-emerald-600 text-stone-950 font-black flex items-center justify-center shrink-0">
-            <span class="material-symbols-rounded text-xl">shopping_bag</span>
+            class="w-10 h-10 rounded-xl bg-emerald-600 text-stone-950 font-black flex items-center justify-center shrink-0 shadow-sm">
+            <span class="material-symbols-rounded text-2xl text-stone-950">shopping_bag</span>
           </div>
           <div class="truncate">
-            <span id="mobilePillCount" class="text-[11px] text-emerald-200 font-bold block leading-none">0 Item</span>
+            <span id="mobilePillCount" class="text-[11px] text-emerald-300 font-extrabold block leading-none">0 Item</span>
             <span id="mobilePillTotal"
               class="text-base font-black tracking-tight leading-tight block mt-0.5 text-emerald-400">Rp 0</span>
           </div>
         </div>
 
-        <div class="flex items-center gap-1.5 shrink-0">
+        <div class="flex items-center gap-2 shrink-0">
           <button onclick="toggleMobileCartDrawer()"
-            class="px-2.5 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs touch-target-large">
-            Detail
+            class="px-3 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 font-extrabold text-xs touch-target-large active:scale-95 transition">
+            Lihat Struk
           </button>
           <button onclick="openPaymentModal()"
-            class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-stone-950 font-black text-xs sm:text-sm flex items-center gap-1 shadow-md touch-target-large active:scale-95">
+            class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black text-xs sm:text-sm flex items-center gap-1 shadow-md touch-target-large active:scale-95 transition">
             <span>BAYAR</span>
-            <span class="material-symbols-rounded text-base">arrow_forward</span>
+            <span class="material-symbols-rounded text-base font-black">arrow_forward</span>
           </button>
         </div>
       </div>
@@ -1579,7 +1579,7 @@
   </div>
 
   <!-- Main JavaScript App Module -->
-  <script type="module" src="js/app.js?v=23"></script>
+  <script type="module" src="js/app.js?v=24"></script>
 </body>
 
 </html>

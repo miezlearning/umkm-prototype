@@ -440,12 +440,21 @@ export function renderProducts() {
               <span class="material-symbols-rounded text-base text-rose-400">block</span>
             </div>
           ` : (hasQty ? `
-            <div class="flex items-center justify-between gap-1" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between gap-1.5 pt-0.5" onclick="event.stopPropagation()">
               <button onclick="window.KasirApp.updateCartQty('${product.id}', -1)"
-                class="w-7 h-7 rounded-lg bg-white hover:bg-stone-100 border border-emerald-300 text-stone-800 font-black text-sm flex items-center justify-center transition active:scale-90 shadow-sm">-</button>
-              <span class="font-black text-emerald-950 text-xs">${qty} porsi</span>
+                class="w-8 h-8 rounded-xl ${qty === 1 ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100' : 'bg-white text-stone-800 border-emerald-300 hover:bg-stone-50'} border font-black text-base flex items-center justify-center transition active:scale-90 shadow-sm touch-target-large"
+                title="${qty === 1 ? 'Hapus menu dari pesanan' : 'Kurangi 1 porsi'}">
+                ${qty === 1 ? '<span class="material-symbols-rounded text-base">delete</span>' : '-'}
+              </button>
+              <div class="flex flex-col items-center leading-none">
+                <span class="font-black text-emerald-950 text-xs sm:text-sm">${qty}</span>
+                <span class="text-[9px] font-bold text-stone-500">porsi</span>
+              </div>
               <button onclick="window.KasirApp.updateCartQty('${product.id}', 1)"
-                class="w-7 h-7 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-black text-sm flex items-center justify-center transition active:scale-90 shadow-sm">+</button>
+                class="w-8 h-8 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-base flex items-center justify-center transition active:scale-90 shadow-sm touch-target-large"
+                title="Tambah 1 porsi">
+                +
+              </button>
             </div>
           ` : `
             <div class="flex items-center justify-between text-[11px] font-extrabold text-stone-500">
