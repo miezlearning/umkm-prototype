@@ -363,6 +363,10 @@ export async function handleStoreLoginSubmit(e) {
     }
 
     // Autentikasi Berhasil -> Daftarkan ke perangkat dan buka kasir
+    try {
+      localStorage.setItem('auth_store_session_' + cleanId, '1');
+    } catch (e) {}
+
     registerStoreOnDevice({
       id: cleanId,
       name: authResult.storeName
@@ -532,6 +536,9 @@ export async function logoutStore() {
   if (ok) {
     try {
       unsubscribeAllListeners();
+      if (state.storeId) {
+        localStorage.removeItem('auth_store_session_' + state.storeId);
+      }
       localStorage.removeItem(GLOBAL_STORAGE_KEYS.ACTIVE_STORE_ID);
       sessionStorage.setItem('is_logged_out_state', '1');
     } catch (err) {}
@@ -575,7 +582,7 @@ function dismissSplashScreen() {
   const splash = document.getElementById('appSplashScreen');
   if (splash) {
     setTimeout(() => {
-      splash.classList.add('splash-hidden');
+      splash.classList.add('opacity-0', 'pointer-events-none');
       setTimeout(() => {
         splash.style.display = 'none';
       }, 450);
@@ -631,6 +638,25 @@ export function init() {
   if (!state.storeId || sessionStorage.getItem('is_logged_out_state') === '1') {
     setTimeout(() => {
       openUniversalLoginModal('login');
+      
+      // Jika tautan mengandung ?store=..., otomatis isikan nama toko & fokuskan kolom PIN!
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const storeParam = params.get('store');
+        if (storeParam && storeParam.trim()) {
+          const sanitized = storeParam.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+          const storeInput = document.getElementById('loginStoreIdInput');
+          const pinInput = document.getElementById('loginPinInput');
+          if (storeInput) storeInput.value = sanitized;
+          if (pinInput) {
+            pinInput.value = '';
+            pinInput.focus();
+          }
+          showToast(`🔒 Masukkan PIN 4 digit untuk membuka kasir [${sanitized.replace(/_/g, ' ').toUpperCase()}]`, 'info', 4000);
+          return;
+        }
+      } catch (e) {}
+
       if (sessionStorage.getItem('is_logged_out_state') === '1') {
         showToast('Sesi kasir ditutup. Silakan pilih atau daftarkan toko.', 'info');
       }

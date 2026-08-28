@@ -71,12 +71,23 @@ export function resolveActiveStoreId() {
     const storeParam = params.get('store');
     if (storeParam && storeParam.trim()) {
       const sanitized = storeParam.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
-      localStorage.setItem(GLOBAL_STORAGE_KEYS.ACTIVE_STORE_ID, sanitized);
-      return sanitized;
+      
+      // Auto-restore hanya jika perangkat ini sudah memiliki sesi auth terverifikasi
+      const isDeviceAuth = localStorage.getItem('auth_store_session_' + sanitized) === '1';
+      if (isDeviceAuth) {
+        localStorage.setItem(GLOBAL_STORAGE_KEYS.ACTIVE_STORE_ID, sanitized);
+        return sanitized;
+      }
+      return null;
     }
   } catch (e) {}
 
-  return localStorage.getItem(GLOBAL_STORAGE_KEYS.ACTIVE_STORE_ID) || null;
+  const savedActive = localStorage.getItem(GLOBAL_STORAGE_KEYS.ACTIVE_STORE_ID);
+  if (savedActive && localStorage.getItem('auth_store_session_' + savedActive) === '1') {
+    return savedActive;
+  }
+
+  return null;
 }
 
 export const activeStoreId = resolveActiveStoreId();
