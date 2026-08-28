@@ -19,14 +19,14 @@ export function renderOrderQueueTabs() {
     let badgeStyle = '';
 
     if (isActive) {
-      tabStyle = 'bg-stone-900 text-white font-black shadow-md ring-2 ring-emerald-500/60 active-queue-tab scale-[1.02]';
-      badgeStyle = 'bg-emerald-500 text-stone-950 font-black';
+      tabStyle = 'bg-emerald-700 text-white font-black shadow-md ring-2 ring-emerald-400 active-queue-tab scale-[1.02]';
+      badgeStyle = 'bg-white text-emerald-950 font-black shadow-sm';
     } else if (itemCount > 0) {
-      tabStyle = 'bg-emerald-50 text-emerald-950 hover:bg-emerald-100 font-extrabold border border-emerald-300/80 shadow-sm';
-      badgeStyle = 'bg-emerald-600 text-white font-black';
+      tabStyle = 'bg-emerald-50 text-emerald-950 hover:bg-emerald-100 font-extrabold border border-emerald-300 shadow-sm';
+      badgeStyle = 'bg-emerald-700 text-white font-black';
     } else {
-      tabStyle = 'bg-stone-100/90 text-stone-600 hover:bg-stone-200 font-bold border border-stone-200';
-      badgeStyle = 'bg-stone-200 text-stone-700 font-bold';
+      tabStyle = 'bg-stone-100 text-stone-800 hover:bg-stone-200 font-extrabold border border-stone-300';
+      badgeStyle = 'bg-stone-200 text-stone-800 font-bold';
     }
 
     return `
@@ -311,11 +311,11 @@ export function deleteOrderQueue(queueId, event) {
 export function setCategory(cat) {
   state.currentCategory = cat;
   document.querySelectorAll('.cat-pill').forEach(btn => {
-    btn.className = 'cat-pill py-2 px-1 sm:px-4 rounded-xl font-bold text-xs sm:text-sm text-center bg-stone-100 hover:bg-stone-200 text-stone-700 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large';
+    btn.className = 'cat-pill py-2 px-1 sm:px-4 rounded-xl font-bold text-xs sm:text-sm text-center bg-stone-100 hover:bg-stone-200 text-stone-800 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large border border-stone-200';
   });
   const activeBtn = document.getElementById(`cat-${cat}`);
   if (activeBtn) {
-    activeBtn.className = 'cat-pill py-2 px-1 sm:px-4 rounded-xl font-black text-xs sm:text-sm text-center bg-emerald-600 text-stone-950 shadow-md transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large';
+    activeBtn.className = 'cat-pill py-2 px-1 sm:px-4 rounded-xl font-black text-xs sm:text-sm text-center bg-emerald-700 text-white shadow-md transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large ring-2 ring-emerald-500/30';
   }
   renderProducts();
 }

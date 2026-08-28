@@ -60,47 +60,47 @@
 
 <body class="bg-stone-100/70 text-stone-900 min-h-screen flex flex-col antialiased">
 
-  <!-- TOP APP BAR (Warm Espresso with Honey Amber Accent - Elegant & Comfortable) -->
+  <!-- TOP APP BAR (Crisp Clean White & High-Contrast Forest Emerald - Ultra Readable & Senior Friendly) -->
   <header
-    class="bg-stone-900 text-white shadow-md sticky top-0 z-30 px-3 py-2.5 sm:px-6 sm:py-3 border-b border-stone-800">
+    class="bg-white text-stone-900 shadow-sm sticky top-0 z-30 px-3 py-2.5 sm:px-6 sm:py-3 border-b border-stone-200">
     <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
 
       <!-- Brand Logo & Title -->
-      <div class="flex items-center gap-2.5 sm:gap-3">
+      <div class="flex items-center gap-2.5 sm:gap-3 cursor-pointer" onclick="openCloudModal()" title="Info Toko & Multi-Store">
         <div
-          class="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0 shadow-inner">
-          <span class="material-symbols-rounded text-2xl sm:text-3xl text-emerald-400">storefront</span>
+          class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+          <span class="material-symbols-rounded text-2xl sm:text-3xl">storefront</span>
         </div>
         <div>
-          <h1 class="text-lg sm:text-2xl font-black tracking-tight leading-tight text-white">Kasir Mami</h1>
-          <p class="text-[10px] sm:text-xs text-stone-400 font-medium leading-tight">Ramah, Cepat, dan Mudah.</p>
+          <h1 class="text-lg sm:text-2xl font-black tracking-tight leading-tight text-emerald-950">Kasir Mami</h1>
+          <p class="text-[10px] sm:text-xs text-stone-500 font-bold leading-tight">Ramah, Cepat, dan Mudah.</p>
         </div>
       </div>
 
       <!-- Desktop Navigation Buttons -->
       <div class="hidden lg:flex items-center gap-2">
         <button id="btnNavPosDesktop" onclick="switchView('pos')"
-          class="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 font-black flex items-center gap-2 transition touch-target-large ring-1 ring-emerald-500/40">
-          <span class="material-symbols-rounded text-2xl text-emerald-400">point_of_sale</span>
+          class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black flex items-center gap-2 transition touch-target-large shadow-sm ring-2 ring-emerald-600/30">
+          <span class="material-symbols-rounded text-2xl">point_of_sale</span>
           <span>Kasir</span>
         </button>
         <button id="btnNavReportDesktop" onclick="switchView('report')"
-          class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-stone-300 hover:text-white font-bold flex items-center gap-2 transition touch-target-large">
-          <span class="material-symbols-rounded text-2xl">account_balance_wallet</span>
+          class="px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-extrabold flex items-center gap-2 transition touch-target-large border border-stone-200">
+          <span class="material-symbols-rounded text-2xl text-emerald-700">account_balance_wallet</span>
           <span>Laporan & Laba</span>
         </button>
         <button id="btnNavAdminDesktop" onclick="switchView('admin')"
-          class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-stone-300 hover:text-white font-bold flex items-center gap-2 transition touch-target-large">
-          <span class="material-symbols-rounded text-2xl">inventory_2</span>
+          class="px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-extrabold flex items-center gap-2 transition touch-target-large border border-stone-200">
+          <span class="material-symbols-rounded text-2xl text-emerald-700">inventory_2</span>
           <span>Kelola Menu</span>
         </button>
       </div>
 
       <!-- Quick Cart Indicator Button on Mobile Header -->
       <button onclick="toggleMobileCartDrawer()"
-        class="lg:hidden relative px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-white flex items-center gap-1.5 touch-target-large border border-stone-700">
-        <span class="material-symbols-rounded text-xl text-emerald-400">shopping_cart</span>
-        <span id="mobileHeaderCartTotal" class="text-xs font-black text-emerald-300">Rp 0</span>
+        class="lg:hidden relative px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-950 flex items-center gap-1.5 touch-target-large border border-emerald-300 font-black shadow-sm">
+        <span class="material-symbols-rounded text-xl text-emerald-700">shopping_cart</span>
+        <span id="mobileHeaderCartTotal" class="text-xs font-black text-emerald-900">Rp 0</span>
       </button>
     </div>
   </header>
@@ -154,22 +154,22 @@
         <div class="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-stone-200 flex flex-col gap-2">
           <div class="grid grid-cols-4 gap-1 sm:flex sm:items-center sm:gap-2 w-full">
             <button onclick="setCategory('all')" id="cat-all"
-              class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-black text-xs sm:text-sm text-center bg-emerald-600 text-stone-950 shadow-md transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large">
+              class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-black text-xs sm:text-sm text-center bg-emerald-700 text-white shadow-md transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large ring-2 ring-emerald-500/30">
               <span class="material-symbols-rounded text-lg sm:text-xl">apps</span>
               <span class="truncate">Semua</span>
             </button>
             <button onclick="setCategory('makanan')" id="cat-makanan"
-              class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-bold text-xs sm:text-sm text-center bg-stone-100 hover:bg-stone-200 text-stone-700 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large">
+              class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-bold text-xs sm:text-sm text-center bg-stone-100 hover:bg-stone-200 text-stone-800 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large border border-stone-200">
               <span class="material-symbols-rounded text-lg sm:text-xl">lunch_dining</span>
               <span class="truncate">Makanan</span>
             </button>
             <button onclick="setCategory('minuman')" id="cat-minuman"
-              class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-bold text-xs sm:text-sm text-center bg-stone-100 hover:bg-stone-200 text-stone-700 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large">
+              class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-bold text-xs sm:text-sm text-center bg-stone-100 hover:bg-stone-200 text-stone-800 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large border border-stone-200">
               <span class="material-symbols-rounded text-lg sm:text-xl">local_cafe</span>
               <span class="truncate">Minuman</span>
             </button>
             <button onclick="setCategory('camilan')" id="cat-camilan"
-              class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-bold text-xs sm:text-sm text-center bg-stone-100 hover:bg-stone-200 text-stone-700 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large">
+              class="cat-pill py-2 px-1 sm:px-4 rounded-xl font-bold text-xs sm:text-sm text-center bg-stone-100 hover:bg-stone-200 text-stone-800 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large border border-stone-200">
               <span class="material-symbols-rounded text-lg sm:text-xl">bakery_dining</span>
               <span class="truncate">Camilan</span>
             </button>
@@ -346,7 +346,7 @@
         class="bg-white w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[92vh] transition-all">
 
         <!-- Modal Header -->
-        <div class="bg-stone-900 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-stone-800">
+        <div class="bg-emerald-800 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-emerald-900">
           <div class="flex items-center gap-2.5">
             <button onclick="closePaymentModal()"
               class="p-1.5 hover:bg-white/20 rounded-xl transition touch-target-large flex items-center justify-center">
@@ -865,18 +865,18 @@
   <div id="renameQueueModal"
     class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div
-      class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-200">
-      <div class="bg-stone-900 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-stone-800">
+      class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col">
+      <div class="bg-emerald-800 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-emerald-900">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
-            <span class="material-symbols-rounded text-xl text-emerald-400">table_restaurant</span>
+          <div class="w-8 h-8 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center">
+            <span class="material-symbols-rounded text-xl text-white">table_restaurant</span>
           </div>
           <div>
-            <h3 class="text-base sm:text-lg font-black leading-tight">Nama Antrian / Meja</h3>
-            <p class="text-[10px] sm:text-xs text-stone-400 font-medium">Beri nama meja atau nama pelanggan</p>
+            <h3 class="text-base sm:text-lg font-black leading-tight text-white">Nama Antrian / Meja</h3>
+            <p class="text-[10px] sm:text-xs text-emerald-100 font-medium">Beri nama meja atau nama pelanggan</p>
           </div>
         </div>
-        <button onclick="closeRenameQueueModal()" class="p-1 hover:bg-white/20 rounded-full">
+        <button onclick="closeRenameQueueModal()" class="p-1 hover:bg-white/20 rounded-full text-white">
           <span class="material-symbols-rounded text-2xl">close</span>
         </button>
       </div>
@@ -918,18 +918,18 @@
   <div id="createStoreModal"
     class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div
-      class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-200">
-      <div class="bg-stone-900 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-stone-800">
+      class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col">
+      <div class="bg-emerald-800 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-emerald-900">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
-            <span class="material-symbols-rounded text-xl text-emerald-400">add_business</span>
+          <div class="w-8 h-8 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center">
+            <span class="material-symbols-rounded text-xl text-white">add_business</span>
           </div>
           <div>
-            <h3 class="text-base sm:text-lg font-black leading-tight">Buat Kasir UMKM Baru</h3>
-            <p class="text-[10px] sm:text-xs text-stone-400 font-medium">Buat toko baru untuk klien UMKM lain</p>
+            <h3 class="text-base sm:text-lg font-black leading-tight text-white">Buat Kasir UMKM Baru</h3>
+            <p class="text-[10px] sm:text-xs text-emerald-100 font-medium">Buat toko baru untuk klien UMKM lain</p>
           </div>
         </div>
-        <button onclick="closeCreateStoreModal()" class="p-1 hover:bg-white/20 rounded-full">
+        <button onclick="closeCreateStoreModal()" class="p-1 hover:bg-white/20 rounded-full text-white">
           <span class="material-symbols-rounded text-2xl">close</span>
         </button>
       </div>
@@ -957,9 +957,9 @@
     class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div
       class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col">
-      <div class="bg-stone-900 text-white p-3 sm:p-4 flex items-center justify-between border-b border-stone-800">
+      <div class="bg-emerald-800 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-emerald-900">
         <h3 class="text-lg font-black">Catat Pengeluaran Warung</h3>
-        <button onclick="closeExpenseModal()" class="p-1 hover:bg-white/20 rounded-full">
+        <button onclick="closeExpenseModal()" class="p-1 hover:bg-white/20 rounded-full text-white">
           <span class="material-symbols-rounded text-xl">close</span>
         </button>
       </div>
@@ -1004,9 +1004,9 @@
     class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div
       class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col">
-      <div class="bg-stone-900 text-white p-3 sm:p-4 flex items-center justify-between border-b border-stone-800">
+      <div class="bg-emerald-800 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-emerald-900">
         <h3 id="productModalTitle" class="text-lg font-black">Tambah Menu Baru</h3>
-        <button onclick="closeProductModal()" class="p-1 hover:bg-white/20 rounded-full">
+        <button onclick="closeProductModal()" class="p-1 hover:bg-white/20 rounded-full text-white">
           <span class="material-symbols-rounded text-xl">close</span>
         </button>
       </div>
@@ -1153,17 +1153,17 @@
     <div
       class="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[95vh]">
       <!-- Header -->
-      <div class="bg-stone-900 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-stone-800">
+      <div class="bg-emerald-800 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-emerald-900">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
-            <span class="material-symbols-rounded text-xl text-emerald-400">qr_code_scanner</span>
+          <div class="w-8 h-8 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center">
+            <span class="material-symbols-rounded text-xl text-white">qr_code_scanner</span>
           </div>
           <div>
-            <h3 class="text-base sm:text-lg font-black leading-tight">Pengaturan QRIS Toko</h3>
-            <p class="text-[10px] sm:text-xs text-stone-400 font-medium">Upload Foto / Atur Kode QRIS Merchant</p>
+            <h3 class="text-base sm:text-lg font-black leading-tight text-white">Pengaturan QRIS Toko</h3>
+            <p class="text-[10px] sm:text-xs text-emerald-100 font-medium">Upload Foto / Atur Kode QRIS Merchant</p>
           </div>
         </div>
-        <button onclick="closeQrisModal()" class="p-1 hover:bg-white/20 rounded-full">
+        <button onclick="closeQrisModal()" class="p-1 hover:bg-white/20 rounded-full text-white">
           <span class="material-symbols-rounded text-2xl">close</span>
         </button>
       </div>
@@ -1235,17 +1235,17 @@
     class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div
       class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col">
-      <div class="bg-stone-900 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-stone-800">
+      <div class="bg-emerald-800 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-emerald-900">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
-            <span class="material-symbols-rounded text-xl text-emerald-400">cloud_sync</span>
+          <div class="w-8 h-8 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center">
+            <span class="material-symbols-rounded text-xl text-white">cloud_sync</span>
           </div>
           <div>
-            <h3 class="text-base sm:text-lg font-black leading-tight">Sinkronisasi Cloud</h3>
-            <p class="text-[10px] sm:text-xs text-stone-400 font-medium">Multi-Device (Tablet Kasir & HP Mami)</p>
+            <h3 class="text-base sm:text-lg font-black leading-tight text-white">Sinkronisasi Cloud</h3>
+            <p class="text-[10px] sm:text-xs text-emerald-100 font-medium">Multi-Device (Tablet Kasir & HP Mami)</p>
           </div>
         </div>
-        <button onclick="closeCloudModal()" class="p-1 hover:bg-white/20 rounded-full">
+        <button onclick="closeCloudModal()" class="p-1 hover:bg-white/20 rounded-full text-white">
           <span class="material-symbols-rounded text-2xl">close</span>
         </button>
       </div>
