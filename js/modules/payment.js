@@ -1,5 +1,5 @@
 import { state, saveProducts, saveHistory, saveQueues, getCurrentCart, getActiveQueue, calculateCartTotal } from '../state.js';
-import { formatRp, formatDateShort, escapeHtml, showToast } from '../utils.js';
+import { formatRp, formatDateShort, escapeHtml, showToast, playClick, playSuccessChime } from '../utils.js';
 import { renderOrderQueueTabs, renderCart, renderProducts, toggleMobileCartDrawer } from './pos.js';
 import { syncAddTransaction, syncSaveQueues, syncSaveProduct } from '../firebase.js';
 import { generateDynamicQRIS, renderQRToContainer, parseQRISMetadata } from '../qris.js';
@@ -39,12 +39,13 @@ export function renderDynamicQrisCode() {
 }
 
 export function toggleQrisPaymentMode() {
+  playClick('switch');
   state.qrisMode = (state.qrisMode === 'static') ? 'dynamic' : 'static';
   renderDynamicQrisCode();
 }
 
-
 export function openPaymentModal() {
+  playClick('pop');
   const { total } = calculateCartTotal();
   if (total <= 0) return;
 
@@ -74,11 +75,13 @@ export function openPaymentModal() {
 }
 
 export function closePaymentModal() {
+  playClick('pop');
   const modal = document.getElementById('paymentModal');
   if (modal) modal.classList.add('hidden');
 }
 
 export function setPaymentMethod(method) {
+  playClick('switch');
   paymentMethod = method;
   const btnCash = document.getElementById('btnPayMethodCash');
   const btnQris = document.getElementById('btnPayMethodQris');
@@ -103,6 +106,7 @@ export function setPaymentMethod(method) {
 }
 
 export function calculateSplitBill(persons) {
+  playClick('tap');
   const { total } = calculateCartTotal();
   const perPerson = Math.ceil(total / persons);
   const banner = document.getElementById('splitResultBanner');
@@ -124,6 +128,7 @@ export function calculateSplitBill(persons) {
 }
 
 export function resetSplitBill() {
+  playClick('tap');
   const banner = document.getElementById('splitResultBanner');
   const btnReset = document.getElementById('btnResetSplit');
   if (banner) banner.classList.add('hidden');
@@ -131,6 +136,7 @@ export function resetSplitBill() {
 }
 
 export function selectQuickCash(amount) {
+  playClick('cash');
   const { total } = calculateCartTotal();
   const toggleAcc = document.getElementById('toggleAccumulateCash');
   const isAccumulate = toggleAcc ? toggleAcc.checked : false;
@@ -175,6 +181,7 @@ export function renderCashContributions() {
 }
 
 export function toggleCustomKeypad() {
+  playClick('pop');
   const keypad = document.getElementById('customKeypadArea');
   if (!keypad) return;
   keypad.classList.toggle('hidden');
@@ -194,6 +201,7 @@ export function handleManualCashInput() {
 }
 
 export function addKeypadDigit(digit) {
+  playClick('keypad');
   const input = document.getElementById('cashInputManual');
   if (!input) return;
   input.value = (input.value || '') + digit;
@@ -201,6 +209,7 @@ export function addKeypadDigit(digit) {
 }
 
 export function backspaceKeypad() {
+  playClick('tap');
   const input = document.getElementById('cashInputManual');
   if (!input) return;
   input.value = input.value.slice(0, -1);
@@ -208,6 +217,7 @@ export function backspaceKeypad() {
 }
 
 export function clearManualCash() {
+  playClick('del');
   const input = document.getElementById('cashInputManual');
   if (input) input.value = '';
   cashGiven = 0;
@@ -308,6 +318,7 @@ export function completeTransaction() {
   }
 
   showReceipt(newTx);
+  playSuccessChime();
 
   if (activeQueue) {
     activeQueue.cart = {};

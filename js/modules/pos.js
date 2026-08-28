@@ -3,7 +3,7 @@
  */
 
 import { state, saveQueues, getCurrentCart, getActiveQueue, calculateCartTotal } from '../state.js';
-import { formatRp, playBeep, escapeHtml, showToast, showConfirmDialog } from '../utils.js';
+import { formatRp, playBeep, playClick, escapeHtml, showToast, showConfirmDialog } from '../utils.js';
 import { syncSaveQueues } from '../firebase.js';
 
 // ================= MULTI-ORDER QUEUE =================
@@ -89,6 +89,7 @@ export function initQueueDragScroll() {
 }
 
 export function scrollQueueTabs(direction) {
+  playClick('tap');
   const container = document.getElementById('orderQueueTabs');
   if (!container) return;
   const scrollAmount = direction === 'left' ? -200 : 200;
@@ -105,6 +106,7 @@ export function handleQueueWheel(e) {
 }
 
 export function addNewOrderQueue() {
+  playClick('pop');
   let nextNum = 1;
   const existingNums = state.orderQueues.map(q => {
     const m = q.name.match(/Pesanan\s*#(\d+)/i);
@@ -139,6 +141,7 @@ export function addNewOrderQueue() {
 }
 
 export function switchOrderQueue(queueId) {
+  playClick('switch');
   state.activeQueueId = queueId;
   renderOrderQueueTabs();
   renderCart();
@@ -150,6 +153,7 @@ export function promptRenameQueue() {
 }
 
 export function openRenameQueueModal() {
+  playClick('pop');
   const cur = getActiveQueue();
   if (!cur) return;
   const modal = document.getElementById('renameQueueModal');
@@ -165,11 +169,13 @@ export function openRenameQueueModal() {
 }
 
 export function closeRenameQueueModal() {
+  playClick('pop');
   const modal = document.getElementById('renameQueueModal');
   if (modal) modal.classList.add('hidden');
 }
 
 export function setPresetQueueName(name) {
+  playClick('tap');
   const input = document.getElementById('renameQueueInput');
   if (input) input.value = name;
 }
@@ -309,6 +315,7 @@ export function deleteOrderQueue(queueId, event) {
 
 // ================= CATEGORY & PRODUCT RENDERING =================
 export function setCategory(cat) {
+  playClick('switch');
   state.currentCategory = cat;
   document.querySelectorAll('.cat-pill').forEach(btn => {
     btn.className = 'cat-pill py-2 px-1 sm:px-4 rounded-xl font-bold text-xs sm:text-sm text-center bg-stone-100 hover:bg-stone-200 text-stone-800 transition flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 touch-target-large border border-stone-200';
@@ -400,7 +407,7 @@ export function addToCart(productId) {
 
   const isReady = p.isAvailable !== false && (!p.trackStock || (p.stock || 0) > 0);
   if (!isReady) {
-    playBeep(300, 0.1);
+    playClick('del');
     showToast(`Menu "${p.name}" sedang HABIS / KOSONG!`, 'warning');
     return;
   }
@@ -409,12 +416,12 @@ export function addToCart(productId) {
   if (q) {
     const currentQtyInCart = q.cart[productId] || 0;
     if (p.trackStock && (p.stock || 0) <= currentQtyInCart) {
-      playBeep(300, 0.1);
+      playClick('del');
       showToast(`Stok "${p.name}" hanya tersisa ${p.stock}!`, 'warning');
       return;
     }
 
-    playBeep(700, 0.05);
+    playClick('tap');
     q.cart[productId] = currentQtyInCart + 1;
     saveQueues();
     syncSaveQueues(state.orderQueues);
@@ -427,7 +434,11 @@ export function addToCart(productId) {
 }
 
 export function updateCartQty(productId, delta) {
-  playBeep(500, 0.05);
+  if (delta > 0) {
+    playClick('tap');
+  } else {
+    playClick('del');
+  }
   const q = getActiveQueue();
   if (!q || !q.cart[productId]) return;
   q.cart[productId] += delta;

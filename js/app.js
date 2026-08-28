@@ -3,7 +3,7 @@
  */
 
 import { initState, state } from './state.js';
-import { showToast } from './utils.js';
+import { showToast, playClick } from './utils.js';
 import * as pos from './modules/pos.js';
 import * as payment from './modules/payment.js';
 import * as admin from './modules/admin.js';
@@ -17,6 +17,7 @@ import {
 
 // ================= VIEW NAVIGATION =================
 export function switchView(viewName) {
+  playClick('switch');
   const viewPos = document.getElementById('viewPos');
   const viewAdmin = document.getElementById('viewAdmin');
   const viewReport = document.getElementById('viewReport');
@@ -68,6 +69,7 @@ export function switchView(viewName) {
 
 // ================= CLOUD SYNC & MULTI-STORE MODAL =================
 export function openCloudModal() {
+  playClick('pop');
   const modal = document.getElementById('cloudModal');
   if (modal) {
     const storeDisplay = document.getElementById('cloudStoreIdDisplay');
@@ -79,6 +81,7 @@ export function openCloudModal() {
 }
 
 export function closeCloudModal() {
+  playClick('pop');
   const modal = document.getElementById('cloudModal');
   if (modal) modal.classList.add('hidden');
 }
@@ -113,6 +116,7 @@ export function promptCreateNewStore() {
 }
 
 export function openCreateStoreModal() {
+  playClick('pop');
   const modal = document.getElementById('createStoreModal');
   const input = document.getElementById('newStoreNameInput');
   if (input) input.value = '';
@@ -123,6 +127,7 @@ export function openCreateStoreModal() {
 }
 
 export function closeCreateStoreModal() {
+  playClick('pop');
   const modal = document.getElementById('createStoreModal');
   if (modal) modal.classList.add('hidden');
 }

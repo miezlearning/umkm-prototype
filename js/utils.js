@@ -18,6 +18,16 @@ export const formatRp = (num) => {
 
 let audioCtx = null;
 
+function getAudioContext() {
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) return null;
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
 /**
  * Bunyikan audio beep taktil saat aksi kasir (Instant 0ms Audio)
  * @param {number} freq Frekuensi audio (Hz)
@@ -25,24 +35,70 @@ let audioCtx = null;
  */
 export function playBeep(freq = 600, duration = 0.08) {
   try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-    if (!audioCtx) audioCtx = new AudioCtx();
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
     osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
     osc.connect(gain);
-    gain.connect(audioCtx.destination);
+    gain.connect(ctx.destination);
     osc.start();
-    osc.stop(audioCtx.currentTime + duration);
+    osc.stop(ctx.currentTime + duration);
   } catch (e) {
     // Ignore audio error if not permitted
   }
+}
+
+/**
+ * Suara sentuhan taktil instan untuk berbagai aksi UI kasir
+ * @param {'tap'|'keypad'|'cash'|'switch'|'pop'|'del'} type 
+ */
+export function playClick(type = 'tap') {
+  const sounds = {
+    tap: [650, 0.045],       // Sentuh produk / tambah item
+    keypad: [750, 0.035],    // Ketik angka di keypad
+    cash: [820, 0.07],       // Pilih pecahan uang
+    switch: [520, 0.05],     // Ganti tab antrian / kategori / menu
+    pop: [600, 0.06],        // Buka modal / aksi cepat
+    del: [400, 0.06]         // Hapus / kurangi item
+  };
+  const [freq, duration] = sounds[type] || sounds.tap;
+  playBeep(freq, duration);
+}
+
+/**
+ * Nada sukses transaksi kasir (Pleasant Double Register Chime)
+ */
+export function playSuccessChime() {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const t = ctx.currentTime;
+
+    // Nada 1: E5 (659 Hz)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.frequency.value = 659.25;
+    gain1.gain.setValueAtTime(0.14, t);
+    gain1.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(t);
+    osc1.stop(t + 0.15);
+
+    // Nada 2: B5 (987 Hz)
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.frequency.value = 987.77;
+    gain2.gain.setValueAtTime(0.16, t + 0.1);
+    gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(t + 0.1);
+    osc2.stop(t + 0.38);
+  } catch (e) {}
 }
 
 /**
@@ -246,4 +302,7 @@ export function showConfirmDialog({
 if (typeof window !== 'undefined') {
   window.showToast = showToast;
   window.showConfirmDialog = showConfirmDialog;
+  window.playBeep = playBeep;
+  window.playClick = playClick;
+  window.playSuccessChime = playSuccessChime;
 }

@@ -1,5 +1,5 @@
 import { state, saveProducts, saveQueues, saveHistory, saveExpenses, saveQrisPayload } from '../state.js';
-import { formatRp, escapeHtml, showToast, showConfirmDialog } from '../utils.js';
+import { formatRp, escapeHtml, showToast, showConfirmDialog, playClick } from '../utils.js';
 import { renderProducts, renderCart } from './pos.js';
 import { syncSaveProduct, syncDeleteProduct, forceUploadAllToCloud, syncSaveQrisPayload } from '../firebase.js';
 import { decodeQRFromImage, renderQRToContainer } from '../qris.js';
@@ -47,6 +47,7 @@ export function renderAdminTable() {
 }
 
 export function toggleProductAvailability(id) {
+  playClick('pop');
   const p = state.products.find(prod => prod.id === id);
   if (!p) return;
   
@@ -65,6 +66,7 @@ export function toggleProductAvailability(id) {
 }
 
 export function toggleTrackStockInput() {
+  playClick('tap');
   const check = document.getElementById('prodTrackStock');
   const container = document.getElementById('stockInputContainer');
   if (check && container) {
@@ -73,6 +75,7 @@ export function toggleTrackStockInput() {
 }
 
 export function openAddProductModal() {
+  playClick('pop');
   const titleEl = document.getElementById('productModalTitle');
   const editIdEl = document.getElementById('editProductId');
   const nameEl = document.getElementById('prodName');
@@ -99,6 +102,7 @@ export function openAddProductModal() {
 }
 
 export function openEditProductModal(id) {
+  playClick('pop');
   const p = state.products.find(prod => prod.id === id);
   if (!p) return;
 
@@ -128,6 +132,7 @@ export function openEditProductModal(id) {
 }
 
 export function closeProductModal() {
+  playClick('pop');
   const modal = document.getElementById('productModal');
   if (modal) modal.classList.add('hidden');
 }
@@ -214,6 +219,7 @@ export async function deleteProduct(id) {
 
 // ================= QRIS SETTINGS & IMAGE UPLOAD =================
 export function openQrisModal() {
+  playClick('pop');
   const modal = document.getElementById('qrisConfigModal');
   const inputEl = document.getElementById('qrisPayloadInput');
   if (inputEl) inputEl.value = state.qrisPayload || '';
@@ -222,6 +228,7 @@ export function openQrisModal() {
 }
 
 export function closeQrisModal() {
+  playClick('pop');
   const modal = document.getElementById('qrisConfigModal');
   if (modal) modal.classList.add('hidden');
 }

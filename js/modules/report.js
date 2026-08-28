@@ -3,7 +3,7 @@
  */
 
 import { state, saveExpenses, saveHistory } from '../state.js';
-import { formatRp, formatDateShort, formatDateFull, escapeHtml, showToast, showConfirmDialog } from '../utils.js';
+import { formatRp, formatDateShort, formatDateFull, escapeHtml, showToast, showConfirmDialog, playClick } from '../utils.js';
 import { showReceipt } from './payment.js';
 import { 
   syncAddExpense, 
@@ -14,6 +14,7 @@ import {
 } from '../firebase.js';
 
 export function setReportPeriod(period) {
+  playClick('switch');
   state.currentPeriod = period;
   ['today', 'month', 'all'].forEach(p => {
     const btn = document.getElementById(`period-${p}`);
@@ -243,6 +244,7 @@ export async function deleteTransaction(txId) {
 
 // ================= EXPENSE FORM MODAL =================
 export function openExpenseModal() {
+  playClick('pop');
   const nameEl = document.getElementById('expName');
   const amountEl = document.getElementById('expAmount');
   const modal = document.getElementById('expenseModal');
@@ -253,6 +255,7 @@ export function openExpenseModal() {
 }
 
 export function closeExpenseModal() {
+  playClick('pop');
   const modal = document.getElementById('expenseModal');
   if (modal) modal.classList.add('hidden');
 }
