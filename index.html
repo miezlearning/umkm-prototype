@@ -145,10 +145,10 @@
           class="w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-600 flex items-center justify-center border border-stone-200 shadow-sm transition active:scale-90 touch-target-large">
           <span class="material-symbols-rounded text-xl text-stone-500">help</span>
         </button>
-        <button onclick="toggleMobileCartDrawer()"
-          class="relative px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white flex items-center gap-1.5 touch-target-large shadow-sm active:scale-95 transition">
-          <span class="material-symbols-rounded text-lg text-emerald-200">shopping_cart</span>
-          <span id="mobileHeaderCartTotal" class="text-xs font-black">Rp 0</span>
+        <button id="mobileHeaderCartBtn" onclick="toggleMobileCartDrawer()"
+          class="relative px-3.5 py-2 rounded-xl bg-stone-100 text-stone-500 border border-stone-200 flex items-center gap-1.5 touch-target-large active:scale-95 transition">
+          <span class="material-symbols-rounded text-lg text-stone-500">shopping_cart</span>
+          <span id="mobileHeaderCartTotal" class="text-xs font-bold">Rp 0</span>
         </button>
       </div>
     </div>
@@ -1579,7 +1579,7 @@
   </div>
 
   <!-- Main JavaScript App Module -->
-  <script type="module" src="js/app.js?v=22"></script>
+  <script type="module" src="js/app.js?v=23"></script>
 </body>
 
 </html>
