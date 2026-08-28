@@ -195,13 +195,19 @@ export async function deleteCurrentActiveQueue() {
   if (!cur) return;
 
   const itemCount = Object.values(cur.cart).reduce((a, b) => a + b, 0);
+  const { total } = calculateCartTotal();
+  const backedUpQueue = { 
+    id: cur.id,
+    name: cur.name,
+    cart: { ...cur.cart }
+  };
 
   if (state.orderQueues.length <= 1) {
     if (itemCount > 0) {
       const ok = await showConfirmDialog({
         title: 'Kosongkan Pesanan',
-        message: `Kosongkan semua pesanan pada "${cur.name}"?`,
-        confirmText: 'Kosongkan',
+        message: `Kosongkan ${itemCount} pesanan senilai ${formatRp(total)} pada "${cur.name}"?`,
+        confirmText: 'Kosongkan Pesanan',
         confirmType: 'danger',
         icon: 'remove_shopping_cart'
       });
@@ -212,7 +218,18 @@ export async function deleteCurrentActiveQueue() {
         renderOrderQueueTabs();
         renderCart();
         renderProducts();
-        showToast(`Pesanan pada "${cur.name}" telah dikosongkan.`, 'info');
+        showToast(`Pesanan pada "${cur.name}" dikosongkan.`, 'info', 5000, {
+          label: 'URUNGKAN',
+          onClick: () => {
+            cur.cart = { ...backedUpQueue.cart };
+            saveQueues();
+            syncSaveQueues(state.orderQueues);
+            renderOrderQueueTabs();
+            renderCart();
+            renderProducts();
+            showToast(`Pesanan "${cur.name}" berhasil dipulihkan!`, 'success');
+          }
+        });
       }
     } else {
       showToast(`Antrian "${cur.name}" sudah kosong.`, 'info');
@@ -223,18 +240,42 @@ export async function deleteCurrentActiveQueue() {
   if (itemCount > 0) {
     const ok = await showConfirmDialog({
       title: 'Tutup Antrian Pesanan',
-      message: `"${cur.name}" masih berisi ${itemCount} pesanan. Yakin ingin menutup dan menghapus antrian ini?`,
-      confirmText: 'Tutup Antrian',
+      message: `"${cur.name}" masih berisi ${itemCount} pesanan senilai ${formatRp(total)}. Yakin ingin menutup dan menghapus antrian ini?`,
+      confirmText: 'Tutup & Hapus',
       confirmType: 'danger',
       icon: 'delete_sweep'
     });
     if (ok) {
       deleteOrderQueue(cur.id);
-      showToast(`Antrian "${cur.name}" telah ditutup.`, 'info');
+      showToast(`Antrian "${cur.name}" ditutup.`, 'info', 5000, {
+        label: 'URUNGKAN',
+        onClick: () => {
+          state.orderQueues.push(backedUpQueue);
+          state.activeQueueId = backedUpQueue.id;
+          saveQueues();
+          syncSaveQueues(state.orderQueues);
+          renderOrderQueueTabs();
+          renderCart();
+          renderProducts();
+          showToast(`Antrian "${backedUpQueue.name}" berhasil dipulihkan!`, 'success');
+        }
+      });
     }
   } else {
     deleteOrderQueue(cur.id);
-    showToast(`Antrian "${cur.name}" telah ditutup.`, 'info');
+    showToast(`Antrian "${cur.name}" ditutup.`, 'info', 4000, {
+      label: 'URUNGKAN',
+      onClick: () => {
+        state.orderQueues.push(backedUpQueue);
+        state.activeQueueId = backedUpQueue.id;
+        saveQueues();
+        syncSaveQueues(state.orderQueues);
+        renderOrderQueueTabs();
+        renderCart();
+        renderProducts();
+        showToast(`Antrian "${backedUpQueue.name}" dipulihkan.`, 'success');
+      }
+    });
   }
 }
 

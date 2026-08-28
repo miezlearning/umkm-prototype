@@ -92,8 +92,9 @@ export function escapeHtml(str) {
  * @param {string} message Pesan teks
  * @param {'success'|'error'|'info'|'warning'} type Jenis toast
  * @param {number} duration Durasi tampil (ms)
+ * @param {object|null} action Opsi tombol aksi { label: string, onClick: function }
  */
-export function showToast(message, type = 'success', duration = 3000) {
+export function showToast(message, type = 'success', duration = 3000, action = null) {
   let container = document.getElementById('toastContainer');
   if (!container) {
     container = document.createElement('div');
@@ -135,23 +136,52 @@ export function showToast(message, type = 'success', duration = 3000) {
     sound: 600
   };
 
-  toast.className = `toast-item px-4 py-3 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center justify-between gap-3 w-full cursor-pointer select-none ${config.bg}`;
+  toast.className = `toast-item px-4 py-3 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center justify-between gap-3 w-full select-none ${config.bg}`;
   toast.innerHTML = `
-    <div class="flex items-center gap-2.5 min-w-0">
+    <div class="flex items-center gap-2.5 min-w-0 flex-1">
       <span class="material-symbols-rounded text-2xl shrink-0 ${config.iconColor}">${config.icon}</span>
       <span class="text-xs sm:text-sm font-extrabold leading-snug break-words">${escapeHtml(message)}</span>
     </div>
-    <span class="material-symbols-rounded text-base opacity-40 hover:opacity-100 shrink-0">close</span>
+    <div class="flex items-center gap-2 shrink-0">
+      ${action ? `
+        <button type="button" class="toast-action-btn px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black text-xs transition active:scale-95 shadow">
+          ${escapeHtml(action.label || 'URUNGKAN')}
+        </button>
+      ` : ''}
+      <button type="button" class="toast-close-btn opacity-40 hover:opacity-100 transition p-0.5">
+        <span class="material-symbols-rounded text-base">close</span>
+      </button>
+    </div>
   `;
 
   playBeep(config.sound, 0.06);
 
+  let isDismissed = false;
   const dismiss = () => {
+    if (isDismissed) return;
+    isDismissed = true;
     toast.classList.add('toast-out');
     setTimeout(() => toast.remove(), 220);
   };
 
-  toast.onclick = dismiss;
+  const closeBtn = toast.querySelector('.toast-close-btn');
+  if (closeBtn) {
+    closeBtn.onclick = (e) => {
+      e.stopPropagation();
+      dismiss();
+    };
+  }
+
+  if (action && action.onClick) {
+    const actionBtn = toast.querySelector('.toast-action-btn');
+    if (actionBtn) {
+      actionBtn.onclick = (e) => {
+        e.stopPropagation();
+        dismiss();
+        action.onClick();
+      };
+    }
+  }
 
   container.appendChild(toast);
 
