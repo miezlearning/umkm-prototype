@@ -81,3 +81,80 @@ export function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+
+/**
+ * Tampilkan Custom Toast Notification modern ala Material 3
+ * @param {string} message Pesan teks
+ * @param {'success'|'error'|'info'|'warning'} type Jenis toast
+ * @param {number} duration Durasi tampil (ms)
+ */
+export function showToast(message, type = 'success', duration = 3000) {
+  let container = document.getElementById('toastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toastContainer';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+
+  const config = {
+    success: {
+      bg: 'bg-stone-900 text-white border-emerald-500/50',
+      icon: 'check_circle',
+      iconColor: 'text-emerald-400',
+      sound: 800
+    },
+    error: {
+      bg: 'bg-red-950 text-white border-red-500/50',
+      icon: 'error',
+      iconColor: 'text-red-400',
+      sound: 300
+    },
+    warning: {
+      bg: 'bg-amber-950 text-white border-amber-500/50',
+      icon: 'warning',
+      iconColor: 'text-amber-400',
+      sound: 500
+    },
+    info: {
+      bg: 'bg-stone-900 text-white border-stone-700',
+      icon: 'info',
+      iconColor: 'text-emerald-300',
+      sound: 600
+    }
+  }[type] || {
+    bg: 'bg-stone-900 text-white border-stone-700',
+    icon: 'info',
+    iconColor: 'text-emerald-400',
+    sound: 600
+  };
+
+  toast.className = `toast-item px-4 py-3 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center justify-between gap-3 w-full cursor-pointer select-none ${config.bg}`;
+  toast.innerHTML = `
+    <div class="flex items-center gap-2.5 min-w-0">
+      <span class="material-symbols-rounded text-2xl shrink-0 ${config.iconColor}">${config.icon}</span>
+      <span class="text-xs sm:text-sm font-extrabold leading-snug break-words">${escapeHtml(message)}</span>
+    </div>
+    <span class="material-symbols-rounded text-base opacity-40 hover:opacity-100 shrink-0">close</span>
+  `;
+
+  playBeep(config.sound, 0.06);
+
+  const dismiss = () => {
+    toast.classList.add('toast-out');
+    setTimeout(() => toast.remove(), 220);
+  };
+
+  toast.onclick = dismiss;
+
+  container.appendChild(toast);
+
+  if (duration > 0) {
+    setTimeout(dismiss, duration);
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.showToast = showToast;
+}

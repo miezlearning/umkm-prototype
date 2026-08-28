@@ -3,7 +3,7 @@
  */
 
 import { state, saveExpenses, saveHistory } from '../state.js';
-import { formatRp, formatDateShort, formatDateFull, escapeHtml } from '../utils.js';
+import { formatRp, formatDateShort, formatDateFull, escapeHtml, showToast } from '../utils.js';
 import { showReceipt } from './payment.js';
 import { 
   syncAddExpense, 
@@ -193,7 +193,7 @@ export function clearTodayData() {
   const todayExpCount = state.expenses.filter(e => new Date(e.date).toDateString() === todayStr).length;
 
   if (todayTxCount === 0 && todayExpCount === 0) {
-    alert('Tidak ada catatan transaksi penjualan atau pengeluaran pada hari ini.');
+    showToast('Tidak ada catatan transaksi penjualan atau pengeluaran pada hari ini.', 'info');
     return;
   }
 
@@ -206,7 +206,7 @@ export function clearTodayData() {
     saveExpenses();
     syncClearTodayData();
     renderFinancialReport();
-    alert('✓ Data penjualan dan pengeluaran hari ini berhasil dihapus!');
+    showToast('Data penjualan dan pengeluaran hari ini berhasil dihapus.', 'success');
   }
 }
 
@@ -319,7 +319,7 @@ _Laporan otomatis dibuat dari Kasir Mami POS_`;
 export function exportReportCSV() {
   const filteredTx = filterByPeriod(state.transactions);
   if (filteredTx.length === 0) {
-    alert('Tidak ada data transaksi untuk diekspor!');
+    showToast('Tidak ada data transaksi untuk diekspor!', 'warning');
     return;
   }
 
@@ -335,6 +335,7 @@ export function exportReportCSV() {
   link.download = `Laporan_Kasir_Mami_${Date.now()}.csv`;
   link.click();
   link.remove();
+  showToast('File Excel CSV berhasil diunduh!', 'success');
 }
 
 export function clearTransactionHistory() {
@@ -343,7 +344,7 @@ export function clearTransactionHistory() {
 
 export function clearAllHistory() {
   if (state.transactions.length === 0 && state.expenses.length === 0) {
-    alert('Riwayat transaksi dan pengeluaran sudah kosong.');
+    showToast('Riwayat transaksi dan pengeluaran sudah kosong.', 'info');
     return;
   }
   if (confirm('PERINGATAN: Hapus SELURUH riwayat transaksi penjualan & pengeluaran (Semua Periode)?\n\nData yang telah dihapus tidak dapat dipulihkan kembali kecuali Anda memiliki file backup.')) {
@@ -353,6 +354,6 @@ export function clearAllHistory() {
     saveExpenses();
     syncClearAllHistory();
     renderFinancialReport();
-    alert('✓ Seluruh riwayat penjualan & pengeluaran telah dikosongkan.');
+    showToast('Seluruh riwayat penjualan & pengeluaran telah dikosongkan.', 'success');
   }
 }

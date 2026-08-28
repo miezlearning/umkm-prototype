@@ -46,13 +46,46 @@ export function renderOrderQueueTabs() {
     if (drawerTitleEl) drawerTitleEl.innerText = cur.name;
   }
 
-  // Auto-scroll active tab into view smoothly
+  // Auto-scroll active tab into view smoothly & init drag scroll
   setTimeout(() => {
+    initQueueDragScroll();
     const activeTab = container.querySelector('.active-queue-tab');
     if (activeTab) {
       activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }
   }, 40);
+}
+
+export function initQueueDragScroll() {
+  const slider = document.getElementById('orderQueueTabs');
+  if (!slider || slider.dataset.dragInit) return;
+  slider.dataset.dragInit = 'true';
+
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+
+  slider.addEventListener('mousedown', (e) => {
+    isDown = true;
+    startX = e.pageX - slider.offsetLeft;
+    scrollLeft = slider.scrollLeft;
+  });
+
+  slider.addEventListener('mouseleave', () => {
+    isDown = false;
+  });
+
+  slider.addEventListener('mouseup', () => {
+    isDown = false;
+  });
+
+  slider.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - slider.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    slider.scrollLeft = scrollLeft - walk;
+  });
 }
 
 export function scrollQueueTabs(direction) {

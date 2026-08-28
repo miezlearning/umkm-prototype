@@ -18,6 +18,7 @@ import {
 
 import { DEFAULT_PRODUCTS } from './config.js';
 import { state, currentStorageKeys, updateUIStoreBranding } from './state.js';
+import { showToast } from './utils.js';
 
 // Firebase Configuration from user
 export const firebaseConfig = {
@@ -491,7 +492,7 @@ export async function syncSaveQueues(queues) {
  */
 export async function forceUploadAllToCloud() {
   if (!db) {
-    alert('Firebase belum terhubung. Periksa koneksi internet Anda.');
+    showToast('Firebase belum terhubung. Periksa koneksi internet Anda.', 'warning');
     return;
   }
 
@@ -540,11 +541,11 @@ export async function forceUploadAllToCloud() {
     }, { merge: true });
 
     await batch.commit();
-    updateSyncStatusUI('online', '🟢 Semua data lokal berhasil diunggah ke Cloud!');
-    alert(`✅ Berhasil menyinkronkan seluruh data toko [${state.storeProfile.name}] ke Cloud!`);
+    updateSyncStatusUI('online', 'Semua data lokal berhasil diunggah ke Cloud');
+    showToast(`Data toko [${state.storeProfile.name}] berhasil disinkronkan ke Cloud!`, 'success');
   } catch (e) {
     console.error('Force upload error:', e);
     updateSyncStatusUI('error', 'Gagal mengunggah data ke cloud');
-    alert('Gagal menyinkronkan data: ' + e.message);
+    showToast('Gagal menyinkronkan data: ' + e.message, 'error');
   }
 }

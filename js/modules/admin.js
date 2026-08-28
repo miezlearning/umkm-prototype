@@ -1,5 +1,5 @@
 import { state, saveProducts, saveQueues, saveHistory, saveExpenses, saveQrisPayload } from '../state.js';
-import { formatRp, escapeHtml } from '../utils.js';
+import { formatRp, escapeHtml, showToast } from '../utils.js';
 import { renderProducts, renderCart } from './pos.js';
 import { syncSaveProduct, syncDeleteProduct, forceUploadAllToCloud, syncSaveQrisPayload } from '../firebase.js';
 import { decodeQRFromImage, renderQRToContainer } from '../qris.js';
@@ -200,7 +200,7 @@ export async function handleQrisImageUpload(event) {
       statusEl.innerText = '❌ Gagal: ' + (err.message || 'Tidak dapat membaca QRIS');
       statusEl.className = 'text-xs font-bold text-red-600 block';
     }
-    alert('Gagal membaca gambar QRIS: ' + err.message + '\n\nTips: Pastikan foto QR Code tegak, terang, dan tidak terpotong.');
+    showToast('Gagal membaca gambar QRIS. Pastikan foto tegak dan jelas.', 'error');
   }
 }
 
@@ -210,14 +210,14 @@ export function saveQrisSettings(e) {
   const payload = inputEl ? inputEl.value.trim() : '';
 
   if (!payload || !payload.startsWith('000201')) {
-    alert('Format kode QRIS tidak valid. Harus diawali dengan "000201".');
+    showToast('Format kode QRIS tidak valid. Harus diawali dengan "000201".', 'warning');
     return;
   }
 
   saveQrisPayload(payload);
   syncSaveQrisPayload(payload);
   closeQrisModal();
-  alert(`✓ Pengaturan QRIS untuk [${state.storeProfile.name}] berhasil disimpan dan disinkronkan ke Cloud!`);
+  showToast(`Pengaturan QRIS untuk [${state.storeProfile.name}] berhasil disimpan!`, 'success');
 }
 
 // ================= BACKUP & RESTORE DATA (JSON) =================
@@ -270,13 +270,13 @@ export function importDataBackup(event) {
         saveQrisPayload(data.qrisPayload);
         syncSaveQrisPayload(data.qrisPayload);
       }
-      alert('✓ Data Kasir Mami berhasil dipulihkan dari file backup!');
+      showToast('Data Kasir Mami berhasil dipulihkan dari backup!', 'success');
       forceUploadAllToCloud();
       renderProducts();
       renderCart();
       renderAdminTable();
     } catch (err) {
-      alert('Format file backup tidak valid!');
+      showToast('Format file backup tidak valid!', 'error');
     }
   };
   reader.readAsText(file);

@@ -2,7 +2,8 @@
  * Kasir Mami - Main Application Entry Point & Module Orchestrator
  */
 
-import { initState } from './state.js';
+import { initState, state } from './state.js';
+import { showToast } from './utils.js';
 import * as pos from './modules/pos.js';
 import * as payment from './modules/payment.js';
 import * as admin from './modules/admin.js';
@@ -20,39 +21,61 @@ export function switchView(viewName) {
   const viewAdmin = document.getElementById('viewAdmin');
   const viewReport = document.getElementById('viewReport');
 
-  if (viewPos) viewPos.classList.toggle('hidden', viewName !== 'pos');
-  if (viewAdmin) viewAdmin.classList.toggle('hidden', viewName !== 'admin');
-  if (viewReport) viewReport.classList.toggle('hidden', viewName !== 'report');
+  const btnPos = document.getElementById('btnNavPos');
+  const btnReport = document.getElementById('btnNavReport');
+  const btnAdmin = document.getElementById('btnNavAdmin');
+  const btnPosD = document.getElementById('btnNavPosDesktop');
+  const btnReportD = document.getElementById('btnNavReportDesktop');
+  const btnAdminD = document.getElementById('btnNavAdminDesktop');
 
-  ['pos', 'admin', 'report'].forEach(v => {
-    const deskBtn = document.getElementById(`btnNav${v.charAt(0).toUpperCase() + v.slice(1)}Desktop`);
-    if (deskBtn) {
-      deskBtn.className = (v === viewName)
-        ? 'px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 font-black flex items-center gap-2 transition touch-target-large ring-1 ring-emerald-500/40'
-        : 'px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-stone-300 hover:text-white font-bold flex items-center gap-2 transition touch-target-large';
-    }
-    
-    const mobBtn = document.getElementById(`btnNav${v.charAt(0).toUpperCase() + v.slice(1)}Mobile`);
-    if (mobBtn) {
-      mobBtn.className = (v === viewName)
-        ? 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large'
-        : 'flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 font-medium text-[11px] touch-target-large';
+  // Hide all screens
+  if (viewPos) viewPos.classList.add('hidden');
+  if (viewAdmin) viewAdmin.classList.add('hidden');
+  if (viewReport) viewReport.classList.add('hidden');
+
+  // Reset Mobile Navigation Buttons
+  [btnPos, btnReport, btnAdmin].forEach(b => {
+    if (b) {
+      b.className = 'flex flex-col items-center justify-center flex-1 py-1.5 text-stone-500 hover:text-stone-900 transition touch-target-large';
     }
   });
 
-  if (viewName === 'admin') admin.renderAdminTable();
-  if (viewName === 'report') report.renderFinancialReport();
-  if (viewName === 'pos') pos.renderProducts();
+  // Reset Desktop Navigation Buttons
+  [btnPosD, btnReportD, btnAdminD].forEach(b => {
+    if (b) {
+      b.className = 'px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-stone-300 hover:text-white font-bold flex items-center gap-2 transition touch-target-large';
+    }
+  });
+
+  if (viewName === 'pos') {
+    if (viewPos) viewPos.classList.remove('hidden');
+    if (btnPos) btnPos.className = 'flex flex-col items-center justify-center flex-1 py-1.5 text-emerald-700 font-extrabold transition touch-target-large';
+    if (btnPosD) btnPosD.className = 'px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 font-black flex items-center gap-2 transition touch-target-large ring-1 ring-emerald-500/40';
+    pos.renderProducts();
+    pos.renderCart();
+  } else if (viewName === 'admin') {
+    if (viewAdmin) viewAdmin.classList.remove('hidden');
+    if (btnAdmin) btnAdmin.className = 'flex flex-col items-center justify-center flex-1 py-1.5 text-emerald-700 font-extrabold transition touch-target-large';
+    if (btnAdminD) btnAdminD.className = 'px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 font-black flex items-center gap-2 transition touch-target-large ring-1 ring-emerald-500/40';
+    admin.renderAdminTable();
+  } else if (viewName === 'report') {
+    if (viewReport) viewReport.classList.remove('hidden');
+    if (btnReport) btnReport.className = 'flex flex-col items-center justify-center flex-1 py-1.5 text-emerald-700 font-extrabold transition touch-target-large';
+    if (btnReportD) btnReportD.className = 'px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 font-black flex items-center gap-2 transition touch-target-large ring-1 ring-emerald-500/40';
+    report.renderFinancialReport();
+  }
 }
 
-// ================= CLOUD MODAL & MULTI-STORE HELPERS =================
+// ================= CLOUD SYNC & MULTI-STORE MODAL =================
 export function openCloudModal() {
   const modal = document.getElementById('cloudModal');
-  const storeInput = document.getElementById('cloudStoreIdInput');
-  if (storeInput) {
-    storeInput.value = state.storeId || 'kedai_usaha_mami';
+  if (modal) {
+    const storeDisplay = document.getElementById('cloudStoreIdDisplay');
+    if (storeDisplay) {
+      storeDisplay.innerText = `${state.storeProfile?.name || 'Toko UMKM'} (${state.storeId})`;
+    }
+    modal.classList.remove('hidden');
   }
-  if (modal) modal.classList.remove('hidden');
 }
 
 export function closeCloudModal() {
@@ -65,9 +88,9 @@ export function copyStoreShareLink() {
   const storeUrl = `${baseUrl}?store=${encodeURIComponent(state.storeId)}`;
   const storeName = state.storeProfile?.name || 'Kasir UMKM';
 
-  if (navigator.clipboard) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(storeUrl).then(() => {
-      alert(`✓ Link Toko [${storeName}] berhasil disalin!\n\n${storeUrl}\n\nKirimkan link ini ke WhatsApp HP Owner / Karyawan untuk langsung terhubung.`);
+      showToast(`Link Toko [${storeName}] berhasil disalin ke clipboard!`, 'success');
     }).catch(() => {
       prompt(`Salin link untuk Toko [${storeName}]:`, storeUrl);
     });
