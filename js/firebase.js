@@ -251,6 +251,35 @@ function setupRealtimeListeners() {
     console.error('Queues onSnapshot error:', error);
   });
   listenersUnsubscribe.push(unsubQueues);
+
+  // 5. CONFIG (QRIS Payload) LISTENER
+  const configDocRef = doc(db, 'stores', STORE_ID, 'data', 'config');
+  const unsubConfig = onSnapshot(configDocRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data && data.qrisPayload) {
+        state.qrisPayload = data.qrisPayload;
+        localStorage.setItem(STORAGE_KEYS.QRIS, data.qrisPayload);
+        if (onRemoteUpdateCallback) onRemoteUpdateCallback('config');
+      }
+    }
+  }, (error) => {
+    console.error('Config onSnapshot error:', error);
+  });
+  listenersUnsubscribe.push(unsubConfig);
+}
+
+export async function syncSaveQrisPayload(qrisPayload) {
+  if (!db) return;
+  try {
+    const docRef = doc(db, 'stores', STORE_ID, 'data', 'config');
+    await setDoc(docRef, {
+      qrisPayload,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (e) {
+    console.error('Failed to sync QRIS payload to cloud:', e);
+  }
 }
 
 /**
@@ -479,6 +508,13 @@ export async function forceUploadAllToCloud() {
       list: state.orderQueues,
       updatedAt: new Date().toISOString()
     });
+
+    // 5. Upload Config (QRIS Payload)
+    const configRef = doc(db, 'stores', STORE_ID, 'data', 'config');
+    batch.set(configRef, {
+      qrisPayload: state.qrisPayload,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
 
     await batch.commit();
     updateSyncStatusUI('online', '🟢 Semua data lokal berhasil diunggah ke Cloud!');

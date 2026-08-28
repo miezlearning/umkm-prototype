@@ -52,6 +52,10 @@
 
   <!-- Custom Modular CSS -->
   <link rel="stylesheet" href="css/style.css">
+
+  <!-- QRCode & jsQR CDN for Dynamic QRIS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 </head>
 
 <body class="bg-stone-100/70 text-stone-900 min-h-screen flex flex-col antialiased">
@@ -500,15 +504,39 @@
             </div>
           </div>
 
-          <!-- AREA QRIS NOTICE -->
+          <!-- AREA QRIS DINAMIS -->
           <div id="qrisPaymentSection"
-            class="hidden bg-amber-50/70 border-2 border-amber-400 p-4 rounded-2xl flex flex-col items-center text-center gap-2">
-            <span class="material-symbols-rounded text-5xl text-amber-700">qr_code_2</span>
-            <h4 class="font-black text-stone-900 text-base">Pembayaran QRIS / Non-Tunai</h4>
-            <p class="text-xs text-stone-600">Pastikan pembeli telah menunjukkan bukti transfer / sukses scan QRIS
-              sesuai nominal yang tertera.</p>
-            <span class="px-3 py-1 bg-amber-100 text-amber-900 rounded-full text-xs font-black">Nominal Pas: Otomatis
-              Lunas</span>
+            class="hidden bg-stone-50 border-2 border-amber-400 p-3 sm:p-4 rounded-3xl flex flex-col items-center text-center gap-2.5">
+            
+            <!-- QRIS Card Container -->
+            <div class="bg-white p-3.5 rounded-2xl shadow-md border border-stone-200 flex flex-col items-center max-w-[260px] w-full">
+              <!-- QRIS Header Label -->
+              <div class="flex items-center justify-between w-full pb-2 border-b border-stone-100 mb-2">
+                <span class="font-black text-xs text-stone-900 tracking-wider">QRIS DINAMIS</span>
+                <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">Nominal Pas</span>
+              </div>
+
+              <!-- Canvas / QR Code Container -->
+              <div class="bg-white p-1 rounded-xl flex items-center justify-center min-h-[220px]">
+                <div id="qrisDynamicContainer" class="flex items-center justify-center"></div>
+              </div>
+
+              <!-- Store Name & Amount -->
+              <div class="mt-2 text-center w-full pt-1.5 border-t border-stone-100">
+                <p class="text-[11px] font-extrabold text-stone-600 truncate">Kedai Mami Berkah</p>
+                <p id="qrisDynamicTotal" class="text-xl font-black text-stone-950 mt-0.5">Rp 0</p>
+              </div>
+            </div>
+
+            <!-- Notice & Instructions -->
+            <div class="flex flex-col gap-1 max-w-sm">
+              <p class="text-xs font-black text-stone-900">
+                📱 Tunjukkan QR Code ini ke pembeli
+              </p>
+              <p class="text-[11px] text-stone-500 font-medium leading-relaxed">
+                Nominal pembayaran otomatis terisi pas di aplikasi pembeli (BCA, Livin, GoPay, OVO, DANA, ShopeePay, dll).
+              </p>
+            </div>
           </div>
         </div>
 
@@ -528,14 +556,20 @@
       <div
         class="bg-white p-3 sm:p-5 rounded-2xl shadow-sm border border-stone-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
         <div>
-          <h2 class="text-lg sm:text-2xl font-black text-stone-900">Kelola Menu & Harga</h2>
-          <p class="text-xs text-stone-500 font-medium">Tambah menu baru, ubah harga, atau backup data kasir</p>
+          <h2 class="text-lg sm:text-2xl font-black text-stone-900">Kelola Menu & Pengaturan</h2>
+          <p class="text-xs text-stone-500 font-medium">Tambah menu, atur QRIS Toko, atau backup data kasir</p>
         </div>
         <div class="flex items-center gap-1.5 w-full sm:w-auto flex-wrap">
           <button onclick="openAddProductModal()"
             class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1 shadow-sm transition touch-target-large">
             <span class="material-symbols-rounded text-base">add_circle</span>
             <span>Tambah Menu</span>
+          </button>
+          <button onclick="openQrisModal()"
+            class="px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 font-extrabold text-xs flex items-center gap-1 transition touch-target-large shadow-sm"
+            title="Upload atau atur QRIS Toko">
+            <span class="material-symbols-rounded text-base text-amber-700">qr_code_scanner</span>
+            <span>Pengaturan QRIS</span>
           </button>
           <button onclick="exportDataBackup()"
             class="px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center gap-1 transition touch-target-large"
@@ -946,6 +980,86 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL: PENGATURAN QRIS TOKO ==================== -->
+  <div id="qrisConfigModal"
+    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+    <div
+      class="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[95vh]">
+      <!-- Header -->
+      <div class="bg-stone-900 text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-stone-800">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
+            <span class="material-symbols-rounded text-xl text-amber-400">qr_code_scanner</span>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black leading-tight">Pengaturan QRIS Toko</h3>
+            <p class="text-[10px] sm:text-xs text-stone-400 font-medium">Upload Foto / Atur Kode QRIS Merchant</p>
+          </div>
+        </div>
+        <button onclick="closeQrisModal()" class="p-1 hover:bg-white/20 rounded-full">
+          <span class="material-symbols-rounded text-2xl">close</span>
+        </button>
+      </div>
+
+      <!-- Body Form -->
+      <form onsubmit="saveQrisSettings(event)" class="p-4 overflow-y-auto custom-scroll flex flex-col gap-3.5">
+        
+        <!-- Opsi 1: Upload Foto Banner QRIS -->
+        <div class="bg-amber-50/70 border-2 border-dashed border-amber-300 rounded-2xl p-4 flex flex-col items-center text-center gap-2">
+          <span class="material-symbols-rounded text-3xl text-amber-600">add_photo_alternate</span>
+          <div>
+            <h4 class="font-extrabold text-stone-900 text-sm">Upload Foto / Gambar QRIS Toko</h4>
+            <p class="text-[11px] text-stone-600 mt-0.5 max-w-xs">
+              Pilih foto QRIS Toko dari galeri atau kamera HP. Sistem otomatis membaca kodenya.
+            </p>
+          </div>
+          
+          <input type="file" id="qrisImageFileInput" accept="image/*" class="hidden" onchange="handleQrisImageUpload(event)">
+          
+          <button type="button" onclick="document.getElementById('qrisImageFileInput').click()"
+            class="mt-1 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 font-black text-xs flex items-center gap-1.5 shadow-sm transition touch-target-large">
+            <span class="material-symbols-rounded text-base">upload</span>
+            <span>Pilih Gambar QRIS</span>
+          </button>
+
+          <span id="qrisScanStatus" class="hidden text-xs font-bold mt-1"></span>
+        </div>
+
+        <!-- Preview QR Code & Kode Teks -->
+        <div class="bg-stone-50 border border-stone-200 rounded-2xl p-3.5 flex flex-col sm:flex-row items-center gap-3.5">
+          <!-- Canvas / QR Preview Container -->
+          <div class="bg-white p-2 rounded-xl shadow-sm border border-stone-200 flex flex-col items-center shrink-0 min-w-[130px] min-h-[140px] justify-center">
+            <div id="qrisPreviewContainer" class="flex items-center justify-center"></div>
+            <span class="text-[9px] font-bold text-stone-500 mt-1">Preview QR Toko</span>
+          </div>
+
+          <!-- Textarea Kode Payload -->
+          <div class="flex-1 w-full flex flex-col gap-1">
+            <label class="text-[11px] font-black text-stone-700 uppercase">Kode Teks QRIS (EMVCo):</label>
+            <textarea id="qrisPayloadInput" rows="4" required
+              placeholder="000201010211..."
+              class="w-full p-2 text-xs font-mono rounded-xl border border-stone-300 focus:border-amber-500 focus:outline-none bg-white resize-none"></textarea>
+            <p class="text-[10px] text-stone-500 leading-tight">
+              Kode dasar QRIS statis warung Mami. Diperoleh otomatis dari upload gambar atau paste manual.
+            </p>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-stone-200">
+          <button type="button" onclick="closeQrisModal()"
+            class="px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 font-bold text-stone-700 text-xs touch-target-large">
+            Batal
+          </button>
+          <button type="submit"
+            class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 font-black text-xs sm:text-sm shadow-sm touch-target-large transition">
+            Simpan QRIS Toko
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ==================== MODAL: CLOUD SYNC & MULTI-DEVICE ==================== -->
   <div id="cloudModal"
     class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -1013,7 +1127,7 @@
   </div>
 
   <!-- Main JavaScript App Module -->
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/app.js?v=12"></script>
 </body>
 
 </html>

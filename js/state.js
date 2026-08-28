@@ -2,7 +2,7 @@
  * Kasir Mami - Central State Management & Storage
  */
 
-import { STORAGE_KEYS, DEFAULT_PRODUCTS } from './config.js';
+import { STORAGE_KEYS, DEFAULT_PRODUCTS, DEFAULT_QRIS_PAYLOAD } from './config.js';
 
 export const state = {
   products: [],
@@ -13,7 +13,8 @@ export const state = {
   ],
   activeQueueId: 'q_1',
   currentCategory: 'all',
-  currentPeriod: 'today' // 'today', 'month', 'all'
+  currentPeriod: 'today', // 'today', 'month', 'all'
+  qrisPayload: DEFAULT_QRIS_PAYLOAD
 };
 
 /**
@@ -69,6 +70,14 @@ export function initState() {
     }
   }
 
+  // 5. Muat QRIS Payload
+  const savedQris = localStorage.getItem(STORAGE_KEYS.QRIS);
+  if (savedQris && savedQris.trim()) {
+    state.qrisPayload = savedQris.trim();
+  } else {
+    state.qrisPayload = DEFAULT_QRIS_PAYLOAD;
+  }
+
   if (
     state.orderQueues.length === 1 &&
     Object.keys(state.orderQueues[0].cart).length === 0 &&
@@ -92,6 +101,11 @@ export function saveExpenses() {
 
 export function saveQueues() {
   localStorage.setItem(STORAGE_KEYS.QUEUES, JSON.stringify(state.orderQueues));
+}
+
+export function saveQrisPayload(payload) {
+  state.qrisPayload = (payload || DEFAULT_QRIS_PAYLOAD).trim();
+  localStorage.setItem(STORAGE_KEYS.QRIS, state.qrisPayload);
 }
 
 /**

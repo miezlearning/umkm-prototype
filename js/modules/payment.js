@@ -1,15 +1,25 @@
-/**
- * Kasir Mami - Payment Module (Cash, QRIS, Split Bill, Calculator, Receipt)
- */
-
 import { state, saveHistory, saveQueues, getCurrentCart, getActiveQueue, calculateCartTotal } from '../state.js';
 import { formatRp, formatDateShort, escapeHtml } from '../utils.js';
 import { renderOrderQueueTabs, renderCart, renderProducts, toggleMobileCartDrawer } from './pos.js';
 import { syncAddTransaction, syncSaveQueues } from '../firebase.js';
+import { generateDynamicQRIS, renderQRToContainer } from '../qris.js';
 
 let paymentMethod = 'cash'; // 'cash' or 'qris'
 let cashGiven = 0;
 let cashContributions = [];
+
+export function renderDynamicQrisCode() {
+  const { total } = calculateCartTotal();
+  const qrisContainer = document.getElementById('qrisDynamicContainer');
+  const qrisTotalEl = document.getElementById('qrisDynamicTotal');
+
+  if (qrisTotalEl) qrisTotalEl.innerText = formatRp(total);
+
+  if (qrisContainer) {
+    const dynamicPayload = generateDynamicQRIS(state.qrisPayload, total);
+    renderQRToContainer(qrisContainer, dynamicPayload, 220);
+  }
+}
 
 export function openPaymentModal() {
   const { total } = calculateCartTotal();
@@ -65,6 +75,7 @@ export function setPaymentMethod(method) {
     if (cashSection) cashSection.classList.add('hidden');
     if (qrisSection) qrisSection.classList.remove('hidden');
     if (btnFinish) btnFinish.disabled = false; // QRIS is instantly marked paid
+    renderDynamicQrisCode();
   }
 }
 

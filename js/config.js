@@ -6,8 +6,12 @@ export const STORAGE_KEYS = {
   PRODUCTS: 'kasir_mami_products_v1',
   HISTORY: 'kasir_mami_history_v1',
   QUEUES: 'kasir_mami_queues_v1',
-  EXPENSES: 'kasir_mami_expenses_v1'
+  EXPENSES: 'kasir_mami_expenses_v1',
+  QRIS: 'kasir_mami_qris_payload_v1'
 };
+
+// Default QRIS Statis Merchant (Kedai Mami Berkah)
+export const DEFAULT_QRIS_PAYLOAD = '00020101021126590014ID.GO.GPN.WWW01189360091400000000000215000000000000000051440014ID.CO.QRIS.WWW02150000000000000005204581253033605802ID5923KEDAI MAMI BERKAH UMKM6007JAKARTA61051234062070703A01630489AB';
 
 export const DEFAULT_PRODUCTS = [
   { id: 'p1', name: 'Nasi Goreng Spesial', price: 18000, category: 'makanan', icon: 'lunch_dining' },

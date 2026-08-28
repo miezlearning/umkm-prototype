@@ -1,11 +1,8 @@
-/**
- * Kasir Mami - Admin Module (Product CRUD, Data Backup & Restore)
- */
-
-import { state, saveProducts, saveQueues, saveHistory, saveExpenses } from '../state.js';
+import { state, saveProducts, saveQueues, saveHistory, saveExpenses, saveQrisPayload } from '../state.js';
 import { formatRp, escapeHtml } from '../utils.js';
 import { renderProducts, renderCart } from './pos.js';
-import { syncSaveProduct, syncDeleteProduct, forceUploadAllToCloud } from '../firebase.js';
+import { syncSaveProduct, syncDeleteProduct, forceUploadAllToCloud, syncSaveQrisPayload } from '../firebase.js';
+import { decodeQRFromImage, renderQRToContainer } from '../qris.js';
 
 export function renderAdminTable() {
   const container = document.getElementById('adminProductCardList');
@@ -131,6 +128,79 @@ export function deleteProduct(id) {
   }
 }
 
+// ================= QRIS SETTINGS & IMAGE UPLOAD =================
+export function openQrisModal() {
+  const modal = document.getElementById('qrisConfigModal');
+  const inputEl = document.getElementById('qrisPayloadInput');
+  if (inputEl) inputEl.value = state.qrisPayload || '';
+  renderQrisPreview(state.qrisPayload);
+  if (modal) modal.classList.remove('hidden');
+}
+
+export function closeQrisModal() {
+  const modal = document.getElementById('qrisConfigModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+export function renderQrisPreview(payload) {
+  const containerEl = document.getElementById('qrisPreviewContainer');
+  const text = payload || state.qrisPayload;
+  if (containerEl && text) {
+    renderQRToContainer(containerEl, text, 120);
+  }
+}
+
+export async function handleQrisImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById('qrisScanStatus');
+  if (statusEl) {
+    statusEl.innerText = '⏳ Sedang memindai gambar QRIS...';
+    statusEl.className = 'text-xs font-bold text-amber-700 block';
+  }
+
+  try {
+    const rawPayload = await decodeQRFromImage(file);
+    if (!rawPayload.startsWith('000201')) {
+      throw new Error('QR Code yang terbaca bukan standar QRIS Indonesia (EMVCo).');
+    }
+
+    const inputEl = document.getElementById('qrisPayloadInput');
+    if (inputEl) inputEl.value = rawPayload;
+
+    renderQrisPreview(rawPayload);
+
+    if (statusEl) {
+      statusEl.innerText = '✅ Berhasil memindai QRIS! Klik "Simpan QRIS" di bawah.';
+      statusEl.className = 'text-xs font-bold text-emerald-700 block';
+    }
+  } catch (err) {
+    console.error('Scan QRIS error:', err);
+    if (statusEl) {
+      statusEl.innerText = '❌ Gagal: ' + (err.message || 'Tidak dapat membaca QRIS');
+      statusEl.className = 'text-xs font-bold text-red-600 block';
+    }
+    alert('Gagal membaca gambar QRIS: ' + err.message + '\n\nTips: Pastikan foto QR Code tegak, terang, dan tidak terpotong.');
+  }
+}
+
+export function saveQrisSettings(e) {
+  if (e) e.preventDefault();
+  const inputEl = document.getElementById('qrisPayloadInput');
+  const payload = inputEl ? inputEl.value.trim() : '';
+
+  if (!payload || !payload.startsWith('000201')) {
+    alert('Format kode QRIS tidak valid. Harus diawali dengan "000201".');
+    return;
+  }
+
+  saveQrisPayload(payload);
+  syncSaveQrisPayload(payload);
+  closeQrisModal();
+  alert('✓ Pengaturan QRIS Toko berhasil disimpan dan disinkronkan ke Cloud!');
+}
+
 // ================= BACKUP & RESTORE DATA (JSON) =================
 export function exportDataBackup() {
   const backupData = {
@@ -139,7 +209,8 @@ export function exportDataBackup() {
     products: state.products,
     transactions: state.transactions,
     expenses: state.expenses,
-    orderQueues: state.orderQueues
+    orderQueues: state.orderQueues,
+    qrisPayload: state.qrisPayload
   };
 
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
@@ -175,6 +246,10 @@ export function importDataBackup(event) {
         state.orderQueues = data.orderQueues;
         state.activeQueueId = data.orderQueues[0]?.id || 'q_1';
         saveQueues();
+      }
+      if (data.qrisPayload && typeof data.qrisPayload === 'string') {
+        saveQrisPayload(data.qrisPayload);
+        syncSaveQrisPayload(data.qrisPayload);
       }
       alert('✓ Data Kasir Mami berhasil dipulihkan dari file backup!');
       forceUploadAllToCloud();
