@@ -128,14 +128,26 @@
           <span class="material-symbols-rounded text-xl">inventory_2</span>
           <span>Kelola Menu</span>
         </button>
+        <button onclick="KasirApp.openGuideTour(0)" title="Buka Panduan Kasir"
+          class="px-3 py-2 rounded-xl text-emerald-800 hover:text-emerald-950 hover:bg-emerald-100/70 font-black flex items-center gap-1.5 transition border border-emerald-300/60 ml-1">
+          <span class="material-symbols-rounded text-xl text-emerald-700">help</span>
+          <span>Panduan</span>
+        </button>
       </div>
 
-      <!-- Quick Cart Indicator Button on Mobile Header -->
-      <button onclick="toggleMobileCartDrawer()"
-        class="lg:hidden relative px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-950 flex items-center gap-1.5 touch-target-large border border-emerald-300 font-black shadow-sm">
-        <span class="material-symbols-rounded text-xl text-emerald-700">shopping_cart</span>
-        <span id="mobileHeaderCartTotal" class="text-xs font-black text-emerald-900">Rp 0</span>
-      </button>
+      <!-- Quick Action Buttons on Mobile Header (Panduan + Keranjang) -->
+      <div class="lg:hidden flex items-center gap-1.5">
+        <button onclick="KasirApp.openGuideTour(0)" title="Panduan Kasir"
+          class="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 flex items-center gap-1 touch-target-large border border-emerald-300 font-extrabold text-xs shadow-sm">
+          <span class="material-symbols-rounded text-lg text-emerald-700">help</span>
+          <span>Panduan</span>
+        </button>
+        <button onclick="toggleMobileCartDrawer()"
+          class="relative px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-950 flex items-center gap-1.5 touch-target-large border border-emerald-300 font-black shadow-sm">
+          <span class="material-symbols-rounded text-xl text-emerald-700">shopping_cart</span>
+          <span id="mobileHeaderCartTotal" class="text-xs font-black text-emerald-900">Rp 0</span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -1564,7 +1576,7 @@
   </div>
 
   <!-- Main JavaScript App Module -->
-  <script type="module" src="js/app.js?v=13"></script>
+  <script type="module" src="js/app.js?v=15"></script>
 </body>
 
 </html>

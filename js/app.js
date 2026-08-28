@@ -18,6 +18,7 @@ import * as pos from './modules/pos.js';
 import * as payment from './modules/payment.js';
 import * as admin from './modules/admin.js';
 import * as report from './modules/report.js';
+import * as tour from './modules/tour.js';
 import { 
   initFirebaseSync, 
   setRemoteUpdateCallback, 
@@ -651,7 +652,14 @@ const KasirApp = {
   clearTransactionHistory: report.clearTransactionHistory,
   shareReportWhatsApp: report.shareReportWhatsApp,
   exportReportCSV: report.exportReportCSV,
-  reprintTx: report.reprintTx
+  reprintTx: report.reprintTx,
+
+  // Interactive Senior-Friendly Guide Tour
+  openGuideTour: tour.openGuideTour,
+  closeGuideTour: tour.closeGuideTour,
+  nextTourStep: tour.nextTourStep,
+  prevTourStep: tour.prevTourStep,
+  goToTourStep: tour.goToTourStep
 };
 
 // Expose to window for inline onclick HTML handlers
