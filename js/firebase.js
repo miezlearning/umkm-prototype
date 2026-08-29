@@ -887,3 +887,19 @@ export async function superAdminUpdateStorePin(storeId, newPin) {
 
   return true;
 }
+
+/**
+ * Super Admin: Hapus toko dari Cloud Firestore
+ */
+export async function deleteStoreFromCloud(storeId) {
+  if (!storeId || !db) return false;
+  try {
+    const regRef = doc(db, 'stores_registry', storeId);
+    await deleteDoc(regRef);
+    return true;
+  } catch (e) {
+    console.error('Failed to delete store from registry:', e);
+    return false;
+  }
+}
+

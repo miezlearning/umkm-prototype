@@ -7,8 +7,7 @@ import { getSavedStoresList, registerStoreOnDevice, state } from '../state.js';
 import { getStorageKeys } from '../config.js';
 import { 
   fetchAllStoresForSuperAdmin, 
-  superAdminUpdateStorePin, 
-  deleteStoreFromCloud 
+  superAdminUpdateStorePin 
 } from '../firebase.js';
 
 let superAdminStores = [];
