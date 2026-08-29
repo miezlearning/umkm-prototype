@@ -879,6 +879,111 @@
 
     </div>
 
+    <!-- ==================== SCREEN 5: SUPER ADMIN • MONITORING SELURUH UMKM ==================== -->
+    <div id="viewSuperAdmin" class="hidden flex-1 flex-col gap-5 max-w-7xl mx-auto w-full pb-8">
+
+      <!-- Top Toolbar & Search -->
+      <div
+        class="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-stone-200/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5">
+        
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center shrink-0">
+            <span class="material-symbols-rounded text-2xl">hub</span>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black text-stone-900 leading-tight">Super Admin Monitoring Hub</h3>
+            <p class="text-xs text-stone-500 font-medium mt-0.5">Pantau omzet, transaksi & modifikasi PIN seluruh UMKM</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Search Input -->
+          <div class="relative flex-1 sm:w-64">
+            <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-lg">search</span>
+            <input type="text" placeholder="Cari UMKM / Owner..." oninput="KasirApp.handleSuperAdminSearch(event)"
+              class="w-full pl-9 pr-3.5 py-2 rounded-xl bg-stone-50 border border-stone-200 focus:bg-white focus:border-emerald-600 font-bold text-stone-900 text-xs outline-none">
+          </div>
+
+          <!-- Refresh Button -->
+          <button onclick="KasirApp.renderSuperAdminDashboard()"
+            class="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-extrabold text-xs flex items-center gap-1.5 border border-stone-200 transition touch-target-large shadow-sm"
+            title="Refresh Data Cloud">
+            <span class="material-symbols-rounded text-base">sync</span>
+            <span>Refresh</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Core Aggregated Metrics (3 Cards) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <!-- 1. Total Toko UMKM -->
+        <div class="bg-white p-5 sm:p-6 rounded-3xl shadow-sm border border-stone-200/80 flex flex-col justify-between gap-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center">
+              <span class="material-symbols-rounded text-2xl">storefront</span>
+            </div>
+            <div>
+              <span class="text-xs font-black text-stone-400 uppercase tracking-wider">Total UMKM Aktif</span>
+              <p class="text-[11px] text-stone-500 font-medium">Toko terdaftar di Cloud</p>
+            </div>
+          </div>
+          <div>
+            <h3 id="saStatTotalStores" class="text-2xl sm:text-3xl lg:text-4xl font-black text-stone-900 leading-tight">0</h3>
+            <span class="inline-block text-xs font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 mt-2">Multi-Tenant Terdaftar</span>
+          </div>
+        </div>
+
+        <!-- 2. Total Omzet Seluruh Toko Hari Ini -->
+        <div class="bg-white p-5 sm:p-6 rounded-3xl shadow-sm border border-stone-200/80 flex flex-col justify-between gap-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center">
+              <span class="material-symbols-rounded text-2xl">payments</span>
+            </div>
+            <div>
+              <span class="text-xs font-black text-stone-400 uppercase tracking-wider">Omzet Seluruh UMKM</span>
+              <p class="text-[11px] text-stone-500 font-medium">Total penjualan hari ini</p>
+            </div>
+          </div>
+          <div>
+            <h3 id="saStatTotalRevenue" class="text-2xl sm:text-3xl lg:text-4xl font-black text-emerald-900 leading-tight">Rp 0</h3>
+            <span class="inline-block text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 mt-2">Omzet Hari Ini</span>
+          </div>
+        </div>
+
+        <!-- 3. Total Transaksi Selesai Hari Ini -->
+        <div class="bg-white p-5 sm:p-6 rounded-3xl shadow-sm border border-stone-200/80 flex flex-col justify-between gap-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center">
+              <span class="material-symbols-rounded text-2xl">receipt_long</span>
+            </div>
+            <div>
+              <span class="text-xs font-black text-stone-400 uppercase tracking-wider">Total Transaksi</span>
+              <p class="text-[11px] text-stone-500 font-medium">Aktivitas penjualan hari ini</p>
+            </div>
+          </div>
+          <div>
+            <h3 id="saStatTotalTx" class="text-2xl sm:text-3xl lg:text-4xl font-black text-teal-900 leading-tight">0 Transaksi</h3>
+            <span class="inline-block text-xs font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200 mt-2">Aktivitas Hari Ini</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Grid UMKM Stores Cards List -->
+      <div class="flex flex-col gap-3">
+        <h4 class="text-xs sm:text-sm font-black text-stone-900 uppercase tracking-wider flex items-center gap-2">
+          <span class="material-symbols-rounded text-xl text-emerald-700">domain</span>
+          Daftar Toko UMKM & Kontrol Privilege
+        </h4>
+        <div id="superAdminStoreList" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+    </div>
+
   </main>
 
   <!-- ==================== MOBILE BOTTOM NAVIGATION BAR ==================== -->
@@ -892,12 +997,18 @@
     <button onclick="switchView('report')" id="btnNavReportMobile"
       class="flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 font-medium text-[11px] touch-target-large">
       <span class="material-symbols-rounded text-xl">account_balance_wallet</span>
-      <span>Laba & Laporan</span>
+      <span>Laporan</span>
     </button>
     <button onclick="switchView('admin')" id="btnNavAdminMobile"
       class="flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 font-medium text-[11px] touch-target-large">
       <span class="material-symbols-rounded text-xl">inventory_2</span>
       <span>Menu</span>
+    </button>
+    <button onclick="switchView('superadmin')" id="btnNavSuperAdminMobile"
+      class="flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 font-medium text-[11px] touch-target-large"
+      title="Monitoring UMKM">
+      <span class="material-symbols-rounded text-xl">hub</span>
+      <span>Monitoring</span>
     </button>
   </nav>
 
@@ -1414,6 +1525,13 @@
           </button>
         </div>
 
+        <!-- Tombol Buka Monitoring Super Admin -->
+        <button onclick="closeCloudModal(); switchView('superadmin')"
+          class="w-full py-2.5 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs flex items-center justify-center gap-1.5 transition touch-target-large">
+          <span class="material-symbols-rounded text-base text-amber-700">hub</span>
+          <span>⚡ Buka Super Admin Monitoring Hub</span>
+        </button>
+
         <!-- Tombol Logout / Keluar Sesi Toko -->
         <button onclick="logoutStore()"
           class="w-full py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs flex items-center justify-center gap-1.5 transition touch-target-large">
@@ -1490,9 +1608,9 @@
           </div>
 
           <div>
-            <label class="block text-stone-700 font-bold mb-1 text-xs">PIN Toko 4 Digit (Default: 1234):</label>
-            <input type="password" id="loginPinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required
-              class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-mono font-black text-stone-900 text-center tracking-widest text-lg outline-none">
+            <label class="block text-stone-700 font-bold mb-1 text-xs">PIN Toko / Master Dev Key:</label>
+            <input type="password" id="loginPinInput" placeholder="PIN 4 Digit / Dev Key" required
+              class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-mono font-bold text-stone-900 text-center tracking-wider text-base outline-none">
           </div>
 
           <button type="submit"
@@ -1557,12 +1675,12 @@
 
       <div>
         <h3 class="text-base font-black text-stone-900">Proteksi PIN Owner</h3>
-        <p class="text-stone-500 text-xs mt-0.5" id="pinChallengeSubtitle">Masukkan 4 digit PIN untuk membuka menu ini</p>
+        <p class="text-stone-500 text-xs mt-0.5" id="pinChallengeSubtitle">Masukkan PIN Owner atau Master Dev Key</p>
       </div>
 
       <form id="pinSecurityForm" onsubmit="handlePinSecuritySubmit(event)" class="flex flex-col gap-3 mt-1">
-        <input type="password" id="pinSecurityInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" autofocus placeholder="••••"
-          class="w-full px-3 py-2.5 rounded-xl bg-stone-100 border border-stone-300 focus:bg-white focus:border-emerald-600 font-mono font-black text-stone-900 text-center tracking-widest text-xl outline-none">
+        <input type="password" id="pinSecurityInput" autofocus placeholder="PIN / Dev Key"
+          class="w-full px-3 py-2.5 rounded-xl bg-stone-100 border border-stone-300 focus:bg-white focus:border-emerald-600 font-mono font-bold text-stone-900 text-center tracking-wider text-base outline-none">
 
         <div class="grid grid-cols-2 gap-2 pt-1">
           <button type="button" onclick="closePinSecurityModal()"

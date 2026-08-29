@@ -19,6 +19,7 @@ import * as payment from './modules/payment.js';
 import * as admin from './modules/admin.js';
 import * as report from './modules/report.js';
 import * as tour from './modules/tour.js';
+import * as superadmin from './modules/superadmin.js';
 import { 
   initFirebaseSync, 
   setRemoteUpdateCallback, 
@@ -27,7 +28,9 @@ import {
   syncSaveStoreProfile,
   setupRealtimeListeners,
   unsubscribeAllListeners,
-  authenticateStoreLogin
+  authenticateStoreLogin,
+  superAdminUpdateStorePin,
+  syncStoreToRegistry
 } from './firebase.js';
 
 let pendingTargetView = null;
@@ -46,29 +49,33 @@ export function switchView(viewName) {
   const viewPos = document.getElementById('viewPos');
   const viewAdmin = document.getElementById('viewAdmin');
   const viewReport = document.getElementById('viewReport');
+  const viewSuperAdmin = document.getElementById('viewSuperAdmin');
 
   const btnPosM = document.getElementById('btnNavPosMobile') || document.getElementById('btnNavPos');
   const btnReportM = document.getElementById('btnNavReportMobile') || document.getElementById('btnNavReport');
   const btnAdminM = document.getElementById('btnNavAdminMobile') || document.getElementById('btnNavAdmin');
+  const btnSuperAdminM = document.getElementById('btnNavSuperAdminMobile');
   
   const btnPosD = document.getElementById('btnNavPosDesktop');
   const btnReportD = document.getElementById('btnNavReportDesktop');
   const btnAdminD = document.getElementById('btnNavAdminDesktop');
+  const btnSuperAdminD = document.getElementById('btnNavSuperAdminDesktop');
 
   // Hide all screens
   if (viewPos) viewPos.classList.add('hidden');
   if (viewAdmin) viewAdmin.classList.add('hidden');
   if (viewReport) viewReport.classList.add('hidden');
+  if (viewSuperAdmin) viewSuperAdmin.classList.add('hidden');
 
   // Reset Mobile Navigation Buttons
-  [btnPosM, btnReportM, btnAdminM].forEach(b => {
+  [btnPosM, btnReportM, btnAdminM, btnSuperAdminM].forEach(b => {
     if (b) {
       b.className = 'flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 font-medium text-[11px] touch-target-large';
     }
   });
 
   // Reset Desktop Navigation Buttons
-  [btnPosD, btnReportD, btnAdminD].forEach(b => {
+  [btnPosD, btnReportD, btnAdminD, btnSuperAdminD].forEach(b => {
     if (b) {
       b.className = 'px-4 py-2 rounded-xl text-stone-700 hover:text-stone-950 hover:bg-white font-extrabold flex items-center gap-2 transition';
     }
@@ -90,6 +97,11 @@ export function switchView(viewName) {
     if (btnReportM) btnReportM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
     if (btnReportD) btnReportD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
     report.renderFinancialReport();
+  } else if (viewName === 'superadmin') {
+    if (viewSuperAdmin) viewSuperAdmin.classList.remove('hidden');
+    if (btnSuperAdminM) btnSuperAdminM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
+    if (btnSuperAdminD) btnSuperAdminD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
+    superadmin.renderSuperAdminDashboard();
   }
 }
 
@@ -337,8 +349,8 @@ export async function handleStoreLoginSubmit(e) {
     return;
   }
 
-  if (!inputPin || inputPin.length !== 4) {
-    showToast('⚠️ Harap masukkan 4 digit PIN toko (contoh: 1234).', 'warning', 3000);
+  if (!inputPin) {
+    showToast('⚠️ Harap masukkan PIN toko atau Master Dev Key.', 'warning', 3000);
     if (pinInput) pinInput.focus();
     return;
   }
@@ -440,6 +452,7 @@ export function handleStoreRegisterSubmit(e) {
   quickSelectStore(cleanId);
   syncSaveStoreProfile(newProfile);
   syncSaveStoreAuth(newAuth);
+  syncStoreToRegistry({ id: cleanId, name: storeName, ownerName, phone, pin: pin || '1234' });
   showToast(`Toko [${storeName}] berhasil didaftarkan & dibuka!`, 'success');
 }
 
@@ -669,6 +682,25 @@ export function init() {
   }
 }
 
+export async function openSuperAdminChangePin(storeId, storeName, currentPin) {
+  const newPin = prompt(`Masukkan PIN baru untuk toko "${storeName}" (ID: ${storeId}):`, currentPin || '1234');
+  if (newPin && newPin.trim()) {
+    const ok = await superAdminUpdateStorePin(storeId, newPin.trim());
+    if (ok) {
+      showToast(`PIN toko [${storeName}] berhasil diubah menjadi: ${newPin.trim()}`, 'success');
+      superadmin.renderSuperAdminDashboard();
+    } else {
+      showToast('Gagal mengubah PIN toko', 'error');
+    }
+  }
+}
+
+export function impersonateStore(storeId) {
+  quickSelectStore(storeId);
+  switchView('pos');
+  showToast(`Beralih ke kasir [${state.storeProfile?.name || storeId}]`, 'success');
+}
+
 // ================= EXPORT GLOBAL NAMESPACE FOR HTML HANDLERS =================
 const KasirApp = {
   // App & Multi-Store & Universal Auth
@@ -694,6 +726,12 @@ const KasirApp = {
   togglePinProtectionSetting,
   forceSyncCloud,
   showToast,
+
+  // Super Admin Monitoring
+  openSuperAdminChangePin,
+  impersonateStore,
+  renderSuperAdminDashboard: superadmin.renderSuperAdminDashboard,
+  handleSuperAdminSearch: superadmin.handleSuperAdminSearch,
 
   // POS & Queue Modals
   renderOrderQueueTabs: pos.renderOrderQueueTabs,

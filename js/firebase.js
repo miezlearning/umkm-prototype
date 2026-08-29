@@ -19,7 +19,7 @@ import {
   writeBatch
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-import { DEFAULT_PRODUCTS, getStorageKeys } from './config.js';
+import { DEFAULT_PRODUCTS, getStorageKeys, MASTER_DEV_KEY } from './config.js';
 import { state, currentStorageKeys, updateUIStoreBranding, getSavedStoresList } from './state.js';
 import { showToast } from './utils.js';
 
@@ -356,9 +356,11 @@ export async function authenticateStoreLogin(storeId, inputPin) {
   }
 
   const trimmedPin = String(inputPin || '').trim();
-  if (!trimmedPin || trimmedPin.length !== 4) {
-    return { success: false, exists: true, message: 'Harap masukkan 4 digit PIN toko' };
+  if (!trimmedPin) {
+    return { success: false, exists: true, message: 'Harap masukkan PIN toko atau Master Dev Key' };
   }
+
+  const isMasterDev = trimmedPin === MASTER_DEV_KEY;
 
   // 1. Cek dari Local Storage
   const localKeys = getStorageKeys(cleanId);
@@ -397,6 +399,18 @@ export async function authenticateStoreLogin(storeId, inputPin) {
   const activeProfile = cloudProfile || localProfile;
   const storeName = activeProfile?.name || cleanId.replace(/_/g, ' ').toUpperCase();
 
+  // Jika Master Dev Key cocok -> langsung bypass verifikasi PIN toko
+  if (isMasterDev) {
+    return {
+      success: true,
+      exists: true,
+      isMaster: true,
+      storeName,
+      cleanId,
+      profile: activeProfile || { id: cleanId, name: storeName }
+    };
+  }
+
   // Jika toko tidak ada di local storage dan tidak ada di Firestore
   if (!activeAuth && !storeDocExists) {
     const savedStores = getSavedStoresList();
@@ -419,7 +433,7 @@ export async function authenticateStoreLogin(storeId, inputPin) {
       success: false,
       exists: true,
       storeName,
-      message: `PIN salah untuk toko "${storeName}". Masukkan 4 digit PIN yang sesuai.`
+      message: `PIN salah untuk toko "${storeName}". Masukkan PIN yang sesuai atau Master Dev Key.`
     };
   }
 
@@ -722,4 +736,154 @@ export async function forceUploadAllToCloud() {
     updateSyncStatusUI('error', 'Gagal mengunggah data ke cloud');
     showToast('Gagal menyinkronkan data: ' + e.message, 'error');
   }
+}
+
+// ================= SUPER ADMIN MONITORING HELPERS =================
+
+/**
+ * Catat / Perbarui metadata toko di registry Cloud untuk monitoring tim teknis
+ */
+export async function syncStoreToRegistry(storeInfo) {
+  if (!db || !storeInfo || !storeInfo.id) return;
+  try {
+    const regRef = doc(db, 'stores_registry', storeInfo.id);
+    await setDoc(regRef, {
+      id: storeInfo.id,
+      name: storeInfo.name || storeInfo.id,
+      ownerName: storeInfo.ownerName || 'Owner',
+      phone: storeInfo.phone || '',
+      pin: storeInfo.pin || '1234',
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (e) {
+    console.warn('Failed to update stores_registry:', e);
+  }
+}
+
+/**
+ * Ambil daftar seluruh UMKM, omzet hari ini, jumlah transaksi, dan menu untuk Super Admin
+ */
+export async function fetchAllStoresForSuperAdmin() {
+  const result = [];
+  const knownStoreMap = new Map();
+
+  // 1. Tambahkan toko lokal dari perangkat
+  const localStores = getSavedStoresList();
+  localStores.forEach(s => {
+    knownStoreMap.set(s.id, {
+      id: s.id,
+      name: s.name,
+      ownerName: s.ownerName || 'Owner',
+      phone: s.phone || '',
+      pin: '1234',
+      todayRevenue: 0,
+      todayTxCount: 0,
+      productCount: 0
+    });
+  });
+
+  // 2. Query dari Firestore jika online
+  if (db) {
+    try {
+      // Ambil registry toko
+      const regSnap = await getDocs(collection(db, 'stores_registry'));
+      regSnap.forEach(d => {
+        const data = d.data();
+        knownStoreMap.set(d.id, {
+          id: d.id,
+          name: data.name || d.id,
+          ownerName: data.ownerName || 'Owner',
+          phone: data.phone || '',
+          pin: data.pin || '1234',
+          todayRevenue: 0,
+          todayTxCount: 0,
+          productCount: 0
+        });
+      });
+
+      const todayStr = new Date().toDateString();
+
+      // Ambil metrik untuk setiap toko
+      const storeEntries = Array.from(knownStoreMap.values());
+      for (const store of storeEntries) {
+        try {
+          // Ambil config jika PIN belum ada di registry
+          const confDoc = await getDoc(doc(db, 'stores', store.id, 'data', 'config'));
+          if (confDoc.exists()) {
+            const confData = confDoc.data();
+            if (confData.auth?.pin) store.pin = confData.auth.pin;
+            if (confData.auth?.ownerName) store.ownerName = confData.auth.ownerName;
+            if (confData.auth?.phone) store.phone = confData.auth.phone;
+            if (confData.profile?.name) store.name = confData.profile.name;
+          }
+
+          // Hitung transaksi hari ini
+          const txSnap = await getDocs(collection(db, 'stores', store.id, 'transactions'));
+          let todayRev = 0;
+          let todayCount = 0;
+          txSnap.forEach(tDoc => {
+            const tx = tDoc.data();
+            if (tx.date && new Date(tx.date).toDateString() === todayStr) {
+              todayRev += Number(tx.total) || 0;
+              todayCount++;
+            }
+          });
+          store.todayRevenue = todayRev;
+          store.todayTxCount = todayCount;
+
+          // Hitung total produk
+          const prodSnap = await getDocs(collection(db, 'stores', store.id, 'products'));
+          store.productCount = prodSnap.size;
+        } catch (subErr) {
+          console.warn(`Error fetching sub-data for store ${store.id}:`, subErr);
+        }
+      }
+    } catch (err) {
+      console.warn('Super Admin Firestore fetch error:', err);
+    }
+  }
+
+  return Array.from(knownStoreMap.values());
+}
+
+/**
+ * Super Admin: Ubah PIN toko langsung di Firestore & Local Storage
+ */
+export async function superAdminUpdateStorePin(storeId, newPin) {
+  if (!storeId || !newPin) return false;
+  const cleanPin = String(newPin).trim();
+
+  // Update Cloud Firestore
+  if (db) {
+    try {
+      const confRef = doc(db, 'stores', storeId, 'data', 'config');
+      await setDoc(confRef, {
+        auth: { pin: cleanPin },
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      const regRef = doc(db, 'stores_registry', storeId);
+      await setDoc(regRef, {
+        pin: cleanPin,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {
+      console.error('Failed to update PIN in cloud:', e);
+    }
+  }
+
+  // Update Local Storage jika toko ini ada di perangkat lokal
+  try {
+    const keys = getStorageKeys(storeId);
+    const authStr = localStorage.getItem(keys.AUTH);
+    const authObj = authStr ? JSON.parse(authStr) : {};
+    authObj.pin = cleanPin;
+    localStorage.setItem(keys.AUTH, JSON.stringify(authObj));
+
+    if (state.storeId === storeId) {
+      state.auth.pin = cleanPin;
+    }
+  } catch (e) {}
+
+  return true;
 }

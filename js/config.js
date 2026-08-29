@@ -19,6 +19,9 @@ export const GLOBAL_STORAGE_KEYS = {
   AUTH_ROLE: 'kasir_active_user_role' // 'owner' or 'cashier'
 };
 
+// Master Passphrase Tim Teknis / Super-Admin Bypass (Mencegah brute force 4 digit)
+export const MASTER_DEV_KEY = 'miez_superdev_2026';
+
 /**
  * Generate isolated localStorage keys per store ID (Multi-Tenant)
  * @param {string} storeId - ID unik toko UMKM
