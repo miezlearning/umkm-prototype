@@ -54,12 +54,10 @@ export function switchView(viewName) {
   const btnPosM = document.getElementById('btnNavPosMobile') || document.getElementById('btnNavPos');
   const btnReportM = document.getElementById('btnNavReportMobile') || document.getElementById('btnNavReport');
   const btnAdminM = document.getElementById('btnNavAdminMobile') || document.getElementById('btnNavAdmin');
-  const btnSuperAdminM = document.getElementById('btnNavSuperAdminMobile');
   
   const btnPosD = document.getElementById('btnNavPosDesktop');
   const btnReportD = document.getElementById('btnNavReportDesktop');
   const btnAdminD = document.getElementById('btnNavAdminDesktop');
-  const btnSuperAdminD = document.getElementById('btnNavSuperAdminDesktop');
 
   // Hide all screens
   if (viewPos) viewPos.classList.add('hidden');
@@ -68,14 +66,14 @@ export function switchView(viewName) {
   if (viewSuperAdmin) viewSuperAdmin.classList.add('hidden');
 
   // Reset Mobile Navigation Buttons
-  [btnPosM, btnReportM, btnAdminM, btnSuperAdminM].forEach(b => {
+  [btnPosM, btnReportM, btnAdminM].forEach(b => {
     if (b) {
       b.className = 'flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 font-medium text-[11px] touch-target-large';
     }
   });
 
   // Reset Desktop Navigation Buttons
-  [btnPosD, btnReportD, btnAdminD, btnSuperAdminD].forEach(b => {
+  [btnPosD, btnReportD, btnAdminD].forEach(b => {
     if (b) {
       b.className = 'px-4 py-2 rounded-xl text-stone-700 hover:text-stone-950 hover:bg-white font-extrabold flex items-center gap-2 transition';
     }
@@ -87,20 +85,28 @@ export function switchView(viewName) {
     if (btnPosD) btnPosD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
     pos.renderProducts();
     pos.renderCart();
+    if (state.storeId) {
+      window.history.replaceState(null, '', `${window.location.pathname}?store=${encodeURIComponent(state.storeId)}`);
+    }
   } else if (viewName === 'admin') {
     if (viewAdmin) viewAdmin.classList.remove('hidden');
     if (btnAdminM) btnAdminM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
     if (btnAdminD) btnAdminD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
     admin.renderAdminTable();
+    if (state.storeId) {
+      window.history.replaceState(null, '', `${window.location.pathname}?store=${encodeURIComponent(state.storeId)}`);
+    }
   } else if (viewName === 'report') {
     if (viewReport) viewReport.classList.remove('hidden');
     if (btnReportM) btnReportM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
     if (btnReportD) btnReportD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
     report.renderFinancialReport();
+    if (state.storeId) {
+      window.history.replaceState(null, '', `${window.location.pathname}?store=${encodeURIComponent(state.storeId)}`);
+    }
   } else if (viewName === 'superadmin') {
     if (viewSuperAdmin) viewSuperAdmin.classList.remove('hidden');
-    if (btnSuperAdminM) btnSuperAdminM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
-    if (btnSuperAdminD) btnSuperAdminD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
+    window.history.replaceState(null, '', `${window.location.pathname}?view=superadmin`);
     superadmin.renderSuperAdminDashboard();
   }
 }
@@ -646,6 +652,21 @@ export function init() {
 
   // 5. Dismiss Splash Screen smoothly
   dismissSplashScreen();
+
+  // 6. Cek Route Super Admin via URL Parameter (?view=superadmin atau ?admin=super atau ?superadmin=1 atau #superadmin)
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const isSuperAdminRoute = params.get('view') === 'superadmin' || 
+                              params.get('admin') === 'super' || 
+                              params.get('superadmin') === '1' ||
+                              window.location.hash === '#superadmin';
+
+    if (isSuperAdminRoute) {
+      switchView('superadmin');
+      showToast('⚡ Masuk ke Super Admin Monitoring Hub', 'info', 3000);
+      return;
+    }
+  } catch (e) {}
 
   // If no store is active or logged out -> Auto open store selector
   if (!state.storeId || sessionStorage.getItem('is_logged_out_state') === '1') {

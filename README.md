@@ -92,7 +92,18 @@ Buka browser di `http://localhost:8000`.
 > **Bagikan Link Toko ke Karyawan:**
 > Anda bisa membagikan link kasir dengan format `https://domain.com/?store=nama_toko`.
 > 
-> Saat link dibuka di HP staf baru, sistem **TIDAK** langsung membuka kasir secara bebas, melainkan mewajibkan input **4 digit PIN** toko terlebih dahulu untuk menjamin keamanan data transaksi.
+> Saat link dibuka di HP staf baru, sistem **TIDAK** langsung membuka kasir secara bebas, melainkan mewajibkan input **PIN** toko terlebih dahulu untuk menjamin keamanan data transaksi.
+
+---
+
+## ⚡ Portal Monitoring Tim Teknis (Super Admin Route)
+
+Untuk memantau seluruh UMKM secara terpusat tanpa mengganggu antarmuka pengguna/kasir:
+- Akses URL: `https://domain.com/?view=superadmin` (atau tambahkan parameter `?view=superadmin`).
+- **Fitur Tim Teknis:**
+  - Monitoring omzet harian & jumlah transaksi seluruh UMKM dari Firestore.
+  - Lihat & reset/ganti PIN toko klien jika lupa.
+  - *One-Click Impersonate* (langsung buka kasir toko manapun tanpa input PIN).
 
 ---
 

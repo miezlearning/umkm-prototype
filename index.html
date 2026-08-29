@@ -887,11 +887,17 @@
         class="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-stone-200/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5">
         
         <div class="flex items-center gap-3">
+          <button onclick="switchView('pos')" class="w-10 h-10 rounded-2xl bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition shrink-0" title="Kembali ke Kasir">
+            <span class="material-symbols-rounded text-xl">arrow_back</span>
+          </button>
           <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center shrink-0">
             <span class="material-symbols-rounded text-2xl">hub</span>
           </div>
           <div>
-            <h3 class="text-base sm:text-lg font-black text-stone-900 leading-tight">Super Admin Monitoring Hub</h3>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base sm:text-lg font-black text-stone-900 leading-tight">Super Admin Monitoring Hub</h3>
+              <span class="px-2 py-0.5 rounded-md bg-stone-100 text-stone-600 font-mono text-[10px] font-bold border border-stone-200">?view=superadmin</span>
+            </div>
             <p class="text-xs text-stone-500 font-medium mt-0.5">Pantau omzet, transaksi & modifikasi PIN seluruh UMKM</p>
           </div>
         </div>
@@ -1003,12 +1009,6 @@
       class="flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 font-medium text-[11px] touch-target-large">
       <span class="material-symbols-rounded text-xl">inventory_2</span>
       <span>Menu</span>
-    </button>
-    <button onclick="switchView('superadmin')" id="btnNavSuperAdminMobile"
-      class="flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 font-medium text-[11px] touch-target-large"
-      title="Monitoring UMKM">
-      <span class="material-symbols-rounded text-xl">hub</span>
-      <span>Monitoring</span>
     </button>
   </nav>
 
@@ -1524,13 +1524,6 @@
             Nonaktif
           </button>
         </div>
-
-        <!-- Tombol Buka Monitoring Super Admin -->
-        <button onclick="closeCloudModal(); switchView('superadmin')"
-          class="w-full py-2.5 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs flex items-center justify-center gap-1.5 transition touch-target-large">
-          <span class="material-symbols-rounded text-base text-amber-700">hub</span>
-          <span>⚡ Buka Super Admin Monitoring Hub</span>
-        </button>
 
         <!-- Tombol Logout / Keluar Sesi Toko -->
         <button onclick="logoutStore()"
