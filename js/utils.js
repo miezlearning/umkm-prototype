@@ -16,6 +16,8 @@ export const formatRp = (num) => {
   }).format(num || 0);
 };
 
+export const formatRupiah = formatRp;
+
 let audioCtx = null;
 let hasUserInteracted = false;
 

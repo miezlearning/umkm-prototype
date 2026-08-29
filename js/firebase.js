@@ -357,7 +357,7 @@ export async function authenticateStoreLogin(storeId, inputPin) {
 
   const trimmedPin = String(inputPin || '').trim();
   if (!trimmedPin) {
-    return { success: false, exists: true, message: 'Harap masukkan PIN toko atau Master Dev Key' };
+    return { success: false, exists: true, message: 'Harap masukkan PIN toko' };
   }
 
   const isMasterDev = trimmedPin === MASTER_DEV_KEY;
@@ -433,7 +433,7 @@ export async function authenticateStoreLogin(storeId, inputPin) {
       success: false,
       exists: true,
       storeName,
-      message: `PIN salah untuk toko "${storeName}". Masukkan PIN yang sesuai atau Master Dev Key.`
+      message: `PIN salah untuk toko "${storeName}". Masukkan 4 digit PIN yang sesuai.`
     };
   }
 

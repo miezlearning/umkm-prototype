@@ -917,6 +917,14 @@
             <span class="material-symbols-rounded text-base">sync</span>
             <span>Refresh</span>
           </button>
+
+          <!-- Logout Super Admin Button -->
+          <button onclick="KasirApp.logoutSuperAdmin()"
+            class="px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 font-extrabold text-xs flex items-center gap-1.5 border border-red-200 transition touch-target-large shadow-sm"
+            title="Kunci & Keluar dari Sesi Super Admin">
+            <span class="material-symbols-rounded text-base text-red-600">lock</span>
+            <span class="hidden sm:inline">Kunci Sesi</span>
+          </button>
         </div>
 
       </div>
@@ -1601,9 +1609,9 @@
           </div>
 
           <div>
-            <label class="block text-stone-700 font-bold mb-1 text-xs">PIN Toko / Master Dev Key:</label>
-            <input type="password" id="loginPinInput" placeholder="PIN 4 Digit / Dev Key" required
-              class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-mono font-bold text-stone-900 text-center tracking-wider text-base outline-none">
+            <label class="block text-stone-700 font-bold mb-1 text-xs">PIN Toko (Default: 1234):</label>
+            <input type="password" id="loginPinInput" placeholder="••••" required
+              class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-mono font-black text-stone-900 text-center tracking-widest text-lg outline-none">
           </div>
 
           <button type="submit"
@@ -1668,12 +1676,12 @@
 
       <div>
         <h3 class="text-base font-black text-stone-900">Proteksi PIN Owner</h3>
-        <p class="text-stone-500 text-xs mt-0.5" id="pinChallengeSubtitle">Masukkan PIN Owner atau Master Dev Key</p>
+        <p class="text-stone-500 text-xs mt-0.5" id="pinChallengeSubtitle">Masukkan PIN Owner untuk membuka menu ini</p>
       </div>
 
       <form id="pinSecurityForm" onsubmit="handlePinSecuritySubmit(event)" class="flex flex-col gap-3 mt-1">
-        <input type="password" id="pinSecurityInput" autofocus placeholder="PIN / Dev Key"
-          class="w-full px-3 py-2.5 rounded-xl bg-stone-100 border border-stone-300 focus:bg-white focus:border-emerald-600 font-mono font-bold text-stone-900 text-center tracking-wider text-base outline-none">
+        <input type="password" id="pinSecurityInput" autofocus placeholder="••••"
+          class="w-full px-3 py-2.5 rounded-xl bg-stone-100 border border-stone-300 focus:bg-white focus:border-emerald-600 font-mono font-black text-stone-900 text-center tracking-widest text-xl outline-none">
 
         <div class="grid grid-cols-2 gap-2 pt-1">
           <button type="button" onclick="closePinSecurityModal()"
@@ -1689,8 +1697,40 @@
     </div>
   </div>
 
+  <!-- ==================== SUPER ADMIN AUTHENTICATION GATE MODAL ==================== -->
+  <div id="superAdminAuthModal"
+    class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div
+      class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-stone-200 p-6 flex flex-col gap-4 text-center animate-in zoom-in-95">
+      <div class="w-14 h-14 bg-amber-100 text-amber-900 rounded-2xl flex items-center justify-center mx-auto border border-amber-300 shadow-sm">
+        <span class="material-symbols-rounded text-3xl">admin_panel_settings</span>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-black text-stone-900">Autentikasi Tim Teknis</h3>
+        <p class="text-stone-500 text-xs mt-1 leading-relaxed">Masukkan kunci rahasia Super Admin untuk membuka monitoring seluruh UMKM</p>
+      </div>
+
+      <form id="superAdminAuthForm" onsubmit="KasirApp.handleSuperAdminAuthSubmit(event)" class="flex flex-col gap-3">
+        <input type="password" id="superAdminPasskeyInput" autofocus placeholder="Masukkan Passkey Developer..." required
+          class="w-full px-4 py-3 rounded-xl bg-stone-100 border border-stone-300 focus:bg-white focus:border-amber-600 font-mono font-bold text-stone-900 text-center tracking-wider text-base outline-none">
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button type="button" onclick="KasirApp.closeSuperAdminAuthModal()"
+            class="py-2.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs touch-target-large">
+            Batal
+          </button>
+          <button type="submit"
+            class="py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs touch-target-large shadow-sm">
+            Verifikasi
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Main JavaScript App Module -->
-  <script type="module" src="js/app.js?v=25"></script>
+  <script type="module" src="js/app.js?v=26"></script>
 </body>
 
 </html>

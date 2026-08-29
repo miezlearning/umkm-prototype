@@ -356,7 +356,7 @@ export async function handleStoreLoginSubmit(e) {
   }
 
   if (!inputPin) {
-    showToast('⚠️ Harap masukkan PIN toko atau Master Dev Key.', 'warning', 3000);
+    showToast('⚠️ Harap masukkan PIN toko.', 'warning', 3000);
     if (pinInput) pinInput.focus();
     return;
   }
@@ -751,6 +751,10 @@ const KasirApp = {
   // Super Admin Monitoring
   openSuperAdminChangePin,
   impersonateStore,
+  openSuperAdminAuthModal: superadmin.openSuperAdminAuthModal,
+  closeSuperAdminAuthModal: superadmin.closeSuperAdminAuthModal,
+  handleSuperAdminAuthSubmit: superadmin.handleSuperAdminAuthSubmit,
+  logoutSuperAdmin: superadmin.logoutSuperAdmin,
   renderSuperAdminDashboard: superadmin.renderSuperAdminDashboard,
   handleSuperAdminSearch: superadmin.handleSuperAdminSearch,
 

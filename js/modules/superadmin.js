@@ -1,25 +1,107 @@
 /**
  * Kasir Mami - Super Admin & Multi-UMKM Central Monitoring Module
+ * Protected by Technical Passkey Gate & Session Validation
  */
 
-import { formatRupiah, showToast, playClick, escapeHtml, showConfirmDialog } from '../utils.js';
+import { formatRp, showToast, playClick, escapeHtml, showConfirmDialog } from '../utils.js';
 import { getSavedStoresList, registerStoreOnDevice, state } from '../state.js';
-import { getStorageKeys } from '../config.js';
+import { getStorageKeys, MASTER_DEV_KEY } from '../config.js';
 import { 
   fetchAllStoresForSuperAdmin, 
-  superAdminUpdateStorePin 
+  superAdminUpdateStorePin,
+  deleteStoreFromCloud 
 } from '../firebase.js';
 
 let superAdminStores = [];
 let searchQuery = '';
 let isLoading = false;
 
+const SUPERADMIN_SESSION_KEY = 'superadmin_auth_session_v1';
+
+/**
+ * Cek apakah sesi Super Admin aktif di browser saat ini
+ */
+export function isSuperAdminAuthenticated() {
+  return sessionStorage.getItem(SUPERADMIN_SESSION_KEY) === '1';
+}
+
+/**
+ * Buka modal autentikasi Super Admin
+ */
+export function openSuperAdminAuthModal() {
+  playClick('pop');
+  const modal = document.getElementById('superAdminAuthModal');
+  const input = document.getElementById('superAdminPasskeyInput');
+  if (modal) modal.classList.remove('hidden');
+  if (input) {
+    input.value = '';
+    requestAnimationFrame(() => input.focus());
+  }
+}
+
+/**
+ * Tutup modal autentikasi Super Admin dan batalkan akses
+ */
+export function closeSuperAdminAuthModal() {
+  playClick('pop');
+  const modal = document.getElementById('superAdminAuthModal');
+  if (modal) modal.classList.add('hidden');
+
+  // Jika belum terautentikasi, kembalikan ke layar kasir biasa
+  if (!isSuperAdminAuthenticated()) {
+    if (window.KasirApp && window.KasirApp.switchView) {
+      window.KasirApp.switchView('pos');
+    }
+  }
+}
+
+/**
+ * Verifikasi passkey Super Admin
+ */
+export function handleSuperAdminAuthSubmit(e) {
+  if (e) e.preventDefault();
+  const input = document.getElementById('superAdminPasskeyInput');
+  const enteredKey = input ? input.value.trim() : '';
+
+  if (enteredKey === MASTER_DEV_KEY) {
+    sessionStorage.setItem(SUPERADMIN_SESSION_KEY, '1');
+    const modal = document.getElementById('superAdminAuthModal');
+    if (modal) modal.classList.add('hidden');
+
+    showToast('Akses Super Admin Terverifikasi', 'success', 2500);
+    renderSuperAdminDashboard();
+  } else {
+    playClick('error');
+    showToast('Kunci akses Super Admin salah!', 'error', 3500);
+    if (input) {
+      input.value = '';
+      input.focus();
+    }
+  }
+}
+
+/**
+ * Keluar dari sesi Super Admin
+ */
+export function logoutSuperAdmin() {
+  sessionStorage.removeItem(SUPERADMIN_SESSION_KEY);
+  showToast('Sesi Super Admin ditutup.', 'info');
+  if (window.KasirApp && window.KasirApp.switchView) {
+    window.KasirApp.switchView('pos');
+  }
+}
+
 /**
  * Muat data seluruh UMKM dan render dashboard monitoring
  */
 export async function renderSuperAdminDashboard() {
+  // Wajib lolos autentikasi Super Admin terlebih dahulu
+  if (!isSuperAdminAuthenticated()) {
+    openSuperAdminAuthModal();
+    return;
+  }
+
   const container = document.getElementById('superAdminStoreList');
-  const summaryEl = document.getElementById('superAdminSummary');
   if (!container) return;
 
   isLoading = true;
@@ -66,7 +148,7 @@ export function updateMetricsAndList() {
   const totalTx = superAdminStores.reduce((acc, s) => acc + (s.todayTxCount || 0), 0);
 
   if (statTotalStores) statTotalStores.innerText = totalStores;
-  if (statTotalRevenue) statTotalRevenue.innerText = formatRupiah(totalRevenue);
+  if (statTotalRevenue) statTotalRevenue.innerText = formatRp(totalRevenue);
   if (statTotalTx) statTotalTx.innerText = `${totalTx} Transaksi`;
 
   if (!container) return;
@@ -127,7 +209,7 @@ export function updateMetricsAndList() {
         <div class="grid grid-cols-3 gap-2 bg-stone-50 p-2.5 rounded-xl border border-stone-100 text-center text-xs">
           <div>
             <span class="text-[10px] text-stone-500 block font-bold">Omzet Hari Ini</span>
-            <span class="font-black text-emerald-800 text-xs sm:text-sm">${formatRupiah(store.todayRevenue || 0)}</span>
+            <span class="font-black text-emerald-800 text-xs sm:text-sm">${formatRp(store.todayRevenue || 0)}</span>
           </div>
           <div>
             <span class="text-[10px] text-stone-500 block font-bold">Transaksi</span>
