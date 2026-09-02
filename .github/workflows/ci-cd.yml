@@ -86,7 +86,7 @@ jobs:
       - name: Build Android Debug APK
         run: |
           cd android
-          ./gradlew assembleDebug -PcustomVersionCode=${{ github.run_number }} -PcustomVersionName=1.1.0 --no-daemon
+          ./gradlew assembleDebug -PcustomVersionCode=${{ github.run_number }} -PcustomVersionName=1.1.3 --no-daemon
 
       - name: Prepare APK Artifact
         run: |
@@ -103,8 +103,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/master'
         with:
-          tag_name: v1.1.0
-          name: "Aristotle POS v1.1.0 - Production Release"
+          tag_name: v1.1.3
+          name: "Aristotle POS v1.1.3 - Kitchen Checkpoint & Thermal Stability Release"
           body_path: RELEASE_NOTES.md
           files: Aristotle-POS.apk
           prerelease: false
