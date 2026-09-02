@@ -89,6 +89,91 @@ public class MainActivity extends AppCompatActivity {
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                if (request != null && request.getUrl() != null) {
+                    return handleExternalUrl(request.getUrl().toString());
+                }
+                return false;
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return handleExternalUrl(url);
+            }
+
+            private boolean handleExternalUrl(String url) {
+                if (url == null) return false;
+
+                // 1. Biarkan WebView menangani halaman aplikasi sendiri (URL Cloud & Offline Fallback)
+                if (url.startsWith("https://miezlearning.github.io/umkm-prototype") || 
+                    url.startsWith("file:///android_asset/")) {
+                    return false;
+                }
+
+                // 2. WhatsApp: arahkan langsung ke aplikasi WhatsApp native resmi
+                if (url.startsWith("https://wa.me/") || 
+                    url.startsWith("https://api.whatsapp.com/") || 
+                    url.startsWith("whatsapp://")) {
+                    try {
+                        Intent waIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                        waIntent.setPackage("com.whatsapp");
+                        waIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(waIntent);
+                        return true;
+                    } catch (Exception e) {
+                        // Fallback jika com.whatsapp tidak ada (misal WhatsApp Business atau browser)
+                        try {
+                            Intent genericIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                            genericIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(genericIntent);
+                            return true;
+                        } catch (Exception err) {
+                            Log.e(TAG, "Gagal membuka WhatsApp: " + url, err);
+                        }
+                    }
+                    return true;
+                }
+
+                // 3. Telepon, SMS, Email, Peta
+                if (url.startsWith("tel:") || url.startsWith("mailto:") || url.startsWith("sms:") || url.startsWith("geo:")) {
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                        return true;
+                    } catch (Exception e) {
+                        Log.e(TAG, "Gagal membuka link aksi: " + url, e);
+                    }
+                    return true;
+                }
+
+                // 4. Custom Intent Android (misal intent://)
+                if (url.startsWith("intent://")) {
+                    try {
+                        Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                        return true;
+                    } catch (Exception e) {
+                        Log.e(TAG, "Gagal memproses intent: " + url, e);
+                    }
+                    return true;
+                }
+
+                // 5. Tautan website luar lainnya -> Buka di browser eksternal Android (Chrome)
+                try {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(browserIntent);
+                    return true;
+                } catch (Exception e) {
+                    Log.e(TAG, "Gagal membuka browser luar untuk: " + url, e);
+                }
+
+                return false;
+            }
+
+            @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
                 if (request.isForMainFrame()) {
