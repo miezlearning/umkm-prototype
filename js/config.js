@@ -22,6 +22,25 @@ export const GLOBAL_STORAGE_KEYS = {
 // Master Passphrase Tim Teknis / Super-Admin Bypass (Mencegah brute force 4 digit)
 export const MASTER_DEV_KEY = 'miez_superdev_2026';
 
+export const DEFAULT_PRINTER_CONFIG = {
+  paperWidth: '58mm', // '58mm' atau '80mm'
+  printMethod: 'browser', // 'browser', 'bluetooth', 'serial'
+  autoPrint: false, // Otomatis cetak begitu bayar selesai
+  autoKickDrawer: true, // Otomatis buka laci kasir saat bayar tunai
+  logoBase64: '', // Base64 data logo toko
+  showLogo: true, // Tampilkan logo gambar di struk
+  cashierName: 'Mami', // Nama kasir yang tampil di struk
+  headerStoreName: '', // Jika kosong, pakai nama toko di profil
+  headerTagline: '--- SPESIAL RASA NUSANTARA ---',
+  headerAddress: 'Samarinda, Kalimantan Timur',
+  headerPhone: '081345028895',
+  footerSocial: 'Follow IG: @kedai.usaha.mami',
+  footerNote: 'Terimakasih telah berkunjung.',
+  footerHelp: 'Powered by Aristotle POS',
+  showQueueBottom: true, // Tampilkan NO ANTRIAN besar di bagian paling bawah
+  feedLines: 3
+};
+
 /**
  * Generate isolated localStorage keys per store ID (Multi-Tenant)
  * @param {string} storeId - ID unik toko UMKM
@@ -35,7 +54,8 @@ export function getStorageKeys(storeId = 'kedai_usaha_mami') {
     EXPENSES: `kasir_${safeId}_expenses_v1`,
     QRIS: `kasir_${safeId}_qris_payload_v1`,
     PROFILE: `kasir_${safeId}_profile_v1`,
-    AUTH: `kasir_${safeId}_auth_v1`
+    AUTH: `kasir_${safeId}_auth_v1`,
+    PRINTER: `kasir_${safeId}_printer_v1`
   };
 }
 

@@ -3,17 +3,13 @@
  */
 
 /**
- * Format angka ke mata uang Rupiah
+ * Format angka ke mata uang Rupiah (Pure ASCII Space, anti anomali printer thermal)
  * @param {number} num
  * @returns {string} Contoh: "Rp 15.000"
  */
 export const formatRp = (num) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(num || 0);
+  const val = Math.round(Number(num) || 0);
+  return 'Rp ' + val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 };
 
 export const formatRupiah = formatRp;

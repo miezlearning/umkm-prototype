@@ -20,6 +20,7 @@ import * as admin from './modules/admin.js';
 import * as report from './modules/report.js';
 import * as tour from './modules/tour.js';
 import * as superadmin from './modules/superadmin.js';
+import * as printer from './modules/printer.js';
 import { 
   initFirebaseSync, 
   setRemoteUpdateCallback, 
@@ -795,7 +796,24 @@ const KasirApp = {
   completeTransaction: payment.completeTransaction,
   showReceipt: payment.showReceipt,
   closeReceiptModal: payment.closeReceiptModal,
+  printCurrentReceipt: payment.printCurrentReceipt,
+  kickCurrentDrawer: payment.kickCurrentDrawer,
   toggleQrisPaymentMode: payment.toggleQrisPaymentMode,
+
+  // Thermal Printer & Cash Drawer
+  printReceipt: printer.printReceipt,
+  kickCashDrawer: printer.kickCashDrawer,
+  testPrintReceipt: printer.testPrintReceipt,
+  connectBluetoothPrinter: printer.connectBluetoothPrinter,
+  connectSerialPrinter: printer.connectSerialPrinter,
+  disconnectSerialPrinter: printer.disconnectSerialPrinter,
+  disconnectBluetoothPrinter: printer.disconnectBluetoothPrinter,
+  openPrinterConfigModal: printer.openPrinterConfigModal,
+  closePrinterConfigModal: printer.closePrinterConfigModal,
+  savePrinterSettings: printer.savePrinterSettings,
+  updateLiveReceiptPreview: printer.updateLiveReceiptPreview,
+  handleLogoUpload: printer.handleLogoUpload,
+  removeLogoImage: printer.removeLogoImage,
 
   // Admin & Backup & QRIS & Menu
   renderAdminTable: admin.renderAdminTable,

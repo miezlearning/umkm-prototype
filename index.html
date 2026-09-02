@@ -645,6 +645,12 @@
             <span class="material-symbols-rounded text-base">add_circle</span>
             <span>Tambah Menu</span>
           </button>
+          <button onclick="openPrinterConfigModal()"
+            class="px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 font-extrabold text-xs flex items-center gap-1 transition touch-target-large shadow-sm"
+            title="Atur printer thermal 58mm & laci kasir">
+            <span class="material-symbols-rounded text-base text-amber-700">print</span>
+            <span>Printer & Struk</span>
+          </button>
           <button onclick="openQrisModal()"
             class="px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border border-emerald-300 font-extrabold text-xs flex items-center gap-1 transition touch-target-large shadow-sm"
             title="Upload atau atur QRIS Toko">
@@ -1319,25 +1325,42 @@
         <p class="text-stone-500 text-xs mt-0.5" id="receiptSubtitle">Pesanan selesai dicatat</p>
       </div>
 
-      <!-- Printable Receipt -->
+      <!-- Printable Receipt (58mm Thermal Container) -->
       <div id="printArea"
-        class="bg-stone-50 p-3.5 rounded-2xl border border-dashed border-stone-300 text-left text-xs font-mono flex flex-col gap-1.5">
+        class="bg-stone-50 p-3.5 rounded-2xl border border-dashed border-stone-300 text-left text-xs font-sans flex flex-col gap-1.5">
         <div class="text-center pb-1.5 border-b border-stone-300">
-          <h4 id="receiptStoreName" class="font-black text-sm uppercase">KEDAI USAHA MAMI</h4>
-          <p class="text-[10px] text-stone-400" id="receiptDate"></p>
-          <p class="text-[10px] text-stone-600 font-bold" id="receiptOrderName"></p>
-          <p class="text-[10px] text-emerald-800 font-black" id="receiptPaymentType"></p>
+          <img id="receiptLogoImg" src="" alt="Logo" class="max-h-12 max-w-[130px] mx-auto object-contain filter grayscale contrast-200 mb-1 hidden">
+          <h4 id="receiptStoreName" class="font-black text-sm uppercase tracking-wide">KEDAI USAHA MAMI</h4>
+          <p class="text-[10px] text-stone-600 font-bold" id="receiptTagline">-- SPESIAL RASA NUSANTARA --</p>
+          <p class="text-[9.5px] text-stone-500" id="receiptAddress">Samarinda, Kalimantan Timur</p>
+          <p class="text-[9.5px] text-stone-500" id="receiptPhone">Telp/WA: 081345028895</p>
+          <div class="flex items-center justify-between text-[9px] text-stone-500 mt-1 pt-1 border-t border-dotted border-stone-300">
+            <span id="receiptTxId">No. Kwitansi: #001</span>
+            <span id="receiptDate">02/09/2026 14:06</span>
+          </div>
+          <div class="flex items-center justify-between text-[9.5px] text-stone-600">
+            <span>Waktu Pesan:</span>
+            <span id="receiptOrderTime">02/09/2026 14:06</span>
+          </div>
+          <div class="flex items-center justify-between text-[9.5px] text-stone-600">
+            <span>Kasir:</span>
+            <span id="receiptCashier" class="font-bold text-stone-800">Mami</span>
+          </div>
         </div>
 
         <div id="receiptItemList" class="divide-y divide-stone-200 py-1"></div>
 
         <div class="pt-1.5 border-t border-stone-300 flex flex-col gap-1 text-xs">
+          <div class="flex justify-between text-stone-600 text-xs">
+            <span>Subtotal</span>
+            <span id="receiptSubtotal"></span>
+          </div>
           <div class="flex justify-between font-black text-sm">
             <span>TOTAL:</span>
             <span id="receiptTotal"></span>
           </div>
           <div class="flex justify-between text-stone-600 text-xs" id="receiptCashRow">
-            <span>Uang Diterima:</span>
+            <span>Cash:</span>
             <span id="receiptCash"></span>
           </div>
           <div class="flex justify-between text-emerald-700 font-black text-xs" id="receiptChangeRow">
@@ -1347,21 +1370,269 @@
         </div>
 
         <div class="text-center pt-2 border-t border-dotted border-stone-300 flex flex-col gap-0.5">
-          <p class="text-[10px] text-stone-700 font-bold">Terima kasih atas kunjungan Anda! 🙏</p>
-          <p class="text-[8.5px] text-stone-400 font-sans tracking-tight">Powered by <strong class="text-stone-600">Aristotle POS</strong> • Bantuan: 081345028895</p>
+          <p class="text-[9.5px] text-stone-600 font-bold" id="receiptSocial">Follow IG: @kedai.usaha.mami</p>
+          <p class="text-[10px] text-stone-700 font-bold" id="receiptFooterNote">Terimakasih telah berkunjung.</p>
+          <p class="text-[8.5px] text-stone-400 font-sans tracking-tight">Simpan struk ini sebagai bukti bayar • <strong class="text-stone-600">Aristotle POS</strong></p>
+        </div>
+
+        <!-- Big Bottom Queue Banner (Ala Gacoan / Selalu Teh) -->
+        <div id="receiptQueueBottomBox" class="mt-1 pt-1.5 border-t-2 border-dashed border-stone-800 text-center">
+          <span class="text-xs font-black tracking-widest text-stone-900 uppercase" id="receiptQueueBottomText">NO ANTRIAN 01</span>
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-2 pt-1">
-        <button onclick="window.print()"
-          class="py-2.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs flex items-center justify-center gap-1.5 border border-stone-200 touch-target-large">
-          <span class="material-symbols-rounded text-base">print</span> Cetak
-        </button>
-        <button onclick="closeReceiptModal()"
-          class="py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs flex items-center justify-center touch-target-large shadow-sm">
-          <span>Pesanan Baru</span>
+      <!-- Action Buttons Grid (Print Struk, Buka Laci, Settings, New Order) -->
+      <div class="flex flex-col gap-2 pt-1">
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="window.KasirApp.printCurrentReceipt()"
+            class="py-2.5 px-3 rounded-xl bg-stone-900 hover:bg-black text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition touch-target-large active:scale-95">
+            <span class="material-symbols-rounded text-base">print</span>
+            <span>Cetak Struk</span>
+          </button>
+          <button onclick="window.KasirApp.kickCurrentDrawer()"
+            class="py-2.5 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 transition touch-target-large active:scale-95"
+            title="Kirim sinyal buka laci uang">
+            <span class="material-symbols-rounded text-base text-amber-700">payments</span>
+            <span>Buka Laci</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="window.KasirApp.openPrinterConfigModal()"
+            class="py-2.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center justify-center gap-1.5 border border-stone-200 transition touch-target-large">
+            <span class="material-symbols-rounded text-base text-stone-600">tune</span>
+            <span>Atur Printer</span>
+          </button>
+          <button onclick="closeReceiptModal()"
+            class="py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs flex items-center justify-center touch-target-large shadow-sm transition active:scale-95">
+            <span>Pesanan Baru</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: PENGATURAN PRINTER & STRUK (VSC TM-58V) ==================== -->
+  <div id="printerConfigModal"
+    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+    <div
+      class="bg-white w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[95vh] animate-in zoom-in-95">
+      
+      <!-- Clean Header -->
+      <div class="p-5 pb-3 flex items-start justify-between border-b border-stone-100">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-800 border border-amber-200 flex items-center justify-center shrink-0">
+            <span class="material-symbols-rounded text-2xl">print</span>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black text-stone-900 leading-tight">Pengaturan Printer & Struk</h3>
+            <p class="text-xs text-stone-500 font-medium mt-0.5">Kompatibel Printer Thermal 58mm (VSC TM-58V) & Cash Drawer</p>
+          </div>
+        </div>
+        <button onclick="closePrinterConfigModal()" class="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition">
+          <span class="material-symbols-rounded text-2xl">close</span>
         </button>
       </div>
+
+      <!-- Form Body (Scalable 2-Column on Tablet / Desktop) -->
+      <form onsubmit="KasirApp.savePrinterSettings(event)" class="p-5 overflow-y-auto custom-scroll flex-1">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          
+          <!-- Left Column: Settings Form (7 Cols) -->
+          <div class="lg:col-span-7 flex flex-col gap-4">
+            
+            <!-- Hardware Connection & Quick Test Card -->
+            <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 flex flex-col gap-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                  <span class="material-symbols-rounded text-base text-amber-700">hardware</span>
+                  Uji Coba Cepat Hardware (VSC TM-58V)
+                </span>
+                <span id="printerConnectionBadge" class="text-[10px] font-bold text-stone-500">
+                  Siap Digunakan
+                </span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2.5">
+                <button type="button" onclick="KasirApp.testPrintReceipt()"
+                  class="py-2.5 px-3 rounded-xl bg-white hover:bg-amber-100 text-stone-900 border border-amber-300 font-black text-xs flex items-center justify-center gap-1.5 transition touch-target-large shadow-sm active:scale-95">
+                  <span class="material-symbols-rounded text-base text-stone-800">receipt</span>
+                  <span>Test Cetak 58mm</span>
+                </button>
+                <button type="button" onclick="KasirApp.kickCashDrawer()"
+                  class="py-2.5 px-3 rounded-xl bg-white hover:bg-amber-100 text-stone-900 border border-amber-300 font-black text-xs flex items-center justify-center gap-1.5 transition touch-target-large shadow-sm active:scale-95">
+                  <span class="material-symbols-rounded text-base text-amber-700">payments</span>
+                  <span>Test Buka Laci</span>
+                </button>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2.5 pt-1.5 border-t border-amber-200/60">
+                <button type="button" onclick="KasirApp.connectBluetoothPrinter()"
+                  class="py-2.5 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+                  <span class="material-symbols-rounded text-base text-blue-700">bluetooth</span>
+                  <span>Pair Bluetooth</span>
+                </button>
+                <button type="button" onclick="KasirApp.connectSerialPrinter()"
+                  class="py-2.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300 font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+                  <span class="material-symbols-rounded text-base text-stone-700">usb</span>
+                  <span>Pilih Port USB</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Mode Cetak & Ukuran Kertas (Full Width Selects - Anti Truncate) -->
+            <div class="bg-stone-50 p-4 rounded-2xl border border-stone-200 flex flex-col gap-3">
+              <div>
+                <label class="block text-stone-800 font-black mb-1.5 text-xs">Metode Cetak Printer:</label>
+                <select id="printerMethodSelect"
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none transition shadow-sm">
+                  <option value="browser">Dialog Browser / Driver Windows (Rekomendasi Laptop)</option>
+                  <option value="serial">Direct USB Serial (Web Serial) - Instan Tanpa Dialog</option>
+                  <option value="bluetooth">Direct Bluetooth ESC/POS - Nirkabel Tablet/HP</option>
+                </select>
+                <p class="text-[11px] text-stone-500 mt-1">Pilih "Direct USB Serial" atau "Driver Windows" untuk laptop, atau "Bluetooth" untuk tablet.</p>
+              </div>
+
+              <div>
+                <label class="block text-stone-800 font-black mb-1.5 text-xs">Ukuran Kertas Thermal:</label>
+                <select id="printerPaperWidth" onchange="KasirApp.updateLiveReceiptPreview()"
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none transition shadow-sm">
+                  <option value="58mm">58mm (Standar Printer Thermal VSC TM-58V)</option>
+                  <option value="80mm">80mm (Printer Thermal Lebar Resto Besar)</option>
+                </select>
+              </div>
+
+              <!-- Toggles Otomatisasi -->
+              <div class="pt-2 border-t border-stone-200 flex flex-col gap-2.5">
+                <label class="flex items-center justify-between cursor-pointer">
+                  <div>
+                    <span class="text-xs font-black text-stone-800">Auto-Cetak Struk Setelah Transaksi</span>
+                    <p class="text-[11px] text-stone-500">Struk otomatis keluar begitu transaksi kasir selesai</p>
+                  </div>
+                  <input type="checkbox" id="printerAutoPrint" class="w-5 h-5 accent-emerald-600 cursor-pointer">
+                </label>
+
+                <div class="border-t border-stone-200/80 pt-2">
+                  <label class="flex items-center justify-between cursor-pointer">
+                    <div>
+                      <span class="text-xs font-black text-stone-800">Auto-Buka Laci Uang (Cash Drawer)</span>
+                      <p class="text-[11px] text-stone-500">Laci otomatis menyentak terbuka saat pembayaran Tunai</p>
+                    </div>
+                    <input type="checkbox" id="printerAutoKickDrawer" checked class="w-5 h-5 accent-emerald-600 cursor-pointer">
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Upload Logo Gambar Toko -->
+            <div class="bg-amber-50/60 p-4 rounded-2xl border border-amber-200 flex flex-col sm:flex-row items-center gap-3.5">
+              <div id="printerLogoPreviewContainer" class="w-16 h-16 rounded-xl bg-white border-2 border-dashed border-amber-300 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+                <img id="printerLogoPreviewImg" src="" alt="Logo" class="w-full h-full object-contain filter grayscale hidden">
+                <span id="printerLogoPlaceholder" class="material-symbols-rounded text-amber-400 text-2xl">add_photo_alternate</span>
+              </div>
+              <div class="flex-1 text-center sm:text-left">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-stone-900">Logo Gambar Struk (Monokrom)</span>
+                  <label class="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-stone-700">
+                    <input type="checkbox" id="printerShowLogo" checked onchange="KasirApp.updateLiveReceiptPreview()" class="w-4 h-4 accent-amber-600">
+                    <span>Cetak Logo</span>
+                  </label>
+                </div>
+                <p class="text-[11px] text-stone-500 mt-0.5">Otomatis dioptimalkan untuk mesin thermal 58mm</p>
+                <div class="flex items-center gap-2 mt-2 justify-center sm:justify-start">
+                  <label class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-black text-xs rounded-xl cursor-pointer shadow-sm active:scale-95 transition inline-flex items-center gap-1.5">
+                    <span class="material-symbols-rounded text-sm">upload</span>
+                    <span>Pilih Foto Logo</span>
+                    <input type="file" id="printerLogoInput" accept="image/*" class="hidden" onchange="KasirApp.handleLogoUpload(event)">
+                  </label>
+                  <button type="button" onclick="KasirApp.removeLogoImage()" id="printerRemoveLogoBtn" class="px-2.5 py-1.5 bg-stone-200 hover:bg-red-100 hover:text-red-700 text-stone-600 font-bold text-xs rounded-xl hidden transition">
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Identitas & Teks Struk -->
+            <div class="flex flex-col gap-3">
+              <h4 class="text-xs font-black text-stone-800 uppercase tracking-wider">Identitas & Teks Struk Toko</h4>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-stone-700 font-bold mb-1 text-xs">Nama Toko di Struk:</label>
+                  <input type="text" id="printerStoreNameInput" oninput="KasirApp.updateLiveReceiptPreview()" placeholder="Kedai Usaha Mami"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none">
+                </div>
+                <div>
+                  <label class="block text-stone-700 font-bold mb-1 text-xs">Cabang / Tagline Usaha:</label>
+                  <input type="text" id="printerTaglineInput" oninput="KasirApp.updateLiveReceiptPreview()" placeholder="Cabang Utama"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-stone-700 font-bold mb-1 text-xs">Alamat / Lokasi Toko:</label>
+                  <input type="text" id="printerAddressInput" oninput="KasirApp.updateLiveReceiptPreview()" placeholder="Contoh: Jl. Pahlawan No. 12 Samarinda"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none">
+                </div>
+                <div>
+                  <label class="block text-stone-700 font-bold mb-1 text-xs">No. Telepon / WhatsApp:</label>
+                  <input type="text" id="printerPhoneInput" oninput="KasirApp.updateLiveReceiptPreview()" placeholder="Contoh: 081345028895"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-stone-700 font-bold mb-1 text-xs">Nama Kasir di Struk:</label>
+                  <input type="text" id="printerCashierInput" oninput="KasirApp.updateLiveReceiptPreview()" placeholder="Mami"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none">
+                </div>
+                <div>
+                  <label class="block text-stone-700 font-bold mb-1 text-xs">Info Instagram / Media Sosial:</label>
+                  <input type="text" id="printerSocialInput" oninput="KasirApp.updateLiveReceiptPreview()" placeholder="Instagram: @kedai.usaha.mami"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-stone-700 font-bold mb-1 text-xs">Pesan Kaki / Ucapan Terima Kasih:</label>
+                <input type="text" id="printerFooterNoteInput" oninput="KasirApp.updateLiveReceiptPreview()" placeholder="Terimakasih telah berkunjung."
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none">
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Realistic Paper Thermal Receipt Preview (5 Cols) -->
+          <div class="lg:col-span-5 flex flex-col gap-3">
+            <div class="bg-stone-100 p-4 rounded-2xl border border-stone-200 flex flex-col items-center sticky top-0">
+              <span class="text-[11px] font-black uppercase text-stone-600 tracking-wider mb-2.5 flex items-center gap-1.5 self-start">
+                <span class="material-symbols-rounded text-base text-stone-500">receipt_long</span>
+                Simulasi Kertas Struk 58mm (Live)
+              </span>
+
+              <!-- Realistic Paper Receipt -->
+              <div class="w-full max-w-[280px] bg-white p-4 shadow-md rounded-xl border border-stone-200/80 text-stone-900 font-mono text-[11px] leading-snug overflow-hidden">
+                <pre id="printerReceiptPreview" class="whitespace-pre font-mono text-[11px] leading-tight text-stone-900 select-all overflow-x-hidden"></pre>
+              </div>
+              <p class="text-[10px] text-stone-400 mt-2 text-center">Tampilan struk akan otomatis menyesuaikan saat Anda mengubah input formulir.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit & Close Bar -->
+        <div class="flex items-center justify-end gap-3 pt-4 mt-5 border-t border-stone-200">
+          <button type="button" onclick="closePrinterConfigModal()"
+            class="px-5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 font-bold text-stone-700 text-xs touch-target-large transition">
+            Tutup
+          </button>
+          <button type="submit"
+            class="px-6 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs sm:text-sm shadow-md touch-target-large transition active:scale-95 flex items-center gap-1.5">
+            <span class="material-symbols-rounded text-base">save</span>
+            <span>Simpan Pengaturan</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -1730,7 +2001,7 @@
   </div>
 
   <!-- Main JavaScript App Module -->
-  <script type="module" src="js/app.js?v=26"></script>
+  <script type="module" src="js/app.js?v=36"></script>
 </body>
 
 </html>

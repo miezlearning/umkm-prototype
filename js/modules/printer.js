@@ -1,0 +1,1010 @@
+/**
+ * Kasir Mami - Module Printer Thermal (58mm / VSC TM-58V) & Cash Drawer
+ * Mendukung Browser Print Dialog, Web Bluetooth ESC/POS, dan Web Serial USB Direct
+ */
+
+import { state, savePrinterConfig } from '../state.js';
+import { formatRp, formatDateShort, showToast, playClick } from '../utils.js';
+
+// State koneksi hardware di runtime
+let bluetoothDevice = null;
+let bluetoothCharacteristic = null;
+let serialPort = null;
+let serialWriter = null;
+
+/**
+ * Konversi Gambar Base64 menjadi Byte Array ESC/POS Raster (GS v 0)
+ * Menghasilkan cetakan logo monokrom tajam pada printer thermal 58mm
+ */
+export async function convertImageToEscPosRaster(base64Data, maxWidth = 256) {
+  return new Promise((resolve) => {
+    if (!base64Data) return resolve(new Uint8Array(0));
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      let w = img.width;
+      let h = img.height;
+      if (w > maxWidth) {
+        h = Math.round((h * maxWidth) / w);
+        w = maxWidth;
+      }
+      w = Math.floor(w / 8) * 8; // Harus kelipatan 8
+      if (w <= 0 || h <= 0) return resolve(new Uint8Array(0));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+
+      const imgData = ctx.getImageData(0, 0, w, h);
+      const data = imgData.data;
+      const bytesWidth = w / 8;
+      const rasterBytes = [];
+
+      // Align Center: ESC a 1
+      rasterBytes.push(0x1B, 0x61, 0x01);
+      // GS v 0 0 xL xH yL yH
+      const xL = bytesWidth % 256;
+      const xH = Math.floor(bytesWidth / 256);
+      const yL = h % 256;
+      const yH = Math.floor(h / 256);
+      rasterBytes.push(0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH);
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < bytesWidth; x++) {
+          let byte = 0;
+          for (let bit = 0; bit < 8; bit++) {
+            const px = x * 8 + bit;
+            const idx = (y * w + px) * 4;
+            const r = data[idx];
+            const g = data[idx + 1];
+            const b = data[idx + 2];
+            const a = data[idx + 3];
+            const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+            // Threshold: piksel gelap = 1 (hitam)
+            if (a > 50 && luminance < 170) {
+              byte |= (0x80 >> bit);
+            }
+          }
+          rasterBytes.push(byte);
+        }
+      }
+      // Reset Align: ESC a 0
+      rasterBytes.push(0x1B, 0x61, 0x00);
+      rasterBytes.push(0x0A); // Linefeed setelah logo
+      resolve(new Uint8Array(rasterBytes));
+    };
+    img.onerror = () => resolve(new Uint8Array(0));
+    img.src = base64Data;
+  });
+}
+
+/**
+ * Buat text struk 58mm persis sesuai struktur struk thermal modern
+ * Pure ASCII Sanitized: Bebas anomali karakter (Rupiah bersih, tanpa 'Rpá')
+ */
+export function generateReceiptPlainText(tx, customConfig = null) {
+  const cfg = customConfig || state.printerConfig || {};
+  const width = cfg.paperWidth === '80mm' ? 48 : 32;
+  const divider = '-'.repeat(width);
+
+  // Bersihkan karakter unicode yang bisa merusak printer thermal
+  const cleanAscii = (text) => {
+    return String(text || '')
+      .replace(/[\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]/g, ' ')
+      .replace(/[^\x20-\x7E\n]/g, '')
+      .trim();
+  };
+
+  const padCenter = (text) => {
+    const str = cleanAscii(text);
+    if (str.length >= width) return str.substring(0, width);
+    const leftPad = Math.floor((width - str.length) / 2);
+    const rightPad = width - str.length - leftPad;
+    return ' '.repeat(leftPad) + str + ' '.repeat(rightPad);
+  };
+
+  const padBetween = (left, right) => {
+    const lStr = cleanAscii(left);
+    const rStr = cleanAscii(right);
+    const space = width - lStr.length - rStr.length;
+    if (space < 1) {
+      return lStr.substring(0, Math.max(1, width - rStr.length - 1)) + ' ' + rStr;
+    }
+    return lStr + ' '.repeat(space) + rStr;
+  };
+
+  const storeName = cfg.headerStoreName || state.storeProfile?.name || 'Kedai Usaha Mami';
+  const tagline = cfg.headerTagline || '';
+  const address = cfg.headerAddress || state.storeProfile?.city || '';
+  const phone = cfg.headerPhone || state.auth?.phone || '';
+  const cashier = cfg.cashierName || state.auth?.ownerName || 'Mami';
+  
+  const d = tx.date ? new Date(tx.date) : new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const txDate = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}.${pad(d.getMinutes())}.${pad(d.getSeconds())}`;
+  const rawOrder = String(tx.orderName || '01').replace(/^NO ANTRIAN:?\s*/i, '');
+  const method = tx.method || 'TUNAI';
+
+  let lines = [];
+  // 1. Header Toko (Center)
+  lines.push(padCenter(storeName));
+  if (tagline) lines.push(padCenter(tagline));
+  if (address) lines.push(padCenter(address));
+  if (phone) lines.push(padCenter(phone));
+  lines.push(padCenter(`No. Kwitansi   #${tx.id ? tx.id.replace('TX-', '') : '001'}`));
+  lines.push('');
+
+  // 2. Waktu Pesan & Kasir
+  lines.push(padBetween('Waktu Pesan', txDate));
+  lines.push(padBetween('Kasir', cleanAscii(cashier)));
+  lines.push(divider);
+
+  // 3. Daftar Item (1 pcs Nama Item   Harga)
+  if (Array.isArray(tx.items)) {
+    tx.items.forEach(item => {
+      const priceStr = formatRp(item.subtotal || (item.qty * item.price)).replace('Rp ', '');
+      lines.push(padBetween(`${item.qty} pcs ${cleanAscii(item.name || 'Item')}`, priceStr));
+    });
+  }
+
+  lines.push(divider);
+
+  // 4. Ringkasan Pembayaran
+  lines.push(padBetween('Subtotal', formatRp(tx.total)));
+  lines.push(padBetween('TOTAL', formatRp(tx.total)));
+  lines.push('');
+
+  if (method === 'TUNAI') {
+    lines.push(padBetween('Cash', formatRp(tx.cashGiven || tx.total)));
+    const change = (tx.cashGiven || tx.total) - tx.total;
+    if (change > 0) {
+      lines.push(padBetween('Kembalian', formatRp(change)));
+    }
+  } else {
+    lines.push(padBetween('Metode', 'QRIS (LUNAS)'));
+  }
+
+  // 5. Info Sosmed & Ucapan Terima Kasih (Center)
+  if (cfg.footerSocial) {
+    lines.push('');
+    lines.push(padCenter(cfg.footerSocial));
+  }
+  lines.push('');
+  lines.push(padCenter(cfg.footerNote || 'Terimakasih telah berkunjung.'));
+
+  // 6. NO ANTRIAN (WAJIB ADA - Sesuai Permintaan & Foto)
+  lines.push(divider);
+  lines.push(padCenter(`NO ANTRIAN ${rawOrder.toUpperCase()}`));
+  lines.push(divider);
+
+  // Feed baris kosong di akhir agar tidak terpotong pisau printer
+  const feeds = cfg.feedLines || 3;
+  for (let i = 0; i < feeds; i++) {
+    lines.push('');
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * Konversi teks & perintah menjadi byte array ESC/POS terstruktur & rapi
+ * Menggunakan perintah format native ESC/POS: Center, Bold, Double-Size Queue Number
+ */
+export async function buildEscPosBytes(tx, kickDrawer = false) {
+  const cfg = state.printerConfig || {};
+  const commands = [];
+
+  const addBytes = (...bytes) => {
+    for (let b of bytes) commands.push(b);
+  };
+
+  const addText = (text) => {
+    const clean = String(text || '')
+      .replace(/[\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]/g, ' ')
+      .replace(/[^\x20-\x7E\n]/g, '');
+    for (let i = 0; i < clean.length; i++) {
+      commands.push(clean.charCodeAt(i));
+    }
+  };
+
+  const padBetween = (left, right, width = 32) => {
+    const lStr = String(left || '').trim();
+    const rStr = String(right || '').trim();
+    const space = width - lStr.length - rStr.length;
+    if (space < 1) {
+      return lStr.substring(0, Math.max(1, width - rStr.length - 1)) + ' ' + rStr;
+    }
+    return lStr + ' '.repeat(space) + rStr;
+  };
+
+  // 1. Inisialisasi printer (ESC @) & Code Page PC437
+  addBytes(0x1B, 0x40);
+  addBytes(0x1B, 0x74, 0x00);
+
+  // 2. Trigger Cash Drawer jika diminta
+  if (kickDrawer) {
+    const drawerBytes = buildOpenDrawerBytes();
+    for (let b of drawerBytes) commands.push(b);
+  }
+
+  // 3. Sisipkan Logo Toko jika ada
+  if (cfg.logoBase64 && cfg.showLogo !== false) {
+    try {
+      const logoRasterBytes = await convertImageToEscPosRaster(cfg.logoBase64, 240);
+      for (let b of logoRasterBytes) commands.push(b);
+    } catch (e) {
+      console.warn('Gagal render logo ESC/POS:', e);
+    }
+  }
+
+  if (!tx) {
+    return new Uint8Array(commands);
+  }
+
+  const storeName = cfg.headerStoreName || state.storeProfile?.name || 'Kedai Usaha Mami';
+  const tagline = cfg.headerTagline || '';
+  const address = cfg.headerAddress || state.storeProfile?.city || '';
+  const phone = cfg.headerPhone || state.auth?.phone || '';
+  const cashier = cfg.cashierName || state.auth?.ownerName || 'Mami';
+
+  const d = tx.date ? new Date(tx.date) : new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const txDate = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}.${pad(d.getMinutes())}.${pad(d.getSeconds())}`;
+  const rawOrder = String(tx.orderName || '01').replace(/^NO ANTRIAN:?\s*/i, '');
+  const method = tx.method || 'TUNAI';
+  const divider = '--------------------------------\n';
+
+  // 4. Header Toko (Align Center)
+  addBytes(0x1B, 0x61, 0x01); // Align Center
+  addBytes(0x1B, 0x45, 0x01); // Bold ON
+  addText(storeName + '\n');
+  addBytes(0x1B, 0x45, 0x00); // Bold OFF
+
+  if (tagline) addText(tagline + '\n');
+  if (address) addText(address + '\n');
+  if (phone) addText(phone + '\n');
+  addText(`No. Kwitansi   #${tx.id ? tx.id.replace('TX-', '') : '001'}\n\n`);
+
+  // 5. Waktu & Kasir (Align Left)
+  addBytes(0x1B, 0x61, 0x00); // Align Left
+  addText(padBetween('Waktu Pesan', txDate) + '\n');
+  addText(padBetween('Kasir', cashier) + '\n');
+  addText(divider);
+
+  // 6. Daftar Item
+  if (Array.isArray(tx.items)) {
+    tx.items.forEach(item => {
+      const priceStr = formatRp(item.subtotal || (item.qty * item.price)).replace('Rp ', '');
+      addText(padBetween(`${item.qty} pcs ${item.name || 'Item'}`, priceStr) + '\n');
+    });
+  }
+
+  addText(divider);
+
+  // 7. Subtotal & TOTAL (Bold)
+  addText(padBetween('Subtotal', formatRp(tx.total)) + '\n');
+  addBytes(0x1B, 0x45, 0x01); // Bold ON
+  addText(padBetween('TOTAL', formatRp(tx.total)) + '\n');
+  addBytes(0x1B, 0x45, 0x00); // Bold OFF
+  addText('\n');
+
+  // 8. Cash / QRIS & Kembalian
+  if (method === 'TUNAI') {
+    addText(padBetween('Cash', formatRp(tx.cashGiven || tx.total)) + '\n');
+    const change = (tx.cashGiven || tx.total) - tx.total;
+    if (change > 0) {
+      addText(padBetween('Kembalian', formatRp(change)) + '\n');
+    }
+  } else {
+    addText(padBetween('Metode', 'QRIS (LUNAS)') + '\n');
+  }
+
+  // 9. Info Sosmed & Ucapan Terima Kasih (Align Center)
+  addBytes(0x1B, 0x61, 0x01); // Align Center
+  if (cfg.footerSocial) {
+    addText('\n' + cfg.footerSocial + '\n');
+  }
+  addText('\n' + (cfg.footerNote || 'Terimakasih telah berkunjung.') + '\n');
+
+  // 10. NO ANTRIAN BESAR (Double Width & Double Height + Bold - Persis Foto)
+  addBytes(0x1B, 0x61, 0x00); // Align Left
+  addText(divider);
+  addBytes(0x1B, 0x61, 0x01); // Align Center
+  addBytes(0x1B, 0x45, 0x01); // Bold ON
+  addBytes(0x1D, 0x21, 0x11); // Double Width & Height ON
+  addText(`NO ANTRIAN ${rawOrder.toUpperCase()}\n`);
+  addBytes(0x1D, 0x21, 0x00); // Normal Size
+  addBytes(0x1B, 0x45, 0x00); // Bold OFF
+  addBytes(0x1B, 0x61, 0x00); // Align Left
+  addText(divider);
+
+  // Feed 3 baris & Cut
+  addBytes(0x1B, 0x64, 0x03);
+  addBytes(0x1D, 0x56, 0x42, 0x00);
+
+  return new Uint8Array(commands);
+}
+
+/**
+ * Perintah ESC/POS komprehensif untuk membuka laci kasir (Cash Drawer Kick)
+ * Mengirim burst multi-pulse berenergi tinggi (Pin 2, Pin 5, 50ms, 100ms, 200ms, DLE DC4 realtime, dan BEL)
+ */
+export function buildOpenDrawerBytes() {
+  return new Uint8Array([
+    0x1B, 0x40,                         // ESC @ (Inisialisasi)
+    0x1B, 0x70, 0x00, 0x19, 0xFA,       // ESC p 0 25 250 (50ms Pin 2)
+    0x1B, 0x70, 0x01, 0x19, 0xFA,       // ESC p 1 25 250 (50ms Pin 5)
+    0x1B, 0x70, 0x00, 0x32, 0xFA,       // ESC p 0 50 250 (100ms Pin 2)
+    0x1B, 0x70, 0x01, 0x32, 0xFA,       // ESC p 1 50 250 (100ms Pin 5)
+    0x1B, 0x70, 0x00, 0x64, 0xFA,       // ESC p 0 100 250 (200ms High Energy Pin 2)
+    0x1B, 0x70, 0x01, 0x64, 0xFA,       // ESC p 1 100 250 (200ms High Energy Pin 5)
+    0x10, 0x14, 0x01, 0x00, 0x08,       // DLE DC4 1 0 8 (Real-time pulse)
+    0x07                                // BEL (Bell kick)
+  ]);
+}
+
+/**
+ * Koneksi ke Printer Thermal via Web Bluetooth API
+ */
+export async function connectBluetoothPrinter() {
+  if (!navigator.bluetooth) {
+    showToast('Browser ini belum mendukung Web Bluetooth. Gunakan Google Chrome / Edge.', 'error');
+    return false;
+  }
+
+  try {
+    showToast('Mencari printer thermal Bluetooth...', 'info');
+    bluetoothDevice = await navigator.bluetooth.requestDevice({
+      filters: [
+        { services: ['000018f0-0000-1000-8000-00805f9b34fb'] },
+        { services: ['0000ffe0-0000-1000-8000-00805f9b34fb'] },
+        { services: ['e7810a71-73ae-499d-8c15-faa9aef0c3f2'] }
+      ],
+      optionalServices: [
+        '000018f0-0000-1000-8000-00805f9b34fb',
+        '0000ffe0-0000-1000-8000-00805f9b34fb',
+        'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+        '49535343-fe7d-4ae5-8fa9-9fafd205e455'
+      ],
+      acceptAllDevices: false
+    }).catch(async () => {
+      // Fallback: search all devices
+      return await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: [
+          '000018f0-0000-1000-8000-00805f9b34fb',
+          '0000ffe0-0000-1000-8000-00805f9b34fb',
+          'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+          '49535343-fe7d-4ae5-8fa9-9fafd205e455'
+        ]
+      });
+    });
+
+    if (!bluetoothDevice) return false;
+
+    const server = await bluetoothDevice.gatt.connect();
+    
+    // Cari characteristic yang writable
+    const services = await server.getPrimaryServices();
+    for (const service of services) {
+      const characteristics = await service.getCharacteristics();
+      for (const char of characteristics) {
+        if (char.properties.write || char.properties.writeWithoutResponse) {
+          bluetoothCharacteristic = char;
+          break;
+        }
+      }
+      if (bluetoothCharacteristic) break;
+    }
+
+    if (!bluetoothCharacteristic) {
+      throw new Error('Tidak menemukan port tulis (write characteristic) pada printer.');
+    }
+
+    updatePrinterStatusBadge('bluetooth', bluetoothDevice.name || 'Bluetooth Printer');
+    showToast(`Terhubung ke printer Bluetooth: ${bluetoothDevice.name || 'VSC TM-58V'}`, 'success');
+    return true;
+  } catch (err) {
+    if (err.name === 'NotFoundError' || err.message?.includes('User cancelled')) {
+      return false; // Pengguna membatalkan dialog
+    }
+    console.warn('Bluetooth Connection Warning:', err);
+    showToast(`Bluetooth: ${err.message || 'Dibatalkan'}`, 'warning');
+    return false;
+  }
+}
+
+/**
+ * Kirim data raw ke printer Bluetooth
+ */
+async function sendBluetoothData(bytes) {
+  if (!bluetoothCharacteristic) {
+    const ok = await connectBluetoothPrinter();
+    if (!ok) {
+      throw new Error('Bluetooth printer tidak terhubung.');
+    }
+  }
+
+  try {
+    const CHUNK_SIZE = 100;
+    for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+      const chunk = bytes.slice(i, i + CHUNK_SIZE);
+      await bluetoothCharacteristic.writeValue(chunk);
+      await new Promise(r => setTimeout(r, 25)); // Buffer safety delay
+    }
+    return true;
+  } catch (e) {
+    console.error('Kirim Bluetooth gagal:', e);
+    bluetoothCharacteristic = null;
+    throw e;
+  }
+}
+
+/**
+ * Koneksi ke Printer via Web Serial (USB Port)
+ */
+export async function connectSerialPrinter() {
+  if (!navigator.serial) {
+    showToast('Browser ini belum mendukung Web Serial. Gunakan Chrome / Edge desktop.', 'error');
+    return false;
+  }
+
+  try {
+    serialPort = await navigator.serial.requestPort();
+    await serialPort.open({ baudRate: 9600 });
+    serialWriter = serialPort.writable.getWriter();
+    
+    updatePrinterStatusBadge('serial', 'USB Serial Printer');
+    showToast('Berhasil terhubung ke Printer USB Serial!', 'success');
+    return true;
+  } catch (err) {
+    if (err.name === 'NotFoundError' || err.message?.includes('No port selected')) {
+      return false; // Pengguna membatalkan dialog
+    }
+    console.warn('Serial Connection Warning:', err);
+    showToast(`Serial USB: ${err.message}`, 'warning');
+    return false;
+  }
+}
+
+/**
+ * Kirim data raw ke printer Serial USB
+ */
+async function sendSerialData(bytes) {
+  if (!serialWriter) {
+    const ok = await connectSerialPrinter();
+    if (!ok) {
+      throw new Error('Serial USB printer tidak terhubung.');
+    }
+  }
+
+  try {
+    await serialWriter.write(bytes);
+    return true;
+  } catch (e) {
+    console.error('Kirim Serial gagal:', e);
+    if (serialWriter) {
+      try { serialWriter.releaseLock(); } catch (_) {}
+      serialWriter = null;
+    }
+    throw e;
+  }
+}
+
+/**
+ * Putuskan koneksi Serial USB
+ */
+export function disconnectSerialPrinter() {
+  if (serialWriter) {
+    try { serialWriter.releaseLock(); } catch (_) {}
+    serialWriter = null;
+  }
+  if (serialPort) {
+    try { serialPort.close(); } catch (_) {}
+    serialPort = null;
+  }
+  resetPrinterStatusBadge();
+  showToast('Koneksi port serial USB diputuskan.', 'info');
+}
+
+/**
+ * Putuskan koneksi Bluetooth
+ */
+export function disconnectBluetoothPrinter() {
+  if (bluetoothDevice && bluetoothDevice.gatt && bluetoothDevice.gatt.connected) {
+    try { bluetoothDevice.gatt.disconnect(); } catch (_) {}
+  }
+  bluetoothDevice = null;
+  bluetoothCharacteristic = null;
+  resetPrinterStatusBadge();
+  showToast('Koneksi Bluetooth diputuskan.', 'info');
+}
+
+/**
+ * Reset badge status printer
+ */
+export function resetPrinterStatusBadge() {
+  const badge = document.getElementById('printerConnectionBadge');
+  if (badge) {
+    badge.innerHTML = 'Siap Digunakan';
+    badge.className = 'text-[10px] font-bold text-stone-500';
+  }
+}
+
+/**
+ * Eksekusi Buka Laci Kasir (Cash Drawer Kick)
+ */
+export async function kickCashDrawer() {
+  playClick('cash');
+  const cfg = state.printerConfig || {};
+
+  // 1. Jika mode cetak diatur ke Bluetooth dan sudah terhubung
+  if (cfg.printMethod === 'bluetooth' && bluetoothCharacteristic) {
+    try {
+      const bytes = buildOpenDrawerBytes();
+      await sendBluetoothData(bytes);
+      showToast('Sinyal buka laci kasir terkirim (Bluetooth)!', 'success');
+      return true;
+    } catch (e) {
+      console.warn('Bluetooth kick error:', e);
+      showToast('Gagal kirim sinyal Bluetooth, beralih ke dialog...', 'warning');
+    }
+  }
+
+  // 2. Jika mode cetak diatur ke USB Serial dan sudah terhubung
+  if (cfg.printMethod === 'serial' && serialWriter) {
+    try {
+      const bytes = buildOpenDrawerBytes();
+      await sendSerialData(bytes);
+      showToast('Sinyal buka laci kasir terkirim (USB Serial)!', 'success');
+      return true;
+    } catch (e) {
+      console.warn('Serial kick error:', e);
+      showToast('Gagal kirim sinyal USB Serial, beralih ke dialog...', 'warning');
+    }
+  }
+
+  // 3. Mode Browser / Windows Driver (Paling Direkomendasikan):
+  // Membuka dialog print ke Driver Windows yang akan mentrigger port RJ-11 laci kasir
+  showToast('Membuka dialog cetak Windows...', 'info');
+  window.print();
+}
+
+/**
+ * Cetak Transaksi Utama (Mendukung Browser Print, Bluetooth ESC/POS, dan Serial USB)
+ */
+export async function printReceipt(tx, forceMethod = null) {
+  playClick('pop');
+  const modalMethod = document.getElementById('printerMethodSelect')?.value;
+  const cfg = state.printerConfig || {};
+  const method = forceMethod || (modalMethod && !document.getElementById('printerConfigModal')?.classList.contains('hidden') ? modalMethod : cfg.printMethod) || 'browser';
+  const shouldKickDrawer = cfg.autoKickDrawer && (tx.method === 'TUNAI');
+
+  // Pastikan UI printArea terupdate dengan teks & tata letak 58mm terkini
+  renderPrintableReceiptArea(tx, cfg);
+
+  if (method === 'bluetooth') {
+    try {
+      showToast('Mengirim struk ke printer Bluetooth...', 'info');
+      const bytes = await buildEscPosBytes(tx, shouldKickDrawer);
+      await sendBluetoothData(bytes);
+      showToast('Struk berhasil dicetak (Bluetooth)!', 'success');
+      return true;
+    } catch (e) {
+      console.warn('Bluetooth print gagal, beralih ke dialog browser:', e);
+      showToast('Bluetooth gagal, membuka dialog cetak browser...', 'warning');
+      window.print();
+    }
+  } else if (method === 'serial') {
+    try {
+      showToast('Mengirim struk ke printer USB Serial...', 'info');
+      const bytes = await buildEscPosBytes(tx, shouldKickDrawer);
+      await sendSerialData(bytes);
+      showToast('Struk berhasil dicetak (USB Serial)!', 'success');
+      return true;
+    } catch (e) {
+      console.warn('Serial print gagal, beralih ke dialog browser:', e);
+      showToast('USB Serial gagal, membuka dialog cetak browser...', 'warning');
+      window.print();
+    }
+  } else {
+    // Standard Universal Browser Print
+    window.print();
+  }
+}
+
+/**
+ * Render elemen HTML #printArea agar pas 100% untuk kertas thermal 58mm
+ */
+export function renderPrintableReceiptArea(tx, cfg = null) {
+  const config = cfg || state.printerConfig || {};
+  const logoImgEl = document.getElementById('receiptLogoImg');
+  const storeNameEl = document.getElementById('receiptStoreName');
+  const taglineEl = document.getElementById('receiptTagline');
+  const addressEl = document.getElementById('receiptAddress');
+  const phoneEl = document.getElementById('receiptPhone');
+  const txIdEl = document.getElementById('receiptTxId');
+  const dateEl = document.getElementById('receiptDate');
+  const orderTimeEl = document.getElementById('receiptOrderTime');
+  const cashierEl = document.getElementById('receiptCashier');
+  const itemListEl = document.getElementById('receiptItemList');
+  const subtotalEl = document.getElementById('receiptSubtotal');
+  const totalEl = document.getElementById('receiptTotal');
+  const cashRow = document.getElementById('receiptCashRow');
+  const changeRow = document.getElementById('receiptChangeRow');
+  const socialEl = document.getElementById('receiptSocial');
+  const footerNoteEl = document.getElementById('receiptFooterNote');
+  const queueBoxEl = document.getElementById('receiptQueueBottomBox');
+  const queueTextEl = document.getElementById('receiptQueueBottomText');
+
+  // Logo Toko
+  if (logoImgEl) {
+    if (config.logoBase64 && config.showLogo !== false) {
+      logoImgEl.src = config.logoBase64;
+      logoImgEl.classList.remove('hidden');
+    } else {
+      logoImgEl.src = '';
+      logoImgEl.classList.add('hidden');
+    }
+  }
+
+  const activeStoreName = config.headerStoreName || state.storeProfile?.name || 'KEDAI USAHA MAMI';
+  if (storeNameEl) storeNameEl.innerText = activeStoreName.toUpperCase();
+  if (taglineEl) {
+    taglineEl.innerText = config.headerTagline || '';
+    taglineEl.style.display = config.headerTagline ? 'block' : 'none';
+  }
+  if (addressEl) {
+    addressEl.innerText = config.headerAddress || state.storeProfile?.city || '';
+    addressEl.style.display = (config.headerAddress || state.storeProfile?.city) ? 'block' : 'none';
+  }
+  if (phoneEl) {
+    const ph = config.headerPhone || state.auth?.phone || '';
+    phoneEl.innerText = ph ? `Telp/WA: ${ph}` : '';
+    phoneEl.style.display = ph ? 'block' : 'none';
+  }
+
+  const d = tx.date ? new Date(tx.date) : new Date();
+  const txDate = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  
+  if (txIdEl) txIdEl.innerText = `No. Kwitansi: #${tx.id ? tx.id.replace('TX-', '') : '001'}`;
+  if (dateEl) dateEl.innerText = txDate;
+  if (orderTimeEl) orderTimeEl.innerText = txDate;
+  if (cashierEl) cashierEl.innerText = config.cashierName || state.auth?.ownerName || 'Mami';
+
+  if (itemListEl && Array.isArray(tx.items)) {
+    itemListEl.innerHTML = tx.items.map(item => {
+      const priceStr = formatRp(item.subtotal || (item.qty * item.price)).replace('Rp ', '');
+      return `
+        <div class="py-1 flex justify-between items-center text-xs">
+          <span class="font-bold text-stone-900">${item.qty} pcs ${item.name}</span>
+          <span class="font-black text-stone-900">${priceStr}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  if (subtotalEl) subtotalEl.innerText = formatRp(tx.total);
+  if (totalEl) totalEl.innerText = formatRp(tx.total);
+
+  if (tx.method === 'QRIS') {
+    if (cashRow) cashRow.style.display = 'none';
+    if (changeRow) changeRow.style.display = 'none';
+  } else {
+    if (cashRow) {
+      cashRow.style.display = 'flex';
+      const cashValEl = document.getElementById('receiptCash');
+      if (cashValEl) cashValEl.innerText = formatRp(tx.cashGiven || tx.total);
+    }
+    if (changeRow) {
+      const changeVal = (tx.cashGiven || tx.total) - tx.total;
+      if (changeVal > 0) {
+        changeRow.style.display = 'flex';
+        const changeValEl = document.getElementById('receiptChange');
+        if (changeValEl) changeValEl.innerText = formatRp(changeVal);
+      } else {
+        changeRow.style.display = 'none';
+      }
+    }
+  }
+
+  if (socialEl) {
+    socialEl.innerText = config.footerSocial || '';
+    socialEl.style.display = config.footerSocial ? 'block' : 'none';
+  }
+  if (footerNoteEl) {
+    footerNoteEl.innerText = config.footerNote || 'Terimakasih telah berkunjung.';
+  }
+
+  // Banner No Antrian Besar di Bawah
+  if (queueBoxEl) {
+    queueBoxEl.style.display = config.showQueueBottom !== false ? 'block' : 'none';
+    if (queueTextEl) {
+      queueTextEl.innerText = `NO ANTRIAN ${tx.orderName ? tx.orderName.toUpperCase() : '01'}`;
+    }
+  }
+}
+
+/**
+ * Handle Upload Gambar Logo Toko
+ */
+export function handleLogoUpload(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const base64 = event.target.result;
+    
+    // Resize & convert via canvas agar ramah memori & thermal
+    const img = new Image();
+    img.onload = () => {
+      const maxDim = 300;
+      let w = img.width;
+      let h = img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        } else {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const optimizedBase64 = canvas.toDataURL('image/png');
+
+      // Update state
+      if (!state.printerConfig) state.printerConfig = {};
+      state.printerConfig.logoBase64 = optimizedBase64;
+      state.printerConfig.showLogo = true;
+
+      // Update Preview di Form Modal
+      const previewImg = document.getElementById('printerLogoPreviewImg');
+      const placeholder = document.getElementById('printerLogoPlaceholder');
+      const removeBtn = document.getElementById('printerRemoveLogoBtn');
+      if (previewImg) {
+        previewImg.src = optimizedBase64;
+        previewImg.classList.remove('hidden');
+      }
+      if (placeholder) placeholder.classList.add('hidden');
+      if (removeBtn) removeBtn.classList.remove('hidden');
+
+      updateLiveReceiptPreview();
+      showToast('Logo toko berhasil diunggah!', 'success');
+    };
+    img.src = base64;
+  };
+  reader.readAsDataURL(file);
+}
+
+/**
+ * Hapus Gambar Logo Toko
+ */
+export function removeLogoImage() {
+  playClick('tap');
+  if (!state.printerConfig) state.printerConfig = {};
+  state.printerConfig.logoBase64 = '';
+  
+  const previewImg = document.getElementById('printerLogoPreviewImg');
+  const placeholder = document.getElementById('printerLogoPlaceholder');
+  const removeBtn = document.getElementById('printerRemoveLogoBtn');
+  const logoInput = document.getElementById('printerLogoInput');
+
+  if (previewImg) {
+    previewImg.src = '';
+    previewImg.classList.add('hidden');
+  }
+  if (placeholder) placeholder.classList.remove('hidden');
+  if (removeBtn) removeBtn.classList.add('hidden');
+  if (logoInput) logoInput.value = '';
+
+  updateLiveReceiptPreview();
+  showToast('Logo toko dihapus.', 'info');
+}
+
+/**
+ * Ambil daftar produk riil toko untuk sampel struk
+ */
+function getSampleTxData() {
+  const realProducts = Array.isArray(state.products) && state.products.length > 0 ? state.products : null;
+  let items = [];
+
+  if (realProducts && realProducts.length >= 2) {
+    items = [
+      { name: realProducts[0].name, price: realProducts[0].price, qty: 1, subtotal: realProducts[0].price },
+      { name: realProducts[1].name, price: realProducts[1].price, qty: 2, subtotal: realProducts[1].price * 2 }
+    ];
+  } else {
+    items = [
+      { name: 'Nasi Uduk Komplit', price: 14000, qty: 1, subtotal: 14000 },
+      { name: 'Ayam Geprek + Nasi', price: 17000, qty: 1, subtotal: 17000 },
+      { name: 'Es Teh Manis', price: 5000, qty: 2, subtotal: 10000 }
+    ];
+  }
+
+  const total = items.reduce((sum, it) => sum + it.subtotal, 0);
+
+  return {
+    id: 'TX-' + Math.floor(100000 + Math.random() * 900000),
+    date: new Date().toISOString(),
+    orderName: '01',
+    method: 'TUNAI',
+    items,
+    total,
+    cashGiven: total + 10000,
+    change: 10000
+  };
+}
+
+/**
+ * Uji Coba Cetak Struk 58mm (Sample Test Print Menu Riil Toko)
+ */
+export function testPrintReceipt() {
+  playClick('tap');
+  const sampleTx = getSampleTxData();
+  printReceipt(sampleTx);
+}
+
+/**
+ * Buka Modal Pengaturan Printer & Struk
+ */
+export function openPrinterConfigModal() {
+  playClick('pop');
+  const cfg = state.printerConfig || {};
+  
+  const modal = document.getElementById('printerConfigModal');
+  const paperWidthSelect = document.getElementById('printerPaperWidth');
+  const printMethodSelect = document.getElementById('printerMethodSelect');
+  const autoPrintCheckbox = document.getElementById('printerAutoPrint');
+  const autoKickCheckbox = document.getElementById('printerAutoKickDrawer');
+  const showLogoCheckbox = document.getElementById('printerShowLogo');
+  const previewImg = document.getElementById('printerLogoPreviewImg');
+  const placeholder = document.getElementById('printerLogoPlaceholder');
+  const removeBtn = document.getElementById('printerRemoveLogoBtn');
+  const storeNameInput = document.getElementById('printerStoreNameInput');
+  const taglineInput = document.getElementById('printerTaglineInput');
+  const addressInput = document.getElementById('printerAddressInput');
+  const phoneInput = document.getElementById('printerPhoneInput');
+  const cashierInput = document.getElementById('printerCashierInput');
+  const socialInput = document.getElementById('printerSocialInput');
+  const footerNoteInput = document.getElementById('printerFooterNoteInput');
+  const showQueueBottomCheckbox = document.getElementById('printerShowQueueBottom');
+
+  if (paperWidthSelect) paperWidthSelect.value = cfg.paperWidth || '58mm';
+  if (printMethodSelect) printMethodSelect.value = cfg.printMethod || 'browser';
+  if (autoPrintCheckbox) autoPrintCheckbox.checked = !!cfg.autoPrint;
+  if (autoKickCheckbox) autoKickCheckbox.checked = cfg.autoKickDrawer !== false;
+  if (showLogoCheckbox) showLogoCheckbox.checked = cfg.showLogo !== false;
+
+  if (cfg.logoBase64) {
+    if (previewImg) { previewImg.src = cfg.logoBase64; previewImg.classList.remove('hidden'); }
+    if (placeholder) placeholder.classList.add('hidden');
+    if (removeBtn) removeBtn.classList.remove('hidden');
+  } else {
+    if (previewImg) { previewImg.src = ''; previewImg.classList.add('hidden'); }
+    if (placeholder) placeholder.classList.remove('hidden');
+    if (removeBtn) removeBtn.classList.add('hidden');
+  }
+
+  if (storeNameInput) storeNameInput.value = cfg.headerStoreName || state.storeProfile?.name || '';
+  if (taglineInput) taglineInput.value = cfg.headerTagline || '';
+  if (addressInput) addressInput.value = cfg.headerAddress || state.storeProfile?.city || '';
+  if (phoneInput) phoneInput.value = cfg.headerPhone || state.auth?.phone || '';
+  if (cashierInput) cashierInput.value = cfg.cashierName || 'Mami';
+  if (socialInput) socialInput.value = cfg.footerSocial || '';
+  if (footerNoteInput) footerNoteInput.value = cfg.footerNote || 'Terimakasih telah berkunjung.';
+  if (showQueueBottomCheckbox) showQueueBottomCheckbox.checked = cfg.showQueueBottom !== false;
+
+  updateLiveReceiptPreview();
+
+  if (modal) modal.classList.remove('hidden');
+}
+
+/**
+ * Tutup Modal Pengaturan Printer
+ */
+export function closePrinterConfigModal() {
+  const modal = document.getElementById('printerConfigModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+/**
+ * Perbarui teks pratinjau struk secara realtime di dalam modal
+ */
+export function updateLiveReceiptPreview() {
+  const previewEl = document.getElementById('printerReceiptPreview');
+  if (!previewEl) return;
+
+  const tempCfg = {
+    paperWidth: document.getElementById('printerPaperWidth')?.value || '58mm',
+    logoBase64: state.printerConfig?.logoBase64 || '',
+    showLogo: document.getElementById('printerShowLogo')?.checked !== false,
+    headerStoreName: document.getElementById('printerStoreNameInput')?.value || '',
+    headerTagline: document.getElementById('printerTaglineInput')?.value || '',
+    headerAddress: document.getElementById('printerAddressInput')?.value || '',
+    headerPhone: document.getElementById('printerPhoneInput')?.value || '',
+    cashierName: document.getElementById('printerCashierInput')?.value || 'Mami',
+    footerSocial: document.getElementById('printerSocialInput')?.value || '',
+    footerNote: document.getElementById('printerFooterNoteInput')?.value || 'Terimakasih telah berkunjung.',
+    footerHelp: 'Powered by Aristotle POS',
+    showQueueBottom: document.getElementById('printerShowQueueBottom')?.checked !== false,
+    feedLines: 2
+  };
+
+  const sampleTx = getSampleTxData();
+  const receiptText = generateReceiptPlainText(sampleTx, tempCfg);
+  if (previewEl.tagName === 'TEXTAREA' || previewEl.tagName === 'INPUT') {
+    previewEl.value = receiptText;
+  } else {
+    previewEl.textContent = receiptText;
+  }
+}
+
+/**
+ * Simpan Formulir Pengaturan Printer
+ */
+export function savePrinterSettings(e) {
+  if (e) e.preventDefault();
+  playClick('pop');
+
+  const paperWidth = document.getElementById('printerPaperWidth')?.value || '58mm';
+  const printMethod = document.getElementById('printerMethodSelect')?.value || 'browser';
+  const autoPrint = document.getElementById('printerAutoPrint')?.checked || false;
+  const autoKickDrawer = document.getElementById('printerAutoKickDrawer')?.checked !== false;
+  const showLogo = document.getElementById('printerShowLogo')?.checked !== false;
+  const logoBase64 = state.printerConfig?.logoBase64 || '';
+  const headerStoreName = document.getElementById('printerStoreNameInput')?.value.trim() || '';
+  const headerTagline = document.getElementById('printerTaglineInput')?.value.trim() || '';
+  const headerAddress = document.getElementById('printerAddressInput')?.value.trim() || '';
+  const headerPhone = document.getElementById('printerPhoneInput')?.value.trim() || '';
+  const cashierName = document.getElementById('printerCashierInput')?.value.trim() || 'Mami';
+  const footerSocial = document.getElementById('printerSocialInput')?.value.trim() || '';
+  const footerNote = document.getElementById('printerFooterNoteInput')?.value.trim() || 'Terimakasih telah berkunjung.';
+  const showQueueBottom = document.getElementById('printerShowQueueBottom')?.checked !== false;
+
+  const newConfig = {
+    paperWidth,
+    printMethod,
+    autoPrint,
+    autoKickDrawer,
+    showLogo,
+    logoBase64,
+    cashierName,
+    headerStoreName,
+    headerTagline,
+    headerAddress,
+    headerPhone,
+    footerSocial,
+    footerNote,
+    footerHelp: 'Powered by Aristotle POS',
+    showQueueBottom,
+    feedLines: 3
+  };
+
+  savePrinterConfig(newConfig);
+  closePrinterConfigModal();
+  showToast('Desain & pengaturan struk berhasil disimpan!', 'success');
+}
+
+/**
+ * Update Status Badge UI
+ */
+function updatePrinterStatusBadge(type, name) {
+  const badge = document.getElementById('printerConnectionBadge');
+  if (badge) {
+    badge.innerHTML = `
+      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+      <span>${type.toUpperCase()}: ${name}</span>
+    `;
+    badge.className = 'px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-300 font-extrabold text-[11px] flex items-center gap-1.5';
+  }
+}

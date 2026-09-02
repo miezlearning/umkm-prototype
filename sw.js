@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aristotle-pos-v13';
+const CACHE_NAME = 'aristotle-pos-v23';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
@@ -15,6 +15,9 @@ const PRECACHE_ASSETS = [
   './js/modules/payment.js',
   './js/modules/admin.js',
   './js/modules/report.js',
+  './js/modules/tour.js',
+  './js/modules/superadmin.js',
+  './js/modules/printer.js',
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap',
   'https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24..48,400..700,0..1,-50..200',
@@ -26,7 +29,9 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS).catch(() => {});
+      return cache.addAll(PRECACHE_ASSETS).catch((err) => {
+        console.warn('SW Precache non-critical item failed:', err);
+      });
     })
   );
 });
@@ -43,7 +48,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
 
-  // Only handle GET requests with HTTP/HTTPS schemes (filter out chrome-extension://, moz-extension://, etc.)
+  // Hanya proses request GET http/https (abaikan firestore, googleapis, extension, dll)
   if (
     event.request.method !== 'GET' ||
     !url.startsWith('http') ||
@@ -54,26 +59,47 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Network-First strategy: Always fetch freshest files when online, fallback to cache when offline
+  // Network-First with Safe Fallback: Selalu pastikan mengembalikan instance Response valid
   event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && (networkResponse.type === 'basic' || networkResponse.type === 'cors')) {
+    (async () => {
+      try {
+        const networkResponse = await fetch(event.request);
+        if (
+          networkResponse &&
+          networkResponse.status === 200 &&
+          (networkResponse.type === 'basic' || networkResponse.type === 'cors')
+        ) {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache).catch(() => {});
           });
         }
         return networkResponse;
-      })
-      .catch(() => {
-        // When offline, serve from cache
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) return cachedResponse;
-          if (event.request.headers.get('accept')?.includes('text/html')) {
-            return caches.match('./index.html');
-          }
+      } catch (fetchErr) {
+        // Fallback 1: Coba match persis di cache
+        const cachedResponse = await caches.match(event.request);
+        if (cachedResponse) return cachedResponse;
+
+        // Fallback 2: Coba match tanpa query string (?v=...)
+        const cachedWithoutSearch = await caches.match(event.request, { ignoreSearch: true });
+        if (cachedWithoutSearch) return cachedWithoutSearch;
+
+        // Fallback 3: Navigasi HTML fallback ke index.html
+        if (
+          event.request.mode === 'navigate' ||
+          event.request.headers.get('accept')?.includes('text/html')
+        ) {
+          const indexFallback = (await caches.match('./index.html')) || (await caches.match('./'));
+          if (indexFallback) return indexFallback;
+        }
+
+        // Fallback 4: Wajib kembalikan Response agar tidak muncul TypeError "Failed to convert value to 'Response'"
+        return new Response('Offline: Konten tidak tersedia saat tanpa koneksi internet.', {
+          status: 503,
+          statusText: 'Service Unavailable',
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' }
         });
-      })
+      }
+    })()
   );
 });

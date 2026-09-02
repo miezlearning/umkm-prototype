@@ -8,7 +8,8 @@ import {
   MASTER_DEV_KEY,
   DEFAULT_PRODUCTS, 
   DEFAULT_QRIS_PAYLOAD, 
-  DEFAULT_STORE_PROFILE 
+  DEFAULT_STORE_PROFILE,
+  DEFAULT_PRINTER_CONFIG
 } from './config.js';
 import { parseQRISMetadata } from './qris.js';
 
@@ -116,7 +117,8 @@ export const state = {
   currentCategory: 'all',
   currentPeriod: 'today', // 'today', 'month', 'all'
   qrisPayload: DEFAULT_QRIS_PAYLOAD,
-  qrisMode: 'dynamic' // 'dynamic' (nominal pas otomatis) or 'static' (nominal manual)
+  qrisMode: 'dynamic', // 'dynamic' (nominal pas otomatis) or 'static' (nominal manual)
+  printerConfig: { ...DEFAULT_PRINTER_CONFIG }
 };
 
 /**
@@ -133,6 +135,7 @@ export function initState() {
     state.expenses = [];
     state.orderQueues = [{ id: 'q_1', name: 'Pesanan #1', cart: {} }];
     state.activeQueueId = 'q_1';
+    state.printerConfig = { ...DEFAULT_PRINTER_CONFIG };
     updateUIStoreBranding();
     return;
   }
@@ -234,6 +237,18 @@ export function initState() {
     } catch (e) {}
   }
 
+  // 8. Muat Konfigurasi Printer & Struk
+  const savedPrinter = localStorage.getItem(keys.PRINTER);
+  if (savedPrinter) {
+    try {
+      state.printerConfig = { ...DEFAULT_PRINTER_CONFIG, ...JSON.parse(savedPrinter) };
+    } catch (e) {
+      state.printerConfig = { ...DEFAULT_PRINTER_CONFIG };
+    }
+  } else {
+    state.printerConfig = { ...DEFAULT_PRINTER_CONFIG };
+  }
+
   // Daftarkan toko aktif ini ke registry perangkat
   registerStoreOnDevice({
     id: state.storeId,
@@ -244,6 +259,16 @@ export function initState() {
 
   // Update UI Elements with Store Branding
   updateUIStoreBranding();
+}
+
+/**
+ * Simpan konfigurasi printer & struk
+ */
+export function savePrinterConfig(newConfig) {
+  if (newConfig) {
+    state.printerConfig = { ...state.printerConfig, ...newConfig };
+  }
+  localStorage.setItem(currentStorageKeys.PRINTER, JSON.stringify(state.printerConfig));
 }
 
 /**

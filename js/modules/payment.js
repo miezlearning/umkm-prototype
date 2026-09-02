@@ -3,10 +3,12 @@ import { formatRp, formatDateShort, escapeHtml, showToast, playClick, playSucces
 import { renderOrderQueueTabs, renderCart, renderProducts, toggleMobileCartDrawer } from './pos.js';
 import { syncAddTransaction, syncSaveQueues, syncSaveProduct } from '../firebase.js';
 import { generateDynamicQRIS, renderQRToContainer, parseQRISMetadata } from '../qris.js';
+import { printReceipt, kickCashDrawer, renderPrintableReceiptArea } from './printer.js';
 
 let paymentMethod = 'cash'; // 'cash' or 'qris'
 let cashGiven = 0;
 let cashContributions = [];
+let currentReceiptTx = null;
 
 export function renderDynamicQrisCode() {
   const { total } = calculateCartTotal();
@@ -271,7 +273,16 @@ export function completeTransaction() {
 
   const currentCart = getCurrentCart();
   const activeQueue = getActiveQueue();
-  const queueName = activeQueue ? activeQueue.name : 'Pesanan';
+  
+  // Hitung nomor antrian harian otomatis (Reset ke 01 setiap hari baru)
+  const todayStr = new Date().toDateString();
+  const todayTxCount = (state.transactions || []).filter(t => new Date(t.date).toDateString() === todayStr).length + 1;
+  const queueNoFormatted = String(todayTxCount).padStart(2, '0');
+  
+  let queueName = queueNoFormatted;
+  if (activeQueue && activeQueue.name && !activeQueue.name.toLowerCase().includes('pesanan')) {
+    queueName = `${queueNoFormatted} (${activeQueue.name})`;
+  }
 
   const orderItems = Object.entries(currentCart).map(([id, qty]) => {
     const p = state.products.find(prod => prod.id === id);
@@ -320,6 +331,18 @@ export function completeTransaction() {
   showReceipt(newTx);
   playSuccessChime();
 
+  // Auto-Print dan Auto-Buka Laci jika diaktifkan di Pengaturan
+  const printerCfg = state.printerConfig || {};
+  if (printerCfg.autoPrint) {
+    setTimeout(() => {
+      printReceipt(newTx);
+    }, 400);
+  } else if (printerCfg.autoKickDrawer && !isQris) {
+    setTimeout(() => {
+      kickCashDrawer();
+    }, 200);
+  }
+
   if (activeQueue) {
     activeQueue.cart = {};
   }
@@ -340,47 +363,25 @@ export function completeTransaction() {
 }
 
 export function showReceipt(tx) {
-  const dateEl = document.getElementById('receiptDate');
-  const orderNameEl = document.getElementById('receiptOrderName');
-  const paymentTypeEl = document.getElementById('receiptPaymentType');
-  const itemListEl = document.getElementById('receiptItemList');
-  const totalEl = document.getElementById('receiptTotal');
-  const cashRow = document.getElementById('receiptCashRow');
-  const changeRow = document.getElementById('receiptChangeRow');
+  currentReceiptTx = tx;
   const modal = document.getElementById('receiptModal');
 
-  if (dateEl) dateEl.innerText = formatDateShort(tx.date);
-  if (orderNameEl) orderNameEl.innerText = tx.orderName || 'Pesanan Kasir';
-  if (paymentTypeEl) paymentTypeEl.innerText = `[${tx.method || 'TUNAI'}]`;
-
-  if (itemListEl) {
-    itemListEl.innerHTML = tx.items.map(item => `
-      <div class="flex justify-between py-0.5">
-        <span>${item.qty}x ${escapeHtml(item.name)}</span>
-        <span>${formatRp(item.subtotal)}</span>
-      </div>
-    `).join('');
-  }
-
-  if (totalEl) totalEl.innerText = formatRp(tx.total);
-  
-  if (tx.method === 'QRIS') {
-    if (cashRow) cashRow.style.display = 'none';
-    if (changeRow) changeRow.style.display = 'none';
-  } else {
-    if (cashRow) {
-      cashRow.style.display = 'flex';
-      const cashValEl = document.getElementById('receiptCash');
-      if (cashValEl) cashValEl.innerText = formatRp(tx.cashGiven);
-    }
-    if (changeRow) {
-      changeRow.style.display = 'flex';
-      const changeValEl = document.getElementById('receiptChange');
-      if (changeValEl) changeValEl.innerText = formatRp(tx.change);
-    }
-  }
+  // Render receipt items & details formatted for 58mm thermal
+  renderPrintableReceiptArea(tx, state.printerConfig);
 
   if (modal) modal.classList.remove('hidden');
+}
+
+export function printCurrentReceipt() {
+  if (currentReceiptTx) {
+    printReceipt(currentReceiptTx);
+  } else {
+    window.print();
+  }
+}
+
+export function kickCurrentDrawer() {
+  kickCashDrawer();
 }
 
 export function closeReceiptModal() {
