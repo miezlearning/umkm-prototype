@@ -105,23 +105,28 @@
     <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
 
       <!-- Brand Logo & Title -->
-      <div class="flex items-center gap-2.5 sm:gap-3 cursor-pointer" onclick="openCloudModal()" title="Info Toko & Multi-Store">
+      <div class="flex items-center gap-2.5 sm:gap-3 cursor-pointer min-w-0" onclick="openCloudModal()" title="Info Toko & Multi-Store">
         <div
-          class="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0 shadow-sm overflow-hidden p-1">
+          class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white border border-stone-200 shadow-xs flex items-center justify-center shrink-0 overflow-hidden p-0.5 hover:border-emerald-400 transition">
           <img src="icon-192.png" alt="Aristotle POS" class="w-full h-full object-contain">
         </div>
-        <div>
-          <h1 id="appHeaderStoreTitle" class="text-lg sm:text-2xl font-black tracking-tight leading-tight text-emerald-950">Kedai Usaha Mami</h1>
-            <span class="text-stone-700">Aristotle POS</span>
-            <button type="button" onclick="event.stopPropagation(); KasirApp.openReleaseNotesModal()" class="cursor-pointer px-2 py-0.5 rounded-full bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-[10px] font-black transition flex items-center gap-1 shadow-xs border border-emerald-300" title="Klik untuk melihat Apa yang Baru di v1.1.0">
+        <div class="min-w-0">
+          <div class="flex items-center gap-1">
+            <h1 id="appHeaderStoreTitle" class="text-base sm:text-lg lg:text-xl font-black tracking-tight leading-tight text-stone-900 truncate">
+              Kedai Usaha Mami
+            </h1>
+            <span class="material-symbols-rounded text-sm sm:text-base text-stone-400 shrink-0">expand_more</span>
+          </div>
+          <div class="flex items-center gap-1.5 mt-0.5 leading-none">
+            <span class="text-[11px] font-bold text-stone-500">Aristotle POS</span>
+            <span class="text-stone-300 text-[10px]">•</span>
+            <button type="button" onclick="event.stopPropagation(); KasirApp.openReleaseNotesModal()"
+              class="px-1.5 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-black border border-emerald-200/80 transition flex items-center gap-0.5 shadow-2xs"
+              title="Klik untuk melihat Apa yang Baru di v1.1.0">
               <span>v1.1.0</span>
-              <span class="material-symbols-rounded text-xs text-emerald-700">stars</span>
+              <span class="material-symbols-rounded text-[11px] text-emerald-600">stars</span>
             </button>
-            <span>•</span>
-            <a href="https://wa.me/6281345028895" target="_blank" onclick="event.stopPropagation()" class="text-emerald-700 font-extrabold hover:underline" title="Hubungi Bantuan Teknis & Kemitraan">
-              WA: 081345028895
-            </a>
-          </p>
+          </div>
         </div>
       </div>
 
@@ -145,23 +150,34 @@
           </button>
         </div>
 
-        <!-- Separate Dedicated Help Button -->
-        <button onclick="KasirApp.openGuideTour(0)" title="Buka Panduan Kasir Interaktif"
-          class="px-3.5 py-2.5 rounded-2xl bg-white hover:bg-emerald-50 text-stone-700 hover:text-emerald-900 font-extrabold text-xs flex items-center gap-1.5 border border-stone-200 hover:border-emerald-300 shadow-sm transition active:scale-95 touch-target-large">
-          <span class="material-symbols-rounded text-lg text-emerald-700">help</span>
-          <span>Panduan</span>
-        </button>
+        <!-- Separate Dedicated Help & Support Buttons -->
+        <div class="flex items-center gap-1.5">
+          <a href="https://wa.me/6281345028895" target="_blank" title="Bantuan WhatsApp: 081345028895"
+            class="px-3 py-2 rounded-2xl bg-white hover:bg-emerald-50 text-stone-700 hover:text-emerald-900 font-bold text-xs flex items-center gap-1.5 border border-stone-200 hover:border-emerald-300 shadow-xs transition">
+            <span class="material-symbols-rounded text-base text-emerald-600">chat</span>
+            <span>Bantuan</span>
+          </a>
+          <button onclick="KasirApp.openGuideTour(0)" title="Buka Panduan Kasir Interaktif"
+            class="px-3 py-2 rounded-2xl bg-white hover:bg-emerald-50 text-stone-700 hover:text-emerald-900 font-bold text-xs flex items-center gap-1.5 border border-stone-200 hover:border-emerald-300 shadow-xs transition active:scale-95 touch-target-large">
+            <span class="material-symbols-rounded text-base text-emerald-700">help</span>
+            <span>Panduan</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Quick Action Buttons on Mobile Header (Distinct Separation to Prevent Misclick) -->
-      <div class="lg:hidden flex items-center gap-2.5">
+      <!-- Quick Action Buttons on Mobile Header -->
+      <div class="lg:hidden flex items-center gap-1.5">
+        <a href="https://wa.me/6281345028895" target="_blank" title="Bantuan WhatsApp: 081345028895"
+          class="w-9 h-9 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large">
+          <span class="material-symbols-rounded text-lg">chat</span>
+        </a>
         <button onclick="KasirApp.openGuideTour(0)" title="Bantuan Panduan Kasir" aria-label="Bantuan Panduan"
-          class="w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-600 flex items-center justify-center border border-stone-200 shadow-sm transition active:scale-90 touch-target-large">
-          <span class="material-symbols-rounded text-xl text-stone-500">help</span>
+          class="w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-600 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large">
+          <span class="material-symbols-rounded text-lg text-stone-500">help</span>
         </button>
         <button id="mobileHeaderCartBtn" onclick="toggleMobileCartDrawer()"
-          class="relative px-3.5 py-2 rounded-xl bg-stone-100 text-stone-500 border border-stone-200 flex items-center gap-1.5 touch-target-large active:scale-95 transition">
-          <span class="material-symbols-rounded text-lg text-stone-500">shopping_cart</span>
+          class="relative px-3 py-1.5 rounded-xl bg-stone-100 text-stone-600 border border-stone-200 flex items-center gap-1.5 touch-target-large active:scale-95 transition">
+          <span class="material-symbols-rounded text-lg text-stone-600">shopping_cart</span>
           <span id="mobileHeaderCartTotal" class="text-xs font-bold">Rp 0</span>
         </button>
       </div>
