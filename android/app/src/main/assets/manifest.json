@@ -1,0 +1,19 @@
+{
+  "name": "Aristotle POS - Kasir UMKM Pintar",
+  "short_name": "Aristotle POS",
+  "description": "Sistem Kasir POS Sederhana, Cepat, dan Ramah Lansia untuk UMKM",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FFFFFF",
+  "theme_color": "#047857",
+  "categories": ["business", "finance", "utilities"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

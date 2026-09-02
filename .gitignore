@@ -1,0 +1,58 @@
+# ==========================================
+# Aristotle POS - Git Ignore Configuration
+# ==========================================
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Editors & IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.iml
+
+# Node & Package Managers
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ==========================================
+# Android & Gradle Build Artifacts
+# ==========================================
+android/.gradle/
+android/build/
+android/*/build/
+android/app/build/
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+
+# Local SDK & Machine Configuration (Sangat Penting: Berisi path lokal PC)
+android/local.properties
+
+# Android Keystore & Secret Keys
+*.jks
+*.keystore
+release-key.properties
+
+# Android APK / AAB Binaries (Dibangun otomatis oleh CI/CD)
+android/**/*.apk
+android/**/*.aab
+*.apk
+*.aab
+
+# Temporary & Log Files
+*.log
+scratch/
+.system_generated/

@@ -1,0 +1,258 @@
+/* Kasir Mami - Custom Design System & Utilities */
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.material-symbols-rounded {
+  font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+  vertical-align: middle;
+}
+
+.touch-target-large {
+  min-height: 44px;
+}
+
+/* Custom Scrollbar Utilities */
+.custom-scroll::-webkit-scrollbar {
+  display: none;
+}
+.custom-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Queue Tab Styles */
+.active-queue-tab-wrapper {
+  scroll-margin-left: 10px;
+  scroll-margin-right: 10px;
+}
+
+#orderQueueTabs {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+}
+
+/* ==================== 58MM THERMAL RECEIPT PRINT STYLES (VSC TM-58V) ==================== */
+@page {
+  size: 58mm auto;
+  margin: 0mm !important;
+}
+
+@media print {
+  html, body {
+    width: 58mm !important;
+    max-width: 58mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, Arial, sans-serif !important;
+    font-size: 10.5px !important;
+    line-height: 1.3 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  #receiptModal, #receiptModal * {
+    visibility: hidden !important;
+  }
+
+  #printArea, #printArea * {
+    visibility: visible !important;
+  }
+
+  #printArea .flex {
+    display: flex !important;
+  }
+
+  #printArea .hidden {
+    display: none !important;
+  }
+
+  #printArea {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 58mm !important;
+    max-width: 58mm !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 2mm 3mm !important;
+    box-sizing: border-box !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, Arial, sans-serif !important;
+    border: none !important;
+    box-shadow: none !important;
+    z-index: 999999 !important;
+    display: block !important;
+  }
+
+  #printArea h4 {
+    font-size: 12.5px !important;
+    font-weight: 800 !important;
+    text-align: center !important;
+    margin-bottom: 2px !important;
+    color: #000000 !important;
+  }
+
+  #printArea p, #printArea span, #printArea div {
+    color: #000000 !important;
+    font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, Arial, sans-serif !important;
+  }
+
+  #receiptQueueBottomText {
+    font-size: 15px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.5px !important;
+    text-align: center !important;
+  }
+}
+
+/* Toast Notification Styles (Material 3 Floating Snackbar) */
+#toastContainer {
+  position: fixed;
+  bottom: 5.5rem; /* Mobile: Melayang aman di atas bottom bar */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: none;
+  width: 90%;
+  max-width: 400px;
+}
+
+/* Tablet & Desktop: Pindah ke Pojok Bawah-Kiri (Bottom-Left) agar tidak menghalangi kasir */
+@media (min-width: 768px) {
+  #toastContainer {
+    bottom: 1.5rem;
+    left: 1.5rem;
+    transform: none;
+    align-items: flex-start;
+    width: auto;
+    max-width: 380px;
+  }
+}
+
+.toast-item {
+  pointer-events: auto;
+  animation: toastSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: all 0.2s ease;
+}
+
+.toast-item.toast-out {
+  animation: toastSlideDown 0.18s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+
+@keyframes toastSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toastSlideDown {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(12px) scale(0.94);
+  }
+}
+
+/* ==================== SKELETON SHIMMER ANIMATION ==================== */
+@keyframes skeletonShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #f5f5f4 0%, #e7e5e4 50%, #f5f5f4 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s infinite linear;
+}
+
+/* ==================== PWA SPLASH SCREEN ==================== */
+#appSplashScreen {
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s;
+}
+
+#appSplashScreen.splash-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@keyframes splashPulseRing {
+  0% {
+    transform: scale(0.92);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 16px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.92);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.splash-logo-ring {
+  animation: splashPulseRing 2s infinite ease-in-out;
+}
+
+/* ==================== SPOTLIGHT TOUR GUIDE STYLES ==================== */
+@keyframes tourPulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6), 0 0 0 4px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.2), 0 0 0 16px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6), 0 0 0 4px rgba(16, 185, 129, 0.3);
+  }
+}
+
+@keyframes tourBouncePointer {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.08);
+  }
+}
+
+.tour-pulse-glow {
+  animation: tourPulseGlow 2s infinite ease-in-out;
+}
+
+.tour-bounce-pointer {
+  animation: tourBouncePointer 1.4s infinite ease-in-out;
+}
+

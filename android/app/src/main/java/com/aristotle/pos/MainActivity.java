@@ -1,0 +1,294 @@
+package com.aristotle.pos;
+
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.Base64;
+import android.util.Log;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = "AristotlePOS";
+    private static final int PERMISSION_REQUEST_CODE = 101;
+    private static final String PRODUCTION_URL = "https://miezlearning.github.io/umkm-prototype/";
+    private static final String OFFLINE_FALLBACK_URL = "file:///android_asset/index.html";
+
+    // Standard Serial Port Profile (SPP) UUID for Classic Bluetooth Thermal Printers
+    private static final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+
+    private WebView webView;
+    private BluetoothAdapter bluetoothAdapter;
+    private String preferredPrinterAddress = null;
+
+    @SuppressLint("SetJavaScriptEnabled")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        webView = new WebView(this);
+        setContentView(webView);
+
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setDatabaseEnabled(true);
+        settings.setAllowFileAccess(true);
+        settings.setAllowContentAccess(true);
+        settings.setLoadWithOverviewMode(true);
+        settings.setUseWideViewPort(true);
+        settings.setMediaPlaybackRequiresUserGesture(false);
+
+        // Cache-First with ServiceWorker support
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        }
+
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                if (request.isForMainFrame()) {
+                    Log.w(TAG, "Gagal memuat URL cloud, beralih ke aset offline internal...");
+                    view.loadUrl(OFFLINE_FALLBACK_URL);
+                }
+            }
+
+            @Override
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                if (failingUrl != null && failingUrl.startsWith("http")) {
+                    Log.w(TAG, "Gagal koneksi internet (" + description + "), muat fallback offline.");
+                    view.loadUrl(OFFLINE_FALLBACK_URL);
+                }
+            }
+        });
+
+        webView.setWebChromeClient(new WebChromeClient());
+
+        // Injeksi Native JavaScript Bridge untuk cetak dan laci kasir
+        webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
+
+        checkAndRequestPermissions();
+
+        // Muat URL Cloud untuk update instan tanpa perlu install ulang APK.
+        // Jika offline, otomatis fallback ke aset internal!
+        webView.loadUrl(PRODUCTION_URL);
+    }
+
+    private void checkAndRequestPermissions() {
+        List<String> permissionsNeeded = new ArrayList<>();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.BLUETOOTH_CONNECT);
+            }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.BLUETOOTH_SCAN);
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
+            }
+        }
+
+        if (!permissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(this, permissionsNeeded.toArray(new String[0]), PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            boolean allGranted = true;
+            for (int res : grantResults) {
+                if (res != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
+                }
+            }
+            if (allGranted) {
+                Log.d(TAG, "Izin Bluetooth telah diberikan pengguna.");
+            }
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (webView.canGoBack()) {
+            webView.goBack();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    /**
+     * Native JavaScript Interface exposed to frontend Web App via `window.AndroidBridge`
+     */
+    public class AndroidBridge {
+
+        @JavascriptInterface
+        public boolean isNativeApp() {
+            return true;
+        }
+
+        @JavascriptInterface
+        public String getAppVersion() {
+            return "1.0.0 (Aristotle POS)";
+        }
+
+        @JavascriptInterface
+        public String getPairedDevices() {
+            JSONArray arr = new JSONArray();
+            if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+                return arr.toString();
+            }
+
+            try {
+                Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+                if (pairedDevices != null) {
+                    for (BluetoothDevice device : pairedDevices) {
+                        JSONObject obj = new JSONObject();
+                        obj.put("name", device.getName());
+                        obj.put("address", device.getAddress());
+                        arr.put(obj);
+                    }
+                }
+            } catch (SecurityException se) {
+                Log.e(TAG, "Izin Bluetooth ditolak: " + se.getMessage());
+            } catch (Exception e) {
+                Log.e(TAG, "Error getPairedDevices: " + e.getMessage());
+            }
+            return arr.toString();
+        }
+
+        @JavascriptInterface
+        public void setPreferredPrinter(String address) {
+            preferredPrinterAddress = address;
+        }
+
+        @JavascriptInterface
+        public boolean printBluetooth(String base64Data) {
+            if (base64Data == null || base64Data.isEmpty()) return false;
+            byte[] bytes = Base64.decode(base64Data, Base64.DEFAULT);
+            return sendRawBytesToPrinter(bytes);
+        }
+
+        @JavascriptInterface
+        public boolean kickDrawer() {
+            // High energy cash drawer kick pulse: Pin 2 & Pin 5
+            byte[] drawerPulse = new byte[] {
+                0x1B, 0x70, 0x00, 0x32, (byte) 0xFA,
+                0x1B, 0x70, 0x01, 0x32, (byte) 0xFA,
+                0x07
+            };
+            return sendRawBytesToPrinter(drawerPulse);
+        }
+
+        private boolean sendRawBytesToPrinter(byte[] data) {
+            if (bluetoothAdapter == null) {
+                showToastOnUI("Perangkat tidak memiliki adapter Bluetooth.");
+                return false;
+            }
+
+            if (!bluetoothAdapter.isEnabled()) {
+                showToastOnUI("Bluetooth HP sedang mati. Mohon nyalakan Bluetooth.");
+                return false;
+            }
+
+            try {
+                Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+                if (pairedDevices == null || pairedDevices.isEmpty()) {
+                    showToastOnUI("Belum ada printer Bluetooth yang di-pair di HP.");
+                    return false;
+                }
+
+                BluetoothDevice targetDevice = null;
+
+                // 1. Coba cari device yang sudah dipilih atau bernama RPP02N / VSC / POS / Printer
+                for (BluetoothDevice dev : pairedDevices) {
+                    String name = dev.getName();
+                    String addr = dev.getAddress();
+                    if (preferredPrinterAddress != null && preferredPrinterAddress.equalsIgnoreCase(addr)) {
+                        targetDevice = dev;
+                        break;
+                    }
+                    if (name != null) {
+                        String lower = name.toLowerCase();
+                        if (lower.contains("rpp02") || lower.contains("vsc") || lower.contains("pos") ||
+                            lower.contains("thermal") || lower.contains("58") || lower.contains("printer") ||
+                            lower.contains("mpt") || lower.contains("zj")) {
+                            targetDevice = dev;
+                            break;
+                        }
+                    }
+                }
+
+                // Fallback: Jika tidak ada nama spesifik, gunakan perangkat tersimpan pertama
+                if (targetDevice == null) {
+                    targetDevice = pairedDevices.iterator().next();
+                }
+
+                Log.d(TAG, "Menghubungkan ke printer: " + targetDevice.getName() + " (" + targetDevice.getAddress() + ")");
+
+                // Buka RFCOMM SPP socket
+                BluetoothSocket socket = targetDevice.createRfcommSocketToServiceRecord(SPP_UUID);
+                bluetoothAdapter.cancelDiscovery();
+                socket.connect();
+
+                OutputStream out = socket.getOutputStream();
+                out.write(data);
+                out.flush();
+
+                Thread.sleep(150); // Delay kecil untuk memastikan chip printer tuntas
+                socket.close();
+
+                Log.d(TAG, "Data berhasil dikirim ke printer secara native!");
+                return true;
+
+            } catch (SecurityException se) {
+                Log.e(TAG, "Izin Bluetooth ditolak sistem: " + se.getMessage());
+                showToastOnUI("Izin Bluetooth belum diberikan di Pengaturan Aplikasi.");
+                return false;
+            } catch (Exception e) {
+                Log.e(TAG, "Gagal koneksi printer: " + e.getMessage());
+                showToastOnUI("Gagal menghubungkan ke printer: " + e.getMessage());
+                return false;
+            }
+        }
+
+        private void showToastOnUI(final String msg) {
+            runOnUiThread(() -> Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show());
+        }
+    }
+}
