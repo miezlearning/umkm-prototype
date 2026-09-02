@@ -453,7 +453,7 @@ export async function connectBluetoothPrinter() {
     }
 
     updatePrinterStatusBadge('bluetooth', bluetoothDevice.name || 'Bluetooth Printer');
-    showToast(`Terhubung ke printer Bluetooth: ${bluetoothDevice.name || 'VSC TM-58V'}`, 'success');
+    showToast(`Terhubung ke printer: ${bluetoothDevice.name || 'Printer Thermal'}`, 'success');
     return true;
   } catch (err) {
     if (err.name === 'NotFoundError' || err.message?.includes('User cancelled') || err.message?.includes('cancelled')) {
