@@ -640,7 +640,7 @@ export async function kickCashDrawer() {
     try {
       const ok = window.AndroidBridge.kickDrawer();
       if (ok) {
-        showToast('Sinyal buka laci terkirim (Native Bluetooth)!', 'success');
+        showToast('Laci kasir terbuka!', 'success');
         return true;
       }
     } catch (e) {
@@ -725,14 +725,13 @@ export async function printReceipt(tx, forceMethod = null) {
   // 0. Jalur Utama APK Native (Bebas Dialog, Bebas RawBT, Bebas Watermark)
   if (window.AndroidBridge && typeof window.AndroidBridge.printBluetooth === 'function') {
     try {
-      showToast('Mencetak struk via Native Bluetooth...', 'info');
       const bytes = await buildEscPosBytes(tx, shouldKickDrawer);
       let binary = '';
       for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
       const b64 = window.btoa(binary);
       const ok = window.AndroidBridge.printBluetooth(b64);
       if (ok) {
-        showToast('Struk berhasil dicetak (Native Bluetooth)!', 'success');
+        showToast('Struk tercetak!', 'success');
         return true;
       }
     } catch (e) {

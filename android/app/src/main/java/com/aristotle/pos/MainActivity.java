@@ -35,11 +35,14 @@ import androidx.core.content.ContextCompat;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -57,6 +60,13 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter bluetoothAdapter;
     private String preferredPrinterAddress = null;
 
+    // Persistent Bluetooth Socket & Output Stream for Instant Zero-Delay Printing
+    private BluetoothSocket activeSocket = null;
+    private OutputStream activeOutputStream = null;
+    private String connectedDeviceAddress = null;
+    private final Object socketLock = new Object();
+    private final ExecutorService printExecutor = Executors.newSingleThreadExecutor();
+
     // Callback untuk pemilih file/gambar (HTML <input type="file">)
     private ValueCallback<Uri[]> filePathCallback;
 
@@ -69,6 +79,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(webView);
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        // Background warm-up / pre-connect to thermal printer so print is 100% INSTANT with ZERO DELAY!
+        printExecutor.execute(() -> {
+            try {
+                if (bluetoothAdapter != null && bluetoothAdapter.isEnabled()) {
+                    getOrConnectPrinter();
+                }
+            } catch (Exception ignored) {}
+        });
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -421,79 +440,128 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private boolean sendRawBytesToPrinter(byte[] data) {
-            if (bluetoothAdapter == null) {
-                showToastOnUI("Perangkat tidak memiliki adapter Bluetooth.");
-                return false;
-            }
-
-            if (!bluetoothAdapter.isEnabled()) {
-                showToastOnUI("Bluetooth HP sedang mati. Mohon nyalakan Bluetooth.");
-                return false;
-            }
-
-            try {
-                Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
-                if (pairedDevices == null || pairedDevices.isEmpty()) {
-                    showToastOnUI("Belum ada printer Bluetooth yang di-pair di HP.");
-                    return false;
-                }
-
-                BluetoothDevice targetDevice = null;
-
-                // 1. Coba cari device yang sudah dipilih atau bernama RPP02N / VSC / POS / Printer
-                for (BluetoothDevice dev : pairedDevices) {
-                    String name = dev.getName();
-                    String addr = dev.getAddress();
-                    if (preferredPrinterAddress != null && preferredPrinterAddress.equalsIgnoreCase(addr)) {
-                        targetDevice = dev;
-                        break;
-                    }
-                    if (name != null) {
-                        String lower = name.toLowerCase();
-                        if (lower.contains("rpp02") || lower.contains("vsc") || lower.contains("pos") ||
-                            lower.contains("thermal") || lower.contains("58") || lower.contains("printer") ||
-                            lower.contains("mpt") || lower.contains("zj")) {
-                            targetDevice = dev;
-                            break;
-                        }
-                    }
-                }
-
-                // Fallback: Jika tidak ada nama spesifik, gunakan perangkat tersimpan pertama
-                if (targetDevice == null) {
-                    targetDevice = pairedDevices.iterator().next();
-                }
-
-                Log.d(TAG, "Menghubungkan ke printer: " + targetDevice.getName() + " (" + targetDevice.getAddress() + ")");
-
-                // Buka RFCOMM SPP socket
-                BluetoothSocket socket = targetDevice.createRfcommSocketToServiceRecord(SPP_UUID);
-                bluetoothAdapter.cancelDiscovery();
-                socket.connect();
-
-                OutputStream out = socket.getOutputStream();
-                out.write(data);
-                out.flush();
-
-                Thread.sleep(150); // Delay kecil untuk memastikan chip printer tuntas
-                socket.close();
-
-                Log.d(TAG, "Data berhasil dikirim ke printer secara native!");
-                return true;
-
-            } catch (SecurityException se) {
-                Log.e(TAG, "Izin Bluetooth ditolak sistem: " + se.getMessage());
-                showToastOnUI("Izin Bluetooth belum diberikan di Pengaturan Aplikasi.");
-                return false;
-            } catch (Exception e) {
-                Log.e(TAG, "Gagal koneksi printer: " + e.getMessage());
-                showToastOnUI("Gagal menghubungkan ke printer: " + e.getMessage());
-                return false;
-            }
+            return MainActivity.this.sendRawBytesToPrinter(data);
         }
 
         private void showToastOnUI(final String msg) {
             runOnUiThread(() -> Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show());
         }
+    }
+
+    private OutputStream getOrConnectPrinter() throws IOException {
+        synchronized (socketLock) {
+            // 1. Jika socket sudah aktif terhubung, gunakan langsung (ZERO DELAY!)
+            if (activeSocket != null && activeSocket.isConnected() && activeOutputStream != null) {
+                if (preferredPrinterAddress == null || preferredPrinterAddress.equalsIgnoreCase(connectedDeviceAddress)) {
+                    return activeOutputStream;
+                }
+            }
+
+            closeActiveSocket();
+
+            if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+                throw new IOException("Bluetooth adapter mati atau tidak tersedia.");
+            }
+
+            Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+            if (pairedDevices == null || pairedDevices.isEmpty()) {
+                throw new IOException("Belum ada printer Bluetooth yang di-pair di HP.");
+            }
+
+            BluetoothDevice targetDevice = null;
+            for (BluetoothDevice dev : pairedDevices) {
+                String name = dev.getName();
+                String addr = dev.getAddress();
+                if (preferredPrinterAddress != null && preferredPrinterAddress.equalsIgnoreCase(addr)) {
+                    targetDevice = dev;
+                    break;
+                }
+                if (name != null) {
+                    String lower = name.toLowerCase();
+                    if (lower.contains("rpp02") || lower.contains("vsc") || lower.contains("pos") ||
+                        lower.contains("thermal") || lower.contains("58") || lower.contains("printer") ||
+                        lower.contains("mpt") || lower.contains("zj")) {
+                        targetDevice = dev;
+                        break;
+                    }
+                }
+            }
+
+            if (targetDevice == null) {
+                targetDevice = pairedDevices.iterator().next();
+            }
+
+            Log.d(TAG, "Membuka koneksi persistent Bluetooth ke: " + targetDevice.getName());
+            bluetoothAdapter.cancelDiscovery();
+
+            BluetoothSocket socket = targetDevice.createRfcommSocketToServiceRecord(SPP_UUID);
+            socket.connect();
+
+            activeSocket = socket;
+            activeOutputStream = socket.getOutputStream();
+            connectedDeviceAddress = targetDevice.getAddress();
+            Log.d(TAG, "Koneksi Bluetooth aktif dan standby (Zero Delay Ready)!");
+
+            return activeOutputStream;
+        }
+    }
+
+    private void closeActiveSocket() {
+        synchronized (socketLock) {
+            if (activeOutputStream != null) {
+                try { activeOutputStream.close(); } catch (Exception ignored) {}
+                activeOutputStream = null;
+            }
+            if (activeSocket != null) {
+                try { activeSocket.close(); } catch (Exception ignored) {}
+                activeSocket = null;
+            }
+            connectedDeviceAddress = null;
+        }
+    }
+
+    private boolean sendRawBytesToPrinter(byte[] data) {
+        if (bluetoothAdapter == null) {
+            runOnUiThread(() -> Toast.makeText(this, "Perangkat tidak memiliki adapter Bluetooth.", Toast.LENGTH_SHORT).show());
+            return false;
+        }
+        if (!bluetoothAdapter.isEnabled()) {
+            runOnUiThread(() -> Toast.makeText(this, "Bluetooth HP sedang mati. Mohon nyalakan Bluetooth.", Toast.LENGTH_SHORT).show());
+            return false;
+        }
+
+        try {
+            // Gunakan socket persistent (Zero Delay)
+            OutputStream out = getOrConnectPrinter();
+            out.write(data);
+            out.flush();
+            Log.d(TAG, "Data terkirim instan (Zero Delay) ke printer!");
+            return true;
+        } catch (IOException e) {
+            Log.w(TAG, "Socket terputus, mencoba auto-reconnect: " + e.getMessage());
+            closeActiveSocket();
+            try {
+                OutputStream freshOut = getOrConnectPrinter();
+                freshOut.write(data);
+                freshOut.flush();
+                Log.d(TAG, "Data terkirim setelah auto-reconnect!");
+                return true;
+            } catch (Exception retryErr) {
+                Log.e(TAG, "Gagal koneksi printer: " + retryErr.getMessage());
+                runOnUiThread(() -> Toast.makeText(this, "Gagal menghubungkan ke printer: " + retryErr.getMessage(), Toast.LENGTH_SHORT).show());
+                return false;
+            }
+        } catch (SecurityException se) {
+            Log.e(TAG, "Izin Bluetooth ditolak: " + se.getMessage());
+            runOnUiThread(() -> Toast.makeText(this, "Izin Bluetooth belum diberikan di Pengaturan Aplikasi.", Toast.LENGTH_SHORT).show());
+            return false;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        closeActiveSocket();
+        printExecutor.shutdown();
     }
 }
