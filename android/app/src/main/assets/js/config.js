@@ -26,6 +26,7 @@ export const DEFAULT_PRINTER_CONFIG = {
   paperWidth: '58mm', // '58mm' atau '80mm'
   printMethod: 'browser', // 'browser', 'bluetooth', 'serial'
   autoPrint: false, // Otomatis cetak begitu bayar selesai
+  autoPrintKitchen: false, // Otomatis cetak tiket dapur saat bayar selesai
   autoKickDrawer: true, // Otomatis buka laci kasir saat bayar tunai
   logoBase64: '', // Base64 data logo toko
   showLogo: true, // Tampilkan logo gambar di struk

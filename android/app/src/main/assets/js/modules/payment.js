@@ -3,7 +3,7 @@ import { formatRp, formatDateShort, escapeHtml, showToast, playClick, playSucces
 import { renderOrderQueueTabs, renderCart, renderProducts, toggleMobileCartDrawer } from './pos.js';
 import { syncAddTransaction, syncSaveQueues, syncSaveProduct } from '../firebase.js';
 import { generateDynamicQRIS, renderQRToContainer, parseQRISMetadata } from '../qris.js';
-import { printReceipt, kickCashDrawer, renderPrintableReceiptArea } from './printer.js';
+import { printReceipt, printKitchenTicket, kickCashDrawer, renderPrintableReceiptArea } from './printer.js';
 
 let paymentMethod = 'cash'; // 'cash' or 'qris'
 let cashGiven = 0;
@@ -331,12 +331,23 @@ export function completeTransaction() {
   showReceipt(newTx);
   playSuccessChime();
 
-  // Auto-Print dan Auto-Buka Laci jika diaktifkan di Pengaturan
+  // Auto-Print Struk Kasir / Tiket Dapur dan Auto-Buka Laci jika diaktifkan di Pengaturan
   const printerCfg = state.printerConfig || {};
-  if (printerCfg.autoPrint) {
+  if (printerCfg.autoPrintKitchen && printerCfg.autoPrint) {
+    setTimeout(() => {
+      printKitchenTicket(newTx);
+      setTimeout(() => {
+        printReceipt(newTx);
+      }, 700);
+    }, 300);
+  } else if (printerCfg.autoPrintKitchen) {
+    setTimeout(() => {
+      printKitchenTicket(newTx);
+    }, 300);
+  } else if (printerCfg.autoPrint) {
     setTimeout(() => {
       printReceipt(newTx);
-    }, 400);
+    }, 300);
   } else if (printerCfg.autoKickDrawer && !isQris) {
     setTimeout(() => {
       kickCashDrawer();
@@ -377,6 +388,14 @@ export function printCurrentReceipt() {
     printReceipt(currentReceiptTx);
   } else {
     window.print();
+  }
+}
+
+export function printCurrentKitchenTicket() {
+  if (currentReceiptTx) {
+    printKitchenTicket(currentReceiptTx);
+  } else {
+    showToast('Belum ada transaksi aktif.', 'warning');
   }
 }
 

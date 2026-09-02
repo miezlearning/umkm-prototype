@@ -357,9 +357,113 @@ export function buildOpenDrawerBytes() {
     0x1B, 0x70, 0x01, 0x32, 0xFA,       // ESC p 1 50 250 (100ms Pin 5)
     0x1B, 0x70, 0x00, 0x64, 0xFA,       // ESC p 0 100 250 (200ms High Energy Pin 2)
     0x1B, 0x70, 0x01, 0x64, 0xFA,       // ESC p 1 100 250 (200ms High Energy Pin 5)
-    0x10, 0x14, 0x01, 0x00, 0x08,       // DLE DC4 1 0 8 (Real-time pulse)
-    0x07                                // BEL (Bell kick)
+    0x10, 0x14, 0x01, 0x00, 0x08        // DLE DC4 1 0 8 (Real-time pulse)
   ]);
+}
+
+/**
+ * Buat Byte Array ESC/POS Khusus Tiket Dapur / Kitchen Checkpoint
+ * Format tanpa harga, nomor antrian/meja ekstra besar, dan ada kotak checklist [  ]
+ */
+export function buildKitchenTicketEscPosBytes(tx) {
+  const commands = [];
+
+  const addBytes = (...bytes) => {
+    for (let b of bytes) commands.push(b);
+  };
+
+  const addText = (text) => {
+    const clean = String(text || '')
+      .replace(/[\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]/g, ' ')
+      .replace(/[^\x20-\x7E\n]/g, '');
+    for (let i = 0; i < clean.length; i++) {
+      commands.push(clean.charCodeAt(i));
+    }
+  };
+
+  const padBetween = (left, right, width = 32) => {
+    const lStr = String(left || '').trim();
+    const rStr = String(right || '').trim();
+    const space = width - lStr.length - rStr.length;
+    if (space < 1) {
+      return lStr.substring(0, Math.max(1, width - rStr.length - 1)) + ' ' + rStr;
+    }
+    return lStr + ' '.repeat(space) + rStr;
+  };
+
+  // 1. Inisialisasi printer (ESC @ dan PC437)
+  addBytes(0x1B, 0x40);
+  addBytes(0x1B, 0x74, 0x00);
+
+  if (!tx) {
+    return new Uint8Array(commands);
+  }
+
+  const d = tx.date ? new Date(tx.date) : new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const txTime = `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}.${pad(d.getMinutes())}.${pad(d.getSeconds())}`;
+  const rawOrder = String(tx.orderName || '01').replace(/^NO ANTRIAN:?\s*/i, '');
+  const divider = '--------------------------------\n';
+  const doubleDivider = '================================\n';
+
+  // 2. Header: TIKET DAPUR / BAR
+  addBytes(0x1B, 0x61, 0x01); // Align Center
+  addText(doubleDivider);
+  addBytes(0x1B, 0x45, 0x01); // Bold ON
+  addText('*** TIKET DAPUR / BAR ***\n');
+  addBytes(0x1B, 0x45, 0x00); // Bold OFF
+  addText(doubleDivider);
+
+  // 3. MEJA / NO ANTRIAN (Sangat Besar: Double Width & Double Height)
+  addBytes(0x1B, 0x61, 0x01); // Align Center
+  addBytes(0x1B, 0x45, 0x01); // Bold ON
+  addBytes(0x1D, 0x21, 0x11); // Double Width & Height ON
+  addText(`${rawOrder.toUpperCase()}\n`);
+  addBytes(0x1D, 0x21, 0x00); // Normal Size
+  addBytes(0x1B, 0x45, 0x00); // Bold OFF
+  addText(`Waktu: ${txTime}\n`);
+  addText(`No. Kwitansi: #${tx.id ? tx.id.replace('TX-', '') : '001'}\n`);
+
+  // 4. Header Kolom Checklist
+  addBytes(0x1B, 0x61, 0x00); // Align Left
+  addText(divider);
+  addText(padBetween('STATUS / MENU', 'PORSI') + '\n');
+  addText(divider);
+
+  // 5. Daftar Item dengan Kotak Checklist [  ]
+  let totalQty = 0;
+  if (Array.isArray(tx.items)) {
+    tx.items.forEach(item => {
+      const qty = item.qty || 1;
+      totalQty += qty;
+      const itemName = String(item.name || 'Item').substring(0, 23);
+      // Format: [  ] Nama Menu              x2
+      addBytes(0x1B, 0x45, 0x01); // Bold ON
+      addText(padBetween(`[  ] ${itemName}`, `x${qty}`) + '\n');
+      addBytes(0x1B, 0x45, 0x00); // Bold OFF
+      if (item.note) {
+        addText(`     * Ket: ${item.note}\n`);
+      }
+    });
+  }
+
+  // 6. Ringkasan Total Porsi
+  addText(divider);
+  addBytes(0x1B, 0x45, 0x01); // Bold ON
+  addText(padBetween(`Total: ${tx.items ? tx.items.length : 0} Item`, `${totalQty} Porsi`) + '\n');
+  addBytes(0x1B, 0x45, 0x00); // Bold OFF
+  addText(divider);
+
+  // 7. Checkpoint Selesai
+  addBytes(0x1B, 0x61, 0x01); // Align Center
+  addText('[  ] SELESAI DIMASAK --> SERAHKAN\n');
+  addText(doubleDivider);
+
+  // 8. Feed 5 baris agar struk keluar tuntas melewati pisau gerigi
+  addBytes(0x1B, 0x64, 0x05);
+  addText('\n\n');
+
+  return new Uint8Array(commands);
 }
 
 /**
@@ -803,6 +907,135 @@ export async function printReceipt(tx, forceMethod = null) {
 }
 
 /**
+ * Render elemen HTML #kitchenPrintArea untuk fallback cetak browser
+ */
+export function renderPrintableKitchenArea(tx) {
+  const container = document.getElementById('kitchenPrintArea');
+  if (!container || !tx) return;
+
+  const d = tx.date ? new Date(tx.date) : new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const txTime = `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}.${pad(d.getMinutes())}.${pad(d.getSeconds())}`;
+  const rawOrder = String(tx.orderName || '01').replace(/^NO ANTRIAN:?\s*/i, '');
+
+  let totalQty = 0;
+  let itemsHtml = '';
+  if (Array.isArray(tx.items)) {
+    tx.items.forEach(item => {
+      const qty = item.qty || 1;
+      totalQty += qty;
+      itemsHtml += `
+        <div class="flex justify-between items-start py-1 border-b border-dashed border-stone-300 text-xs">
+          <div class="font-bold flex items-center gap-1.5">
+            <span class="inline-block w-3.5 h-3.5 border border-black rounded-sm"></span>
+            <span>${item.name || 'Item'}</span>
+          </div>
+          <span class="font-black text-sm">x${qty}</span>
+        </div>
+      `;
+      if (item.note) {
+        itemsHtml += `<div class="text-[9.5px] text-stone-600 pl-5 italic">* ${item.note}</div>`;
+      }
+    });
+  }
+
+  container.innerHTML = `
+    <div class="p-2 border-b-2 border-black text-center">
+      <h3 class="font-black text-xs tracking-wider uppercase">*** TIKET DAPUR / BAR ***</h3>
+      <div class="my-1.5 py-1 border-y border-black font-black text-base tracking-wide uppercase">${rawOrder}</div>
+      <div class="text-[9px] text-stone-600">Waktu: ${txTime} • #${tx.id ? tx.id.replace('TX-', '') : '001'}</div>
+    </div>
+    <div class="py-1">
+      <div class="flex justify-between text-[9.5px] font-black text-stone-500 border-b border-stone-300 pb-0.5 mb-1">
+        <span>STATUS / MENU</span>
+        <span>PORSI</span>
+      </div>
+      ${itemsHtml}
+    </div>
+    <div class="pt-1.5 border-t border-black flex justify-between font-black text-xs">
+      <span>Total: ${tx.items ? tx.items.length : 0} Item</span>
+      <span>${totalQty} Porsi</span>
+    </div>
+    <div class="mt-2 pt-1 border-t-2 border-dashed border-black text-center text-[10px] font-black">
+      [  ] SELESAI DIMASAK & SERAHKAN
+    </div>
+  `;
+}
+
+/**
+ * Cetak Tiket Dapur / Kitchen Checkpoint
+ * Mendukung Android APK Native Bluetooth, Serial USB, RawBT, dan Browser Print
+ */
+export async function printKitchenTicket(tx) {
+  playClick('pop');
+  if (!tx) {
+    showToast('Tidak ada data transaksi untuk dicetak.', 'warning');
+    return false;
+  }
+
+  // 0. Jalur Utama APK Native (Bebas Dialog, Bebas RawBT, Zero Delay)
+  if (window.AndroidBridge && typeof window.AndroidBridge.printBluetooth === 'function') {
+    try {
+      const bytes = buildKitchenTicketEscPosBytes(tx);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      const b64 = window.btoa(binary);
+      const ok = window.AndroidBridge.printBluetooth(b64);
+      if (ok) {
+        showToast('Tiket dapur tercetak!', 'success');
+        return true;
+      }
+    } catch (e) {
+      console.warn('Native Android Bluetooth kitchen print error:', e);
+    }
+  }
+
+  const cfg = state.printerConfig || {};
+  const method = cfg.printMethod || 'browser';
+
+  if (method === 'serial') {
+    try {
+      const bytes = buildKitchenTicketEscPosBytes(tx);
+      await sendSerialData(bytes);
+      showToast('Tiket dapur terkirim (USB Serial)!', 'success');
+      return true;
+    } catch (e) {
+      console.warn('Serial kitchen print error:', e);
+    }
+  }
+
+  if (method === 'rawbt') {
+    try {
+      const bytes = buildKitchenTicketEscPosBytes(tx);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      const b64 = window.btoa(binary);
+      const intentUri = `intent:base64,${b64}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+      const link = document.createElement('a');
+      link.href = intentUri;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => { try { link.remove(); } catch (_) {} }, 500);
+      showToast('Tiket dapur terkirim ke RawBT!', 'success');
+      return true;
+    } catch (e) {
+      console.warn('RawBT kitchen print error:', e);
+    }
+  }
+
+  // Fallback Browser Print dengan kelas khusus .printing-kitchen
+  renderPrintableKitchenArea(tx);
+  document.body.classList.add('printing-kitchen');
+  showToast('Mencetak tiket dapur via browser...', 'info');
+  window.print();
+  setTimeout(() => {
+    document.body.classList.remove('printing-kitchen');
+  }, 1000);
+  return true;
+}
+
+/**
  * Render elemen HTML #printArea agar pas 100% untuk kertas thermal 58mm
  */
 export function renderPrintableReceiptArea(tx, cfg = null) {
@@ -1040,6 +1273,15 @@ export function testPrintReceipt() {
 }
 
 /**
+ * Uji Coba Cetak Tiket Dapur 58mm (Sample Test Print Kitchen Ticket)
+ */
+export function testPrintKitchenTicket() {
+  playClick('tap');
+  const sampleTx = getSampleTxData();
+  printKitchenTicket(sampleTx);
+}
+
+/**
  * Buka Modal Pengaturan Printer & Struk
  */
 export function openPrinterConfigModal() {
@@ -1050,6 +1292,7 @@ export function openPrinterConfigModal() {
   const paperWidthSelect = document.getElementById('printerPaperWidth');
   const printMethodSelect = document.getElementById('printerMethodSelect');
   const autoPrintCheckbox = document.getElementById('printerAutoPrint');
+  const autoPrintKitchenCheckbox = document.getElementById('printerAutoPrintKitchen');
   const autoKickCheckbox = document.getElementById('printerAutoKickDrawer');
   const showLogoCheckbox = document.getElementById('printerShowLogo');
   const previewImg = document.getElementById('printerLogoPreviewImg');
@@ -1067,6 +1310,7 @@ export function openPrinterConfigModal() {
   if (paperWidthSelect) paperWidthSelect.value = cfg.paperWidth || '58mm';
   if (printMethodSelect) printMethodSelect.value = cfg.printMethod || 'browser';
   if (autoPrintCheckbox) autoPrintCheckbox.checked = !!cfg.autoPrint;
+  if (autoPrintKitchenCheckbox) autoPrintKitchenCheckbox.checked = !!cfg.autoPrintKitchen;
   if (autoKickCheckbox) autoKickCheckbox.checked = cfg.autoKickDrawer !== false;
   if (showLogoCheckbox) showLogoCheckbox.checked = cfg.showLogo !== false;
 
@@ -1144,6 +1388,7 @@ export function savePrinterSettings(e) {
   const paperWidth = document.getElementById('printerPaperWidth')?.value || '58mm';
   const printMethod = document.getElementById('printerMethodSelect')?.value || 'browser';
   const autoPrint = document.getElementById('printerAutoPrint')?.checked || false;
+  const autoPrintKitchen = document.getElementById('printerAutoPrintKitchen')?.checked || false;
   const autoKickDrawer = document.getElementById('printerAutoKickDrawer')?.checked !== false;
   const showLogo = document.getElementById('printerShowLogo')?.checked !== false;
   const logoBase64 = state.printerConfig?.logoBase64 || '';
@@ -1160,6 +1405,7 @@ export function savePrinterSettings(e) {
     paperWidth,
     printMethod,
     autoPrint,
+    autoPrintKitchen,
     autoKickDrawer,
     showLogo,
     logoBase64,

@@ -1570,33 +1570,43 @@
         </div>
       </div>
 
-      <!-- Action Buttons Grid (Print Struk, Buka Laci, Settings, New Order) -->
+      <!-- Hidden Fallback Printable Kitchen Area (58mm Thermal) -->
+      <div id="kitchenPrintArea" class="hidden"></div>
+
+      <!-- Action Buttons Grid (Struk Kasir, Tiket Dapur, Buka Laci, Settings, New Order) -->
       <div class="flex flex-col gap-2 pt-1">
         <div class="grid grid-cols-2 gap-2">
           <button onclick="window.KasirApp.printCurrentReceipt()"
             class="py-2.5 px-3 rounded-xl bg-stone-900 hover:bg-black text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition touch-target-large active:scale-95">
             <span class="material-symbols-rounded text-base">print</span>
-            <span>Cetak Struk</span>
+            <span>Struk Kasir</span>
           </button>
-          <button onclick="window.KasirApp.kickCurrentDrawer()"
-            class="py-2.5 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 transition touch-target-large active:scale-95"
-            title="Kirim sinyal buka laci uang">
-            <span class="material-symbols-rounded text-base text-amber-700">payments</span>
-            <span>Buka Laci</span>
+          <button onclick="window.KasirApp.printCurrentKitchenTicket()"
+            class="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-amber-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition touch-target-large active:scale-95"
+            title="Cetak tiket dapur untuk koki">
+            <span class="material-symbols-rounded text-base">restaurant</span>
+            <span>Tiket Dapur 🍳</span>
           </button>
         </div>
 
         <div class="grid grid-cols-2 gap-2">
+          <button onclick="window.KasirApp.kickCurrentDrawer()"
+            class="py-2 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 transition touch-target-large active:scale-95"
+            title="Kirim sinyal buka laci uang">
+            <span class="material-symbols-rounded text-base text-amber-700">payments</span>
+            <span>Buka Laci</span>
+          </button>
           <button onclick="window.KasirApp.openPrinterConfigModal()"
-            class="py-2.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center justify-center gap-1.5 border border-stone-200 transition touch-target-large">
+            class="py-2 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center justify-center gap-1.5 border border-stone-200 transition touch-target-large">
             <span class="material-symbols-rounded text-base text-stone-600">tune</span>
             <span>Atur Printer</span>
           </button>
-          <button onclick="closeReceiptModal()"
-            class="py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs flex items-center justify-center touch-target-large shadow-sm transition active:scale-95">
-            <span>Pesanan Baru</span>
-          </button>
         </div>
+
+        <button onclick="closeReceiptModal()"
+          class="w-full py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs flex items-center justify-center touch-target-large shadow-sm transition active:scale-95">
+          <span>Pesanan Baru</span>
+        </button>
       </div>
     </div>
   </div>
@@ -1642,16 +1652,21 @@
                 </span>
               </div>
 
-              <div class="grid grid-cols-2 gap-2.5">
+              <div class="grid grid-cols-3 gap-2">
                 <button type="button" onclick="KasirApp.testPrintReceipt()"
-                  class="py-2.5 px-3 rounded-xl bg-white hover:bg-amber-100 text-stone-900 border border-amber-300 font-black text-xs flex items-center justify-center gap-1.5 transition touch-target-large shadow-sm active:scale-95">
-                  <span class="material-symbols-rounded text-base text-stone-800">receipt</span>
-                  <span>Tes Cetak Struk</span>
+                  class="py-2.5 px-2 rounded-xl bg-white hover:bg-amber-100 text-stone-900 border border-amber-300 font-black text-xs flex items-center justify-center gap-1 transition touch-target-large shadow-sm active:scale-95">
+                  <span class="material-symbols-rounded text-sm text-stone-800">receipt</span>
+                  <span>Tes Struk</span>
+                </button>
+                <button type="button" onclick="KasirApp.testPrintKitchenTicket()"
+                  class="py-2.5 px-2 rounded-xl bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-black text-xs flex items-center justify-center gap-1 transition touch-target-large shadow-sm active:scale-95">
+                  <span class="material-symbols-rounded text-sm text-amber-700">restaurant</span>
+                  <span>Tes Dapur</span>
                 </button>
                 <button type="button" onclick="KasirApp.kickCashDrawer()"
-                  class="py-2.5 px-3 rounded-xl bg-white hover:bg-amber-100 text-stone-900 border border-amber-300 font-black text-xs flex items-center justify-center gap-1.5 transition touch-target-large shadow-sm active:scale-95">
-                  <span class="material-symbols-rounded text-base text-amber-700">payments</span>
-                  <span>Buka Laci Kasir</span>
+                  class="py-2.5 px-2 rounded-xl bg-white hover:bg-amber-100 text-stone-900 border border-amber-300 font-black text-xs flex items-center justify-center gap-1 transition touch-target-large shadow-sm active:scale-95">
+                  <span class="material-symbols-rounded text-sm text-amber-700">payments</span>
+                  <span>Buka Laci</span>
                 </button>
               </div>
 
@@ -1695,11 +1710,21 @@
               <div class="pt-2 border-t border-stone-200 flex flex-col gap-2.5">
                 <label class="flex items-center justify-between cursor-pointer">
                   <div>
-                    <span class="text-xs font-black text-stone-800">Cetak Struk Otomatis</span>
-                    <p class="text-[11px] text-stone-500">Cetak struk langsung setelah transaksi selesai</p>
+                    <span class="text-xs font-black text-stone-800">Cetak Struk Kasir Otomatis</span>
+                    <p class="text-[11px] text-stone-500">Cetak struk pelanggan langsung setelah transaksi selesai</p>
                   </div>
                   <input type="checkbox" id="printerAutoPrint" class="w-5 h-5 accent-emerald-600 cursor-pointer">
                 </label>
+
+                <div class="border-t border-stone-200/80 pt-2">
+                  <label class="flex items-center justify-between cursor-pointer">
+                    <div>
+                      <span class="text-xs font-black text-stone-800">Cetak Tiket Dapur Otomatis</span>
+                      <p class="text-[11px] text-stone-500">Cetak lembar antrian koki dengan checklist pesanan</p>
+                    </div>
+                    <input type="checkbox" id="printerAutoPrintKitchen" class="w-5 h-5 accent-emerald-600 cursor-pointer">
+                  </label>
+                </div>
 
                 <div class="border-t border-stone-200/80 pt-2">
                   <label class="flex items-center justify-between cursor-pointer">

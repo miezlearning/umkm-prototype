@@ -815,13 +815,16 @@ const KasirApp = {
   showReceipt: payment.showReceipt,
   closeReceiptModal: payment.closeReceiptModal,
   printCurrentReceipt: payment.printCurrentReceipt,
+  printCurrentKitchenTicket: payment.printCurrentKitchenTicket,
   kickCurrentDrawer: payment.kickCurrentDrawer,
   toggleQrisPaymentMode: payment.toggleQrisPaymentMode,
 
   // Thermal Printer & Cash Drawer
   printReceipt: printer.printReceipt,
+  printKitchenTicket: printer.printKitchenTicket,
   kickCashDrawer: printer.kickCashDrawer,
   testPrintReceipt: printer.testPrintReceipt,
+  testPrintKitchenTicket: printer.testPrintKitchenTicket,
   connectBluetoothPrinter: printer.connectBluetoothPrinter,
   connectSerialPrinter: printer.connectSerialPrinter,
   autoReconnectSerial: printer.autoReconnectSerial,
