@@ -5,6 +5,7 @@
 
 import { state, savePrinterConfig } from '../state.js';
 import { formatRp, formatDateShort, showToast, playClick } from '../utils.js';
+import { syncSavePrinterConfig } from '../firebase.js';
 
 // State koneksi hardware di runtime
 let bluetoothDevice = null;
@@ -246,10 +247,12 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
   }
 
   const storeName = cfg.headerStoreName || state.storeProfile?.name || 'Kedai Usaha Mami';
-  const tagline = cfg.headerTagline || '';
-  const address = cfg.headerAddress || state.storeProfile?.city || '';
-  const phone = cfg.headerPhone || state.auth?.phone || '';
+  const tagline = cfg.headerTagline || 'Cabang Utama';
+  const address = cfg.headerAddress || state.storeProfile?.city || 'Samarinda, Kalimantan Timur';
+  const phone = cfg.headerPhone || state.auth?.phone || '081345028895';
   const cashier = cfg.cashierName || state.auth?.ownerName || 'Mami';
+  const social = cfg.footerSocial || 'Instagram: @kedai.usaha.mami';
+  const note = cfg.footerNote || 'Terimakasih telah berkunjung.';
 
   const d = tx.date ? new Date(tx.date) : new Date();
   const pad = (n) => String(n).padStart(2, '0');
@@ -305,10 +308,10 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
 
   // 9. Info Sosmed & Ucapan Terima Kasih (Align Center)
   addBytes(0x1B, 0x61, 0x01); // Align Center
-  if (cfg.footerSocial) {
-    addText('\n' + cfg.footerSocial + '\n');
+  if (social) {
+    addText('\n' + social + '\n');
   }
-  addText('\n' + (cfg.footerNote || 'Terimakasih telah berkunjung.') + '\n');
+  addText('\n' + note + '\n');
 
   // 10. NO ANTRIAN BESAR (Double Width & Double Height + Bold - Persis Foto)
   addBytes(0x1B, 0x61, 0x00); // Align Left
@@ -1119,6 +1122,7 @@ export function savePrinterSettings(e) {
   };
 
   savePrinterConfig(newConfig);
+  syncSavePrinterConfig(newConfig);
   closePrinterConfigModal();
   showToast('Desain & pengaturan struk berhasil disimpan!', 'success');
 }

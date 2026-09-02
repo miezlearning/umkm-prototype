@@ -294,11 +294,31 @@ export function setupRealtimeListeners() {
         state.auth = { ...state.auth, ...data.auth };
         localStorage.setItem(currentStorageKeys.AUTH, JSON.stringify(state.auth));
       }
+      if (data && data.printerConfig) {
+        state.printerConfig = { ...state.printerConfig, ...data.printerConfig };
+        localStorage.setItem(currentStorageKeys.PRINTER, JSON.stringify(state.printerConfig));
+        if (onRemoteUpdateCallback) onRemoteUpdateCallback('printerConfig');
+      }
     }
   }, (error) => {
     console.error('Config onSnapshot error:', error);
   });
   listenersUnsubscribe.push(unsubConfig);
+}
+
+export async function syncSavePrinterConfig(printerConfig) {
+  if (!db) return;
+  try {
+    const currentStoreId = getStoreId();
+    const docRef = doc(db, 'stores', currentStoreId, 'data', 'config');
+    await setDoc(docRef, {
+      printerConfig,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    console.log('Printer configuration synced to cloud successfully!');
+  } catch (e) {
+    console.error('Failed to sync printer config to cloud:', e);
+  }
 }
 
 export async function syncSaveQrisPayload(qrisPayload) {
