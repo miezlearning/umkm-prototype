@@ -2,15 +2,22 @@ package com.aristotle.pos;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
+import android.webkit.JsResult;
+import android.webkit.PermissionRequest;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -20,6 +27,7 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -37,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "AristotlePOS";
     private static final int PERMISSION_REQUEST_CODE = 101;
+    private static final int FILE_CHOOSER_REQUEST_CODE = 1002;
+
     private static final String PRODUCTION_URL = "https://miezlearning.github.io/umkm-prototype/";
     private static final String OFFLINE_FALLBACK_URL = "file:///android_asset/index.html";
 
@@ -46,6 +56,9 @@ public class MainActivity extends AppCompatActivity {
     private WebView webView;
     private BluetoothAdapter bluetoothAdapter;
     private String preferredPrinterAddress = null;
+
+    // Callback untuk pemilih file/gambar (HTML <input type="file">)
+    private ValueCallback<Uri[]> filePathCallback;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -93,7 +106,72 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        webView.setWebChromeClient(new WebChromeClient());
+        // WebChromeClient dengan dukungan Upload Gambar & Kamera
+        webView.setWebChromeClient(new WebChromeClient() {
+
+            // 1. Dukungan Upload Gambar / File (<input type="file">)
+            @Override
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                if (MainActivity.this.filePathCallback != null) {
+                    MainActivity.this.filePathCallback.onReceiveValue(null);
+                    MainActivity.this.filePathCallback = null;
+                }
+
+                MainActivity.this.filePathCallback = filePathCallback;
+
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("image/*");
+
+                try {
+                    startActivityForResult(Intent.createChooser(intent, "Pilih Gambar Logo Struk"), FILE_CHOOSER_REQUEST_CODE);
+                    return true;
+                } catch (Exception e) {
+                    MainActivity.this.filePathCallback = null;
+                    Toast.makeText(MainActivity.this, "Tidak dapat membuka galeri: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+            }
+
+            // 2. Izin Kamera Web untuk Scan QRIS & Barcode Scanner
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                MainActivity.this.runOnUiThread(() -> {
+                    request.grant(request.getResources());
+                });
+            }
+
+            // 3. Izin Lokasi jika diminta
+            @Override
+            public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+                callback.invoke(origin, true, false);
+            }
+
+            // 4. Alert bawaan JavaScript
+            @Override
+            public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Aristotle POS")
+                        .setMessage(message)
+                        .setPositiveButton("OK", (dialog, which) -> result.confirm())
+                        .setCancelable(false)
+                        .show();
+                return true;
+            }
+
+            // 5. Confirm bawaan JavaScript
+            @Override
+            public boolean onJsConfirm(WebView view, String url, String message, JsResult result) {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Konfirmasi")
+                        .setMessage(message)
+                        .setPositiveButton("Ya", (dialog, which) -> result.confirm())
+                        .setNegativeButton("Batal", (dialog, which) -> result.cancel())
+                        .setCancelable(false)
+                        .show();
+                return true;
+            }
+        });
 
         // Injeksi Native JavaScript Bridge untuk cetak dan laci kasir
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
@@ -105,9 +183,39 @@ public class MainActivity extends AppCompatActivity {
         webView.loadUrl(PRODUCTION_URL);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == FILE_CHOOSER_REQUEST_CODE) {
+            if (filePathCallback != null) {
+                Uri[] results = null;
+                if (resultCode == RESULT_OK && data != null) {
+                    if (data.getData() != null) {
+                        results = new Uri[]{data.getData()};
+                    } else if (data.getClipData() != null) {
+                        int count = data.getClipData().getItemCount();
+                        results = new Uri[count];
+                        for (int i = 0; i < count; i++) {
+                            results[i] = data.getClipData().getItemAt(i).getUri();
+                        }
+                    }
+                }
+                filePathCallback.onReceiveValue(results);
+                filePathCallback = null;
+            }
+        }
+    }
+
     private void checkAndRequestPermissions() {
         List<String> permissionsNeeded = new ArrayList<>();
 
+        // Izin Kamera
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.CAMERA);
+        }
+
+        // Izin Bluetooth Android 12+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                 permissionsNeeded.add(Manifest.permission.BLUETOOTH_CONNECT);
@@ -116,8 +224,20 @@ public class MainActivity extends AppCompatActivity {
                 permissionsNeeded.add(Manifest.permission.BLUETOOTH_SCAN);
             }
         } else {
+            // Android 11 ke bawah
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 permissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
+            }
+        }
+
+        // Izin Galeri / Memori
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.READ_MEDIA_IMAGES);
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
             }
         }
 
@@ -138,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             if (allGranted) {
-                Log.d(TAG, "Izin Bluetooth telah diberikan pengguna.");
+                Log.d(TAG, "Semua izin sistem telah disetujui pengguna.");
             }
         }
     }
