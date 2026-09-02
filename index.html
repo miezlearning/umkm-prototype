@@ -1478,6 +1478,15 @@
                   <span>Pilih Port USB</span>
                 </button>
               </div>
+
+              <!-- Quick Helper link for mobile users -->
+              <div class="flex items-center justify-between text-[11px] px-0.5 text-stone-500">
+                <span>Khusus HP / Tablet Android:</span>
+                <button type="button" onclick="KasirApp.openBluetoothTroubleshootModal()" class="text-blue-700 hover:text-blue-900 font-black inline-flex items-center gap-1">
+                  <span class="material-symbols-rounded text-xs">help</span>
+                  <span>Cek Izin Bluetooth</span>
+                </button>
+              </div>
             </div>
 
             <!-- Mode Cetak & Ukuran Kertas (Full Width Selects - Anti Truncate) -->
@@ -1633,6 +1642,70 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: PANDUAN & DIAGNOSTIK IZIN BLUETOOTH HP ==================== -->
+  <div id="bluetoothTroubleshootModal"
+    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+    <div
+      class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col animate-in zoom-in-95">
+      
+      <!-- Clean Header -->
+      <div class="p-5 pb-3 flex items-start justify-between border-b border-stone-100">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-center shrink-0">
+            <span class="material-symbols-rounded text-2xl">bluetooth_searching</span>
+          </div>
+          <div>
+            <h3 id="btTroubleTitle" class="text-base sm:text-lg font-black text-stone-900 leading-tight">Panduan Izin Bluetooth HP</h3>
+            <p class="text-xs text-stone-500 font-medium mt-0.5">Langkah aktivasi agar printer terdeteksi</p>
+          </div>
+        </div>
+        <button onclick="KasirApp.closeBluetoothTroubleshootModal()" class="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition">
+          <span class="material-symbols-rounded text-2xl">close</span>
+        </button>
+      </div>
+
+      <!-- Content Body -->
+      <div class="p-5 flex flex-col gap-4">
+        <p id="btTroubleMsg" class="text-xs text-stone-600 font-medium leading-relaxed">
+          Ikuti panduan berikut agar printer thermal dapat dipindai oleh Google Chrome di HP Anda:
+        </p>
+
+        <!-- Steps List -->
+        <ul id="btTroubleList" class="flex flex-col gap-2.5 bg-stone-50 p-3.5 rounded-2xl border border-stone-200">
+          <li class="flex items-start gap-2.5 text-xs text-stone-700">
+            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">1</span>
+            <span>Nyalakan <strong>Bluetooth</strong> di menu pengaturan atas HP Anda.</span>
+          </li>
+          <li class="flex items-start gap-2.5 text-xs text-stone-700">
+            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">2</span>
+            <span>Nyalakan <strong>LOKASI / GPS</strong> di HP Anda (wajib oleh sistem Android untuk scan Bluetooth).</span>
+          </li>
+          <li class="flex items-start gap-2.5 text-xs text-stone-700">
+            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">3</span>
+            <span>Buka <strong>Pengaturan HP &gt; Aplikasi &gt; Chrome &gt; Izin</strong> &gt; Izinkan <strong>"Perangkat di Sekitar"</strong>.</span>
+          </li>
+          <li class="flex items-start gap-2.5 text-xs text-stone-700">
+            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">4</span>
+            <span>Pastikan printer thermal dalam kondisi <strong>MENYALA</strong> (lampu biru/hijau menyala).</span>
+          </li>
+        </ul>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" onclick="KasirApp.closeBluetoothTroubleshootModal()"
+            class="flex-1 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 font-bold text-stone-700 text-xs transition">
+            Saya Mengerti
+          </button>
+          <button type="button" onclick="KasirApp.closeBluetoothTroubleshootModal(); KasirApp.connectBluetoothPrinter();"
+            class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-1.5">
+            <span class="material-symbols-rounded text-sm">refresh</span>
+            <span>Coba Scan Lagi</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -2001,7 +2074,7 @@
   </div>
 
   <!-- Main JavaScript App Module -->
-  <script type="module" src="js/app.js?v=38"></script>
+  <script type="module" src="js/app.js?v=39"></script>
 </body>
 
 </html>

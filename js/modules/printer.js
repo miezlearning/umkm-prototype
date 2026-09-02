@@ -348,16 +348,86 @@ export function buildOpenDrawerBytes() {
 }
 
 /**
- * Koneksi ke Printer Thermal via Web Bluetooth API
+ * Tampilkan modal bantuan / panduan izin Bluetooth HP
+ */
+export function openBluetoothTroubleshootModal(details = {}) {
+  const modal = document.getElementById('bluetoothTroubleshootModal');
+  if (!modal) return;
+
+  const titleEl = document.getElementById('btTroubleTitle');
+  const msgEl = document.getElementById('btTroubleMsg');
+  const listEl = document.getElementById('btTroubleList');
+
+  if (titleEl) titleEl.innerText = details.title || 'Panduan Izin Bluetooth HP';
+  if (msgEl) msgEl.innerText = details.message || 'Ikuti langkah berikut agar printer terdeteksi lancar:';
+  
+  if (listEl) {
+    const steps = details.steps || [
+      'Nyalakan Bluetooth di menu pengaturan atas HP Anda.',
+      'Nyalakan LOKASI / GPS di HP Anda (wajib oleh sistem Android).',
+      'Buka Pengaturan HP > Aplikasi > Chrome > Izin > Izinkan "Perangkat di Sekitar".',
+      'Pastikan web ini dibuka dengan HTTPS (bukan http:// biasa).'
+    ];
+    listEl.innerHTML = steps.map((s, idx) => `
+      <li class="flex items-start gap-2.5 text-xs text-stone-700">
+        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">${idx + 1}</span>
+        <span>${s}</span>
+      </li>
+    `).join('');
+  }
+
+  modal.classList.remove('hidden');
+}
+
+export function closeBluetoothTroubleshootModal() {
+  const modal = document.getElementById('bluetoothTroubleshootModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+/**
+ * Koneksi ke Printer Thermal via Web Bluetooth API (Dilengkapi Diagnostik Izin Otomatis)
  */
 export async function connectBluetoothPrinter() {
+  // 1. Cek dukungan browser
   if (!navigator.bluetooth) {
-    showToast('Browser ini belum mendukung Web Bluetooth. Gunakan Google Chrome / Edge.', 'error');
+    const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (!isSecure) {
+      openBluetoothTroubleshootModal({
+        title: 'Wajib Dibuka via HTTPS',
+        message: 'Google Chrome di HP mematikan fitur Bluetooth jika web dibuka lewat HTTP biasa (seperti IP 192.168.x.x).',
+        steps: [
+          'Buka kasir menggunakan tautan resmi HTTPS (Firebase / domain Anda).',
+          'Atau di laptop, gunakan koneksi USB Serial yang tidak memerlukan HTTPS.'
+        ]
+      });
+    } else {
+      showToast('Browser ini belum mendukung Web Bluetooth. Gunakan Google Chrome versi terbaru.', 'error');
+    }
     return false;
   }
 
+  // 2. Cek apakah Bluetooth perangkat menyala
+  if (navigator.bluetooth.getAvailability) {
+    try {
+      const isAvailable = await navigator.bluetooth.getAvailability();
+      if (!isAvailable) {
+        openBluetoothTroubleshootModal({
+          title: 'Bluetooth HP Sedang Mati',
+          message: 'Sistem mendeteksi adapter Bluetooth di HP/perangkat Anda belum aktif.',
+          steps: [
+            'Tarik layar atas HP Anda ke bawah.',
+            'Ketuk ikon Bluetooth hingga menyala (Aktif).',
+            'Ketuk juga ikon Lokasi / GPS (wajib di Android agar Chrome bisa memindai printer).',
+            'Kembali ke aplikasi ini dan klik Pair Bluetooth lagi.'
+          ]
+        });
+        return false;
+      }
+    } catch (_) {}
+  }
+
   try {
-    showToast('Membuka daftar printer Bluetooth...', 'info');
+    showToast('Membuka jendela printer Bluetooth...', 'info');
     
     // Panggil langsung dengan acceptAllDevices agar gesture user tidak hang/expire
     bluetoothDevice = await navigator.bluetooth.requestDevice({
@@ -403,8 +473,23 @@ export async function connectBluetoothPrinter() {
     if (err.name === 'NotFoundError' || err.message?.includes('User cancelled') || err.message?.includes('cancelled')) {
       return false; // Pengguna membatalkan dialog
     }
+    
     console.warn('Bluetooth Connection Warning:', err);
-    showToast(`Bluetooth: ${err.message || 'Gagal terhubung'}`, 'warning');
+    
+    // Jika ada error izin Android atau adapter
+    if (err.message?.includes('adapter') || err.message?.includes('Location') || err.name === 'SecurityError') {
+      openBluetoothTroubleshootModal({
+        title: 'Izin Bluetooth / Lokasi Belum Lengkap',
+        message: 'Chrome tidak diizinkan memindai printer karena aturan privasi Android.',
+        steps: [
+          'Pastikan GPS / Lokasi di HP dalam kondisi MENYALA.',
+          'Buka Pengaturan HP > Aplikasi > Chrome > Izin > Izinkan "Perangkat di Sekitar".',
+          'Pastikan printer dalam kondisi hidup (lampu indikator menyala).'
+        ]
+      });
+    } else {
+      showToast(`Bluetooth: ${err.message || 'Gagal terhubung'}`, 'warning');
+    }
     return false;
   }
 }
