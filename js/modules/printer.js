@@ -659,7 +659,14 @@ export async function kickCashDrawer() {
       const bytes = buildOpenDrawerBytes();
       let binary = '';
       for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-      window.location.href = 'rawbt:data:application/octet-stream;base64,' + window.btoa(binary);
+      const b64 = window.btoa(binary);
+      const intentUri = `intent:base64,${b64}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+      const link = document.createElement('a');
+      link.href = intentUri;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => { try { link.remove(); } catch (_) {} }, 500);
       showToast('Sinyal buka laci terkirim ke RawBT!', 'success');
       return true;
     } catch (e) {
@@ -691,8 +698,18 @@ export async function printReceipt(tx, forceMethod = null) {
       const bytes = await buildEscPosBytes(tx, shouldKickDrawer);
       let binary = '';
       for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-      window.location.href = 'rawbt:data:application/octet-stream;base64,' + window.btoa(binary);
-      showToast('Struk terkirim ke printer via RawBT!', 'success');
+      const b64 = window.btoa(binary);
+      
+      // Format resmi RawBT: intent:base64,... (Bukan data:application/octet-stream)
+      const intentUri = `intent:base64,${b64}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+      const link = document.createElement('a');
+      link.href = intentUri;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => { try { link.remove(); } catch (_) {} }, 500);
+
+      showToast('Struk terkirim ke RawBT!', 'success');
       return true;
     } catch (e) {
       console.warn('RawBT print error, beralih ke dialog sistem:', e);
