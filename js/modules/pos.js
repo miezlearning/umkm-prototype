@@ -30,11 +30,19 @@ export function renderOrderQueueTabs() {
     }
 
     return `
-      <button onclick="window.KasirApp.switchOrderQueue('${q.id}')"
-        class="active-queue-tab-wrapper px-3.5 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 transition shrink-0 touch-target-large ${tabStyle}">
-        <span>${escapeHtml(q.name)}</span>
-        ${itemCount > 0 ? `<span class="px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${badgeStyle}">${itemCount}</span>` : ''}
-      </button>
+      <div class="active-queue-tab-wrapper flex items-center rounded-xl transition shrink-0 ${tabStyle}">
+        <button onclick="window.KasirApp.switchOrderQueue('${q.id}')"
+          class="px-3 py-2 text-xs sm:text-sm flex items-center gap-1.5 touch-target-large">
+          <span>${escapeHtml(q.name)}</span>
+          ${itemCount > 0 ? `<span class="px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${badgeStyle}">${itemCount}</span>` : ''}
+        </button>
+        ${isActive ? `
+          <button type="button" onclick="event.stopPropagation(); window.KasirApp.promptRenameQueue()"
+            title="Ubah nama antrian" class="pr-2.5 pl-0.5 py-2 text-white/80 hover:text-white transition flex items-center">
+            <span class="material-symbols-rounded text-sm">edit</span>
+          </button>
+        ` : ''}
+      </div>
     `;
   }).join('');
 
@@ -218,15 +226,17 @@ export async function deleteCurrentActiveQueue() {
       });
       if (ok) {
         cur.cart = {};
+        cur.name = 'Pesanan #1';
         saveQueues();
         syncSaveQueues(state.orderQueues);
         renderOrderQueueTabs();
         renderCart();
         renderProducts();
-        showToast(`Pesanan pada "${cur.name}" dikosongkan.`, 'info', 5000, {
+        showToast(`Pesanan dikosongkan dan direset ke "Pesanan #1".`, 'info', 5000, {
           label: 'URUNGKAN',
           onClick: () => {
             cur.cart = { ...backedUpQueue.cart };
+            cur.name = backedUpQueue.name;
             saveQueues();
             syncSaveQueues(state.orderQueues);
             renderOrderQueueTabs();

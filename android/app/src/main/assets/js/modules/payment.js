@@ -343,13 +343,13 @@ export function completeTransaction() {
     }, 200);
   }
 
-  if (activeQueue) {
-    activeQueue.cart = {};
-  }
-  
   if (state.orderQueues.length > 1) {
     state.orderQueues = state.orderQueues.filter(q => q.id !== state.activeQueueId);
     state.activeQueueId = state.orderQueues[0].id;
+  } else {
+    // Jika hanya 1 antrian, kosongkan keranjang dan kembalikan namanya menjadi 'Pesanan #1'
+    state.orderQueues[0].cart = {};
+    state.orderQueues[0].name = 'Pesanan #1';
   }
 
   saveQueues();
