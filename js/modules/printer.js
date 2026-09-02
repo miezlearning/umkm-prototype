@@ -322,8 +322,12 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
   addText(`NO ANTRIAN ${rawOrder.toUpperCase()}\n`);
   addBytes(0x1D, 0x21, 0x00); // Normal Size
   addBytes(0x1B, 0x45, 0x00); // Bold OFF
-  addBytes(0x1B, 0x61, 0x00); // Align Left
-  addText(divider);
+  // 11. Trigger Cash Drawer di akhir struk (Jaminan pulse solenoid terpicu)
+  if (kickDrawer) {
+    addBytes(0x1B, 0x70, 0x00, 0x32, 0xFA);
+    addBytes(0x1B, 0x70, 0x01, 0x32, 0xFA);
+    addBytes(0x07);
+  }
 
   // Feed 3 baris & Cut
   addBytes(0x1B, 0x64, 0x03);
@@ -334,13 +338,11 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
 
 /**
  * Perintah ESC/POS komprehensif untuk membuka laci kasir (Cash Drawer Kick)
- * Mengirim burst multi-pulse berenergi tinggi (Pin 2, Pin 5, 50ms, 100ms, 200ms, DLE DC4 realtime, dan BEL)
+ * Mengirim multi-pulse energi tinggi (Pin 2, Pin 5, 100ms, 200ms, DLE DC4, dan BEL)
+ * TANPA ESC @ (Inisialisasi) agar tidak mereset buffer solenoid printer
  */
 export function buildOpenDrawerBytes() {
   return new Uint8Array([
-    0x1B, 0x40,                         // ESC @ (Inisialisasi)
-    0x1B, 0x70, 0x00, 0x19, 0xFA,       // ESC p 0 25 250 (50ms Pin 2)
-    0x1B, 0x70, 0x01, 0x19, 0xFA,       // ESC p 1 25 250 (50ms Pin 5)
     0x1B, 0x70, 0x00, 0x32, 0xFA,       // ESC p 0 50 250 (100ms Pin 2)
     0x1B, 0x70, 0x01, 0x32, 0xFA,       // ESC p 1 50 250 (100ms Pin 5)
     0x1B, 0x70, 0x00, 0x64, 0xFA,       // ESC p 0 100 250 (200ms High Energy Pin 2)
