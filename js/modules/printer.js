@@ -653,14 +653,27 @@ export async function kickCashDrawer() {
     }
   }
 
-  // 3. Mode Browser / Windows Driver (Paling Direkomendasikan):
-  // Membuka dialog print ke Driver Windows yang akan mentrigger port RJ-11 laci kasir
-  showToast('Membuka dialog cetak Windows...', 'info');
+  // 3. Mode RawBT (Standar Bluetooth Classic SPP di Android / HP)
+  if (cfg.printMethod === 'rawbt') {
+    try {
+      const bytes = buildOpenDrawerBytes();
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      window.location.href = 'rawbt:data:application/octet-stream;base64,' + window.btoa(binary);
+      showToast('Sinyal buka laci terkirim ke RawBT!', 'success');
+      return true;
+    } catch (e) {
+      console.warn('RawBT kick error:', e);
+    }
+  }
+
+  // 4. Mode Browser / Windows Driver / Android Print Service
+  showToast('Membuka dialog cetak sistem...', 'info');
   window.print();
 }
 
 /**
- * Cetak Transaksi Utama (Mendukung Browser Print, Bluetooth ESC/POS, dan Serial USB)
+ * Cetak Transaksi Utama (Mendukung Browser Print, RawBT Android, Serial USB, dan Web Bluetooth)
  */
 export async function printReceipt(tx, forceMethod = null) {
   playClick('pop');
@@ -672,7 +685,20 @@ export async function printReceipt(tx, forceMethod = null) {
   // Pastikan UI printArea terupdate dengan teks & tata letak 58mm terkini
   renderPrintableReceiptArea(tx, cfg);
 
-  if (method === 'bluetooth') {
+  if (method === 'rawbt') {
+    try {
+      showToast('Mengirim struk ke RawBT Android (Bluetooth SPP)...', 'info');
+      const bytes = await buildEscPosBytes(tx, shouldKickDrawer);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      window.location.href = 'rawbt:data:application/octet-stream;base64,' + window.btoa(binary);
+      showToast('Struk terkirim ke printer via RawBT!', 'success');
+      return true;
+    } catch (e) {
+      console.warn('RawBT print error, beralih ke dialog sistem:', e);
+      window.print();
+    }
+  } else if (method === 'bluetooth') {
     try {
       showToast('Mengirim struk ke printer Bluetooth...', 'info');
       const bytes = await buildEscPosBytes(tx, shouldKickDrawer);
@@ -681,7 +707,7 @@ export async function printReceipt(tx, forceMethod = null) {
       return true;
     } catch (e) {
       console.warn('Bluetooth print gagal, beralih ke dialog browser:', e);
-      showToast('Bluetooth gagal, membuka dialog cetak browser...', 'warning');
+      showToast('Bluetooth gagal, membuka dialog cetak...', 'warning');
       window.print();
     }
   } else if (method === 'serial') {
@@ -693,11 +719,11 @@ export async function printReceipt(tx, forceMethod = null) {
       return true;
     } catch (e) {
       console.warn('Serial print gagal, beralih ke dialog browser:', e);
-      showToast('USB Serial gagal, membuka dialog cetak browser...', 'warning');
+      showToast('USB Serial gagal, membuka dialog cetak...', 'warning');
       window.print();
     }
   } else {
-    // Standard Universal Browser Print
+    // Standard Universal Browser / Android Print Spooler
     window.print();
   }
 }
