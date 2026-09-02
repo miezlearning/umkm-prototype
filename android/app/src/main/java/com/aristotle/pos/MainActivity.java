@@ -531,20 +531,18 @@ public class MainActivity extends AppCompatActivity {
         }
 
         try {
-            // Gunakan socket persistent (Zero Delay)
+            // Gunakan socket persistent (Zero Delay) dengan chunking proteksi buffer
             OutputStream out = getOrConnectPrinter();
-            out.write(data);
-            out.flush();
-            Log.d(TAG, "Data terkirim instan (Zero Delay) ke printer!");
+            writeDataChunked(out, data);
+            Log.d(TAG, "Semua " + data.length + " bytes berhasil dikirim ke printer secara tuntas!");
             return true;
         } catch (IOException e) {
             Log.w(TAG, "Socket terputus, mencoba auto-reconnect: " + e.getMessage());
             closeActiveSocket();
             try {
                 OutputStream freshOut = getOrConnectPrinter();
-                freshOut.write(data);
-                freshOut.flush();
-                Log.d(TAG, "Data terkirim setelah auto-reconnect!");
+                writeDataChunked(freshOut, data);
+                Log.d(TAG, "Data terkirim tuntas setelah auto-reconnect!");
                 return true;
             } catch (Exception retryErr) {
                 Log.e(TAG, "Gagal koneksi printer: " + retryErr.getMessage());
@@ -555,6 +553,20 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "Izin Bluetooth ditolak: " + se.getMessage());
             runOnUiThread(() -> Toast.makeText(this, "Izin Bluetooth belum diberikan di Pengaturan Aplikasi.", Toast.LENGTH_SHORT).show());
             return false;
+        }
+    }
+
+    private void writeDataChunked(OutputStream out, byte[] data) throws IOException {
+        int chunkSize = 256;
+        for (int i = 0; i < data.length; i += chunkSize) {
+            int len = Math.min(chunkSize, data.length - i);
+            out.write(data, i, len);
+            out.flush();
+            if (i + chunkSize < data.length) {
+                try {
+                    Thread.sleep(12); // Pacing 12ms agar mikrokontroler printer tidak overflow
+                } catch (InterruptedException ignored) {}
+            }
         }
     }
 

@@ -322,16 +322,21 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
   addText(`NO ANTRIAN ${rawOrder.toUpperCase()}\n`);
   addBytes(0x1D, 0x21, 0x00); // Normal Size
   addBytes(0x1B, 0x45, 0x00); // Bold OFF
-  // 11. Trigger Cash Drawer di akhir struk (Jaminan pulse solenoid terpicu)
+  // 11. Trigger Cash Drawer di akhir struk jika diminta
   if (kickDrawer) {
     addBytes(0x1B, 0x70, 0x00, 0x32, 0xFA);
     addBytes(0x1B, 0x70, 0x01, 0x32, 0xFA);
-    addBytes(0x07);
   }
 
-  // Feed 3 baris & Cut
-  addBytes(0x1B, 0x64, 0x03);
-  addBytes(0x1D, 0x56, 0x42, 0x00);
+  // Feed 5 baris agar seluruh struk keluar sempurna melewati pisau pemotong
+  addBytes(0x1B, 0x64, 0x05);
+  addText('\n\n');
+
+  // Perintah Cut hanya untuk printer 80mm yang memiliki pemotong otomatis
+  const paperWidth = cfg.paperWidth || '58mm';
+  if (paperWidth === '80mm') {
+    addBytes(0x1D, 0x56, 0x42, 0x00);
+  }
 
   return new Uint8Array(commands);
 }
