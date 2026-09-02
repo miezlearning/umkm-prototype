@@ -64,6 +64,20 @@ jobs:
       - name: Grant Execute Permission for Gradlew
         run: chmod +x android/gradlew
 
+      - name: Generate Debug Keystore for CI Build
+        run: |
+          keytool -genkeypair -v \
+            -keystore android/app/debug.keystore \
+            -storetype JKS \
+            -storepass android \
+            -keypass android \
+            -alias androiddebugkey \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US" \
+            -noprompt
+
       - name: Sync Latest Web Assets to Android Assets
         run: |
           mkdir -p android/app/src/main/assets/
