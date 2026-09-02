@@ -723,11 +723,25 @@ export function impersonateStore(storeId) {
   showToast(`Beralih ke kasir [${state.storeProfile?.name || storeId}]`, 'success');
 }
 
+export function openReleaseNotesModal() {
+  playClick('pop');
+  const modal = document.getElementById('releaseNotesModal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+export function closeReleaseNotesModal() {
+  playClick('pop');
+  const modal = document.getElementById('releaseNotesModal');
+  if (modal) modal.classList.add('hidden');
+}
+
 // ================= EXPORT GLOBAL NAMESPACE FOR HTML HANDLERS =================
 const KasirApp = {
   // App & Multi-Store & Universal Auth
   init,
   switchView,
+  openReleaseNotesModal,
+  closeReleaseNotesModal,
   openCloudModal,
   closeCloudModal,
   copyStoreShareLink,

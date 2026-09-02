@@ -101,8 +101,11 @@
         </div>
         <div>
           <h1 id="appHeaderStoreTitle" class="text-lg sm:text-2xl font-black tracking-tight leading-tight text-emerald-950">Kedai Usaha Mami</h1>
-          <p class="text-[10px] sm:text-xs text-stone-500 font-bold leading-tight flex items-center gap-1.5 flex-wrap">
             <span class="text-stone-700">Aristotle POS</span>
+            <button type="button" onclick="event.stopPropagation(); KasirApp.openReleaseNotesModal()" class="cursor-pointer px-2 py-0.5 rounded-full bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-[10px] font-black transition flex items-center gap-1 shadow-xs border border-emerald-300" title="Klik untuk melihat Apa yang Baru di v1.1.0">
+              <span>v1.1.0</span>
+              <span class="material-symbols-rounded text-xs text-emerald-700">stars</span>
+            </button>
             <span>•</span>
             <a href="https://wa.me/6281345028895" target="_blank" onclick="event.stopPropagation()" class="text-emerald-700 font-extrabold hover:underline" title="Hubungi Bantuan Teknis & Kemitraan">
               WA: 081345028895
@@ -1197,6 +1200,108 @@
             class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs sm:text-sm touch-target-large shadow-sm">Simpan Pengeluaran</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: CATATAN RILIS / APA YANG BARU ==================== -->
+  <div id="releaseNotesModal"
+    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-stone-200 animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]">
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-stone-200 flex items-center justify-between bg-gradient-to-r from-emerald-800 to-emerald-950 text-white">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-sm shadow-inner">
+            <span class="material-symbols-rounded text-2xl text-emerald-300">campaign</span>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black leading-tight">Apa yang Baru di Aristotle POS?</h3>
+            <p class="text-xs text-emerald-200/90 font-medium">Catatan Pembaruan Rilis v1.1.0</p>
+          </div>
+        </div>
+        <button type="button" onclick="KasirApp.closeReleaseNotesModal()"
+          class="p-1.5 rounded-full hover:bg-white/10 text-white/80 hover:text-white transition">
+          <span class="material-symbols-rounded text-2xl">close</span>
+        </button>
+      </div>
+
+      <!-- Content -->
+      <div class="p-6 overflow-y-auto space-y-4 text-xs sm:text-sm text-stone-700 custom-scroll">
+        <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-start gap-3">
+          <span class="material-symbols-rounded text-emerald-700 text-2xl shrink-0 mt-0.5">verified</span>
+          <div>
+            <h4 class="font-black text-emerald-950 text-sm">Versi 1.1.0 (Produksi)</h4>
+            <p class="text-emerald-800 text-xs mt-0.5">Peningkatan performa kasir, cetak printer instan, dan integrasi hardware native Android.</p>
+          </div>
+        </div>
+
+        <div class="space-y-3 pt-1">
+          <h5 class="font-black text-stone-900 uppercase tracking-wider text-[11px] text-emerald-800 flex items-center gap-1.5">
+            <span class="material-symbols-rounded text-base text-emerald-600">bolt</span>
+            <span>Sorotan Fitur & Peningkatan Baru:</span>
+          </h5>
+          
+          <div class="flex items-start gap-3 bg-stone-50 p-2.5 rounded-xl border border-stone-100">
+            <span class="material-symbols-rounded text-emerald-700 text-xl shrink-0 mt-0.5">print</span>
+            <div>
+              <strong class="text-stone-900 font-bold">Cetak Thermal Bluetooth Instan (Zero Dialog)</strong>
+              <p class="text-stone-600 text-xs mt-0.5">Mencetak struk seketika tanpa perlu aplikasi RawBT lagi dan 100% bebas watermark selamanya.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 bg-stone-50 p-2.5 rounded-xl border border-stone-100">
+            <span class="material-symbols-rounded text-emerald-700 text-xl shrink-0 mt-0.5">point_of_sale</span>
+            <div>
+              <strong class="text-stone-900 font-bold">Laci Kasir Otomatis (Auto-Kick Solenoid)</strong>
+              <p class="text-stone-600 text-xs mt-0.5">Laci kasir langsung terbuka dengan denyut listrik saat transaksi tunai selesai tanpa memunculkan dialog cetak.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 bg-stone-50 p-2.5 rounded-xl border border-stone-100">
+            <span class="material-symbols-rounded text-emerald-700 text-xl shrink-0 mt-0.5">photo_library</span>
+            <div>
+              <strong class="text-stone-900 font-bold">Unggah Logo Struk dari Galeri HP</strong>
+              <p class="text-stone-600 text-xs mt-0.5">Pemilih file foto galeri HP kini berfungsi penuh untuk memasang logo bisnis pada struk belanja.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 bg-stone-50 p-2.5 rounded-xl border border-stone-100">
+            <span class="material-symbols-rounded text-emerald-700 text-xl shrink-0 mt-0.5">qr_code_scanner</span>
+            <div>
+              <strong class="text-stone-900 font-bold">Kamera Pemindai QRIS & Barcode</strong>
+              <p class="text-stone-600 text-xs mt-0.5">Izin kamera bawaan untuk scan QRIS cepat di meja kasir langsung dari browser & APK.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 bg-stone-50 p-2.5 rounded-xl border border-stone-100">
+            <span class="material-symbols-rounded text-emerald-700 text-xl shrink-0 mt-0.5">table_restaurant</span>
+            <div>
+              <strong class="text-stone-900 font-bold">Manajemen Meja & Auto-Reset Antrian</strong>
+              <p class="text-stone-600 text-xs mt-0.5">Ubah nama pesanan dengan tombol cepat (Meja 1-4, Bungkus, GoFood, GrabFood) dan antrian otomatis kembali ke "Pesanan #1" setelah lunas.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 bg-stone-50 p-2.5 rounded-xl border border-stone-100">
+            <span class="material-symbols-rounded text-emerald-700 text-xl shrink-0 mt-0.5">cloud_sync</span>
+            <div>
+              <strong class="text-stone-900 font-bold">Over-The-Air (OTA) Cloud Sync</strong>
+              <p class="text-stone-600 text-xs mt-0.5">Aplikasi di HP mitra otomatis terupdate ke versi web terbaru tanpa perlu instal ulang APK.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="p-4 bg-stone-50 border-t border-stone-200 flex items-center justify-between">
+        <a href="https://github.com/miezlearning/umkm-prototype/releases" target="_blank"
+          class="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1">
+          <span class="material-symbols-rounded text-sm">open_in_new</span>
+          Lihat Riwayat Rilis di GitHub
+        </a>
+        <button type="button" onclick="KasirApp.closeReleaseNotesModal()"
+          class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs sm:text-sm transition shadow-sm">
+          Tutup & Lanjutkan
+        </button>
+      </div>
     </div>
   </div>
 

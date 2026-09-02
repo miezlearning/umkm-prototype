@@ -5,9 +5,9 @@ on:
     branches: [ master ]
   workflow_dispatch:
 
-# Izin untuk GitHub Pages deployment
+# Izin untuk GitHub Pages deployment & GitHub Release creation
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -82,3 +82,16 @@ jobs:
           name: Aristotle-POS-APK
           path: Aristotle-POS.apk
           retention-days: 30
+
+      - name: Publish GitHub Release with APK & Changelog
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/master'
+        with:
+          tag_name: v1.1.0
+          name: "Aristotle POS v1.1.0 - Production Release"
+          body_path: RELEASE_NOTES.md
+          files: Aristotle-POS.apk
+          prerelease: false
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
