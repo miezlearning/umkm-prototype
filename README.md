@@ -1,7 +1,7 @@
-# 🎓 Aristotle POS (v1.1.0)
+# 🎓 Aristotle POS (v1.1.3)
 ### *Sistem Kasir Pintar, Modern, dan Skalabel untuk UMKM Multi-Tenant*
 
-[![Version](https://img.shields.io/badge/Release-v1.1.0-10b981?style=for-the-badge&logo=android&logoColor=white)](https://github.com/miezlearning/umkm-prototype/releases)
+[![Version](https://img.shields.io/badge/Release-v1.1.3-10b981?style=for-the-badge&logo=android&logoColor=white)](https://github.com/miezlearning/umkm-prototype/releases)
 [![Android APK](https://img.shields.io/badge/APK-Available-0284c7?style=for-the-badge&logo=android&logoColor=white)](file:///Aristotle-POS.apk)
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready-10b981?style=for-the-badge&logo=pwa&logoColor=white)](file:///index.html)
 [![Firebase Cloud](https://img.shields.io/badge/Firebase-Firestore%20Sync-ffca28?style=for-the-badge&logo=firebase&logoColor=black)](file:///js/firebase.js)
@@ -11,38 +11,41 @@
 
 ---
 
-## 🚀 Apa Saja yang Baru & Berubah di Versi 1.1.0?
+## 📜 Riwayat Pembaruan (Changelog)
 
-Berikut rangkuman pembaruan penting dibandingkan versi awal (*Kedai Mami Prototype*):
+### 🍳 Versi 1.1.3 — *Kitchen Ticket Checkpoint & Smart Automation* (Terbaru)
+* **Tiket Dapur / Kitchen Checkpoint Resmi:**
+  * Menambahkan format cetak khusus lembar kerja koki / barista dengan kotak centang `[  ]` di setiap item pesanan agar koki bisa langsung mencentang menu yang sudah dimasak.
+  * Menghilangkan seluruh nominal harga di struk dapur untuk meminimalkan distraksi tim dapur dan menghemat kertas thermal 58mm.
+  * Menampilkan **Nomor Meja / Antrian Ekstra Besar** di bagian atas lembar tiket.
+* **Tombol Cepat `Tiket Dapur 🍳` di Layar Transaksi:**
+  * Kasir dapat mencetak atau mencetak ulang tiket antrian koki kapan saja dengan 1 kali klik.
+* **Otomatisasi Cetak Ganda (*Smart Double Print*):**
+  * Opsi di Pengaturan Printer untuk otomatis mencetak Tiket Dapur terlebih dahulu, lalu mencetak Struk Pelanggan secara berurutan saat transaksi selesai.
+* **Tombol Uji Coba Mandiri:** Menambahkan tombol **"Tes Dapur"** di modal pengaturan printer untuk mempermudah pratinjau fisik kertas thermal.
 
-### 1. 🎓 Rebranding & Maskot Resmi (Aristotle Scholar Cat)
-* **Nama Resmi Aplikasi:** Berubah menjadi **Aristotle POS** (`com.aristotle.pos`) agar siap untuk ekspansi bisnis SaaS multi-merchant.
-* **Ikon Maskot Transparan:** Menggunakan maskot kucing toga sarjana transparan 100% pada launcher Android (`ic_launcher`), layar splash pembuka, tab browser, serta favicon PWA.
-* **UI/UX Header Rapi:** Bilah atas (*header*) ditata ulang menjadi satu baris sejajar yang bersih, dengan tombol bantuan WhatsApp terpisah di bilah kanan.
+---
 
-### 2. 🖨️ Cetak Bluetooth Instan (*Zero Dialog*) & Laci Kasir Otomatis
-* **Bridge Native Android Bluetooth SPP:** Menggunakan socket RFCOMM native (`00001101-...`) sehingga kasir bisa mencetak struk langsung ke printer thermal Bluetooth (58mm/80mm) **tanpa aplikasi pihak ketiga (RawBT) dan tanpa watermark**.
-* **Auto Kick Cash Drawer:** Laci kasir RJ-11 otomatis menyentak terbuka (*KLAK!*) setiap transaksi tunai selesai.
-* **Bahasa Pengaturan Ringkas (Bebas Jargon TMI):** Menghapus seluruh nama merk/tipe hardware yang bertele-tele di menu pengaturan struk agar ramah pengguna non-teknis.
+### 🖨️ Versi 1.1.2 — *VSC Thermal Printer Recovery & Buffer Fix*
+* **Fix Lockup Mode Grafik (VSC TM-58V):** Menyuntikkan perintah `ESC @` (`0x1B, 0x40`) dan `ESC t 0` (`0x1B, 0x74, 0x00`) segera setelah data raster logo selesai dicetak, memaksa printer keluar dari mode grafik dan kembali mencetak seluruh teks transaksi.
+* **Optimalisasi Dimensi Logo (160 dot):** Memangkas ukuran logo bitmap dari 240 dot menjadi 160 dot, menghemat 70% memori buffer dan mencegah printer VSC macet (*hang*) di tengah gambar.
+* **Pacing Thermal Bluetooth 25ms:** Menyesuaikan jeda transmisi data Bluetooth per 256-byte menjadi 25ms agar jarum pemanas (*thermal print head*) memiliki waktu cukup membakar titik hitam tanpa data terpotong.
 
-### 3. 📱 Smart External Link Interceptor (Integrasi WhatsApp Native)
-* Tautan bantuan WhatsApp (`wa.me`) tidak lagi terbuka di dalam browser web internal aplikasi (*in-app WebView*), melainkan **langsung meluncurkan aplikasi WhatsApp resmi di HP Android**.
-* Layar kasir tetap aktif di latar belakang tanpa tertutup atau ter-refresh saat kasir menghubungi bantuan.
+---
 
-### 4. 📋 Alur Antrian Pesanan Cepat (*Mobile Queue Renaming*)
-* **One-Tap Rename:** Menambahkan tombol pensil (✏️) langsung di tab pesanan aktif untuk mengubah nama antrian di HP (misal: *Meja 05, Bungkus, Mas Yanto, GoFood*).
-* **Auto-Reset Profesional:** Nama pesanan otomatis kembali ke **Pesanan #1** setelah pembayaran selesai atau saat keranjang dikosongkan.
+### ⚡ Versi 1.1.1 — *Zero-Delay Bluetooth & 58mm Tail Feed*
+* **Persistent Bluetooth Socket:** Menggunakan soket RFCOMM aktif yang terus terhubung di latar belakang, memangkas latensi cetak kedua dan seterusnya menjadi instan (< 10ms).
+* **Pre-Connect Warmup:** Inisialisasi koneksi Bluetooth printer otomatis saat aplikasi pertama kali dibuka.
+* **5-Line Tail Feed:** Mengganti pemotong otomatis (*auto-cut*) dengan umpan 5 baris kertas (`ESC d 5` + baris baru) khusus printer 58mm agar struk melewati pisau gerigi perobek dengan rapi tanpa terpotong teksnya.
 
-### 5. 🤖 Otomatisasi CI/CD & GitHub Releases
-* **Pipeline GitHub Actions:** Setiap push ke cabang `master` otomatis:
-  1. Men-deploy web kasir terbaru ke GitHub Pages.
-  2. Mengompilasi file native `Aristotle-POS.apk`.
-  3. Mempublikasikan rilis resmi di GitHub Releases lengkap dengan changelog.
-* **Auto-Increment Versioning:** `versionCode` dan `versionName` kini bertambah otomatis di setiap build, memastikan HP Android mengenali setiap APK baru sebagai pembaruan (*Update*) resmi tanpa konflik tanda tangan (*signature*).
+---
 
-### 6. 🛡️ Pengamanan Database & Anti-Stuck Failsafe
-* **Inline Splash Failsafe:** Menambahkan timer pengaman 1.8 detik pada layar pembuka agar aplikasi dijamin tidak pernah tertahan (*stuck*) di layar loading, apapun kondisi sinyal HP kasir.
-* **Pembatasan Domain (HTTP Referrer Restriction):** API Key dikunci di Google Cloud Console hanya untuk domain resmi dan aplikasi lokal, mencegah penyalahgunaan dari luar.
+### 🎓 Versi 1.1.0 — *Aristotle Rebranding & Native Core*
+* **Rebranding Resmi:** Mengganti identitas menjadi **Aristotle POS** (`com.aristotle.pos`) dengan maskot kucing bertoga sarjana transparan 100%.
+* **Smart External Link Interceptor:** Tautan WhatsApp (`wa.me`) otomatis meluncurkan aplikasi native WhatsApp Android resmi.
+* **Locked Keystore:** Mengunci sertifikat rilis debug Android agar update APK tidak pernah mengalami *Package Conflicting Error*.
+* **Otomatisasi CI/CD:** Auto-increment `versionCode` dan publikasi APK otomatis melalui GitHub Actions & GitHub Releases.
+* **Inline Failsafe:** Menghilangkan risiko macet (*stuck*) pada splash screen pembuka.
 
 ---
 
