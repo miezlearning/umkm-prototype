@@ -406,30 +406,11 @@ export async function connectBluetoothPrinter() {
     return false;
   }
 
-  // 2. Cek apakah Bluetooth perangkat menyala
-  if (navigator.bluetooth.getAvailability) {
-    try {
-      const isAvailable = await navigator.bluetooth.getAvailability();
-      if (!isAvailable) {
-        openBluetoothTroubleshootModal({
-          title: 'Bluetooth HP Sedang Mati',
-          message: 'Sistem mendeteksi adapter Bluetooth di HP/perangkat Anda belum aktif.',
-          steps: [
-            'Tarik layar atas HP Anda ke bawah.',
-            'Ketuk ikon Bluetooth hingga menyala (Aktif).',
-            'Ketuk juga ikon Lokasi / GPS (wajib di Android agar Chrome bisa memindai printer).',
-            'Kembali ke aplikasi ini dan klik Pair Bluetooth lagi.'
-          ]
-        });
-        return false;
-      }
-    } catch (_) {}
-  }
-
+  // Langsung buka dialog requestDevice murni tanpa dicegat getAvailability()
   try {
     showToast('Membuka jendela printer Bluetooth...', 'info');
     
-    // Panggil langsung dengan acceptAllDevices agar gesture user tidak hang/expire
+    // Panggil langsung dengan acceptAllDevices agar popup Chrome Android seketika muncul
     bluetoothDevice = await navigator.bluetooth.requestDevice({
       acceptAllDevices: true,
       optionalServices: [
