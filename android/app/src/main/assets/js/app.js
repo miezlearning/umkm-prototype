@@ -611,48 +611,52 @@ function dismissSplashScreen() {
 }
 
 export function init() {
-  // 1. Initial skeleton preview if DOM not populated
-  pos.renderProductSkeletons(8);
+  try {
+    // 1. Initial skeleton preview if DOM not populated
+    pos.renderProductSkeletons(8);
 
-  // 2. Instant load from local storage
-  initState();
-  pos.renderOrderQueueTabs();
-  pos.renderProducts();
-  pos.renderCart();
+    // 2. Instant load from local storage
+    initState();
+    pos.renderOrderQueueTabs();
+    pos.renderProducts();
+    pos.renderCart();
 
-  // 3. Setup Service Worker for offline PWA
-  registerSW();
+    // 3. Setup Service Worker for offline PWA
+    registerSW();
 
-  // 4. Setup Firebase Realtime Cloud Sync (Smart Smooth Live Update)
-  setRemoteUpdateCallback((type) => {
-    const viewPos = document.getElementById('viewPos');
-    const viewAdmin = document.getElementById('viewAdmin');
-    const viewReport = document.getElementById('viewReport');
+    // 4. Setup Firebase Realtime Cloud Sync (Smart Smooth Live Update)
+    setRemoteUpdateCallback((type) => {
+      const viewPos = document.getElementById('viewPos');
+      const viewAdmin = document.getElementById('viewAdmin');
+      const viewReport = document.getElementById('viewReport');
 
-    if (type === 'products') {
-      if (viewPos && !viewPos.classList.contains('hidden')) {
-        pos.renderProducts();
-        pos.renderCart();
+      if (type === 'products') {
+        if (viewPos && !viewPos.classList.contains('hidden')) {
+          pos.renderProducts();
+          pos.renderCart();
+        }
+        if (viewAdmin && !viewAdmin.classList.contains('hidden')) {
+          admin.renderAdminTable();
+        }
+      } else if (type === 'transactions' || type === 'expenses') {
+        if (viewReport && !viewReport.classList.contains('hidden')) {
+          report.renderFinancialReport();
+        }
+      } else if (type === 'queues') {
+        if (viewPos && !viewPos.classList.contains('hidden')) {
+          pos.renderOrderQueueTabs();
+          pos.renderCart();
+        }
       }
-      if (viewAdmin && !viewAdmin.classList.contains('hidden')) {
-        admin.renderAdminTable();
-      }
-    } else if (type === 'transactions' || type === 'expenses') {
-      if (viewReport && !viewReport.classList.contains('hidden')) {
-        report.renderFinancialReport();
-      }
-    } else if (type === 'queues') {
-      if (viewPos && !viewPos.classList.contains('hidden')) {
-        pos.renderOrderQueueTabs();
-        pos.renderCart();
-      }
-    }
-  });
+    });
 
-  initFirebaseSync();
-
-  // 5. Dismiss Splash Screen smoothly
-  dismissSplashScreen();
+    initFirebaseSync();
+  } catch (err) {
+    console.warn('Init non-critical error:', err);
+  } finally {
+    // 5. Dismiss Splash Screen smoothly (Guaranteed)
+    dismissSplashScreen();
+  }
 
   // 6. Cek Route Super Admin via URL Parameter (?view=superadmin atau ?admin=super atau ?superadmin=1 atau #superadmin)
   try {

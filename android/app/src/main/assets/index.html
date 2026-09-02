@@ -88,6 +88,17 @@
     </div>
   </div>
 
+  <script>
+    // Inline Failsafe: Pastikan splash screen hilang dalam 2 detik apapun kondisi jaringan
+    setTimeout(function() {
+      var splash = document.getElementById('appSplashScreen');
+      if (splash && splash.style.display !== 'none') {
+        splash.classList.add('opacity-0', 'pointer-events-none');
+        setTimeout(function() { splash.style.display = 'none'; }, 450);
+      }
+    }, 1800);
+  </script>
+
   <!-- TOP APP BAR (Crisp Clean White & High-Contrast Forest Emerald - Ultra Readable & Senior Friendly) -->
   <header
     class="bg-white text-stone-900 shadow-sm sticky top-0 z-30 px-3 py-2.5 sm:px-6 sm:py-3 border-b border-stone-200">

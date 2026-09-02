@@ -23,9 +23,16 @@ import { DEFAULT_PRODUCTS, getStorageKeys, MASTER_DEV_KEY } from './config.js';
 import { state, currentStorageKeys, updateUIStoreBranding, getSavedStoresList } from './state.js';
 import { showToast } from './utils.js';
 
-// Firebase Configuration (Loaded securely from untracked config or injected by GitHub Secrets)
-import { firebaseConfig } from './firebase-config.js';
-export { firebaseConfig };
+// Firebase Configuration (Google Firebase Web Public Project Identifier)
+export const firebaseConfig = {
+  apiKey: "AIzaSyBkSoXy_F41bOdz4U9gldw0zQIaK1FHMNQ",
+  authDomain: "kedai-mami.firebaseapp.com",
+  projectId: "kedai-mami",
+  storageBucket: "kedai-mami.firebasestorage.app",
+  messagingSenderId: "827309609612",
+  appId: "1:827309609612:web:0a37ebf2c49696d0ace1a9",
+  measurementId: "G-QW6CMQMM6P"
+};
 
 // Store Identification getter
 export function getStoreId() {
