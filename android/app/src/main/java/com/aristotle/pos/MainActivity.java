@@ -564,10 +564,11 @@ public class MainActivity extends AppCompatActivity {
             out.flush();
             if (i + chunkSize < data.length) {
                 try {
-                    Thread.sleep(12); // Pacing 12ms agar mikrokontroler printer tidak overflow
+                    Thread.sleep(25); // Pacing 25ms agar mikrokontroler printer thermal VSC tidak overflow
                 } catch (InterruptedException ignored) {}
             }
         }
+        try { Thread.sleep(50); } catch (InterruptedException ignored) {}
     }
 
     @Override

@@ -17,7 +17,7 @@ let serialWriter = null;
  * Konversi Gambar Base64 menjadi Byte Array ESC/POS Raster (GS v 0)
  * Menghasilkan cetakan logo monokrom tajam pada printer thermal 58mm
  */
-export async function convertImageToEscPosRaster(base64Data, maxWidth = 256) {
+export async function convertImageToEscPosRaster(base64Data, maxWidth = 160) {
   return new Promise((resolve) => {
     if (!base64Data) return resolve(new Uint8Array(0));
     const img = new Image();
@@ -76,6 +76,9 @@ export async function convertImageToEscPosRaster(base64Data, maxWidth = 256) {
       // Reset Align: ESC a 0
       rasterBytes.push(0x1B, 0x61, 0x00);
       rasterBytes.push(0x0A); // Linefeed setelah logo
+      // Pastikan kembali ke mode text murni (ESC @ dan ESC t 0)
+      rasterBytes.push(0x1B, 0x40);
+      rasterBytes.push(0x1B, 0x74, 0x00);
       resolve(new Uint8Array(rasterBytes));
     };
     img.onerror = () => resolve(new Uint8Array(0));
@@ -235,8 +238,10 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
   // 3. Sisipkan Logo Toko jika ada
   if (cfg.logoBase64 && cfg.showLogo !== false) {
     try {
-      const logoRasterBytes = await convertImageToEscPosRaster(cfg.logoBase64, 240);
+      const logoRasterBytes = await convertImageToEscPosRaster(cfg.logoBase64, 160);
       for (let b of logoRasterBytes) commands.push(b);
+      commands.push(0x1B, 0x40);
+      commands.push(0x1B, 0x74, 0x00);
     } catch (e) {
       console.warn('Gagal render logo ESC/POS:', e);
     }
