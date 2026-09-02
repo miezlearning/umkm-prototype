@@ -7,10 +7,16 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import android.util.Base64;
 import android.util.Log;
 import android.webkit.GeolocationPermissions;
@@ -388,7 +394,36 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public String getAppVersion() {
-            return "1.0.0 (Aristotle POS)";
+            return "1.1.3 (Aristotle POS)";
+        }
+
+        @JavascriptInterface
+        public int getAppVersionCode() {
+            try {
+                PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    return (int) pInfo.getLongVersionCode();
+                } else {
+                    return pInfo.versionCode;
+                }
+            } catch (Exception e) {
+                return 5;
+            }
+        }
+
+        @JavascriptInterface
+        public String getAppVersionName() {
+            try {
+                PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                return pInfo.versionName;
+            } catch (Exception e) {
+                return "1.1.3";
+            }
+        }
+
+        @JavascriptInterface
+        public void downloadAndInstallApk(final String downloadUrl) {
+            MainActivity.this.startApkDownloadAndInstall(downloadUrl);
         }
 
         @JavascriptInterface
@@ -569,6 +604,137 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         try { Thread.sleep(50); } catch (InterruptedException ignored) {}
+    }
+
+    public void startApkDownloadAndInstall(final String downloadUrl) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                InputStream input = null;
+                OutputStream output = null;
+                HttpURLConnection connection = null;
+                try {
+                    URL url = new URL(downloadUrl);
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.setConnectTimeout(15000);
+                    connection.setReadTimeout(30000);
+                    connection.setInstanceFollowRedirects(true);
+                    connection.connect();
+
+                    // Tangani redirect jika ada (misal GitHub Releases 302 redirect ke AWS S3)
+                    int status = connection.getResponseCode();
+                    if (status == HttpURLConnection.HTTP_MOVED_TEMP || status == HttpURLConnection.HTTP_MOVED_PERM || status == 307 || status == 308) {
+                        String newUrl = connection.getHeaderField("Location");
+                        connection.disconnect();
+                        url = new URL(newUrl);
+                        connection = (HttpURLConnection) url.openConnection();
+                        connection.setConnectTimeout(15000);
+                        connection.setReadTimeout(30000);
+                        connection.connect();
+                    }
+
+                    if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                        notifyUpdateError("Gagal mengunduh (HTTP " + connection.getResponseCode() + ")");
+                        return;
+                    }
+
+                    int fileLength = connection.getContentLength();
+                    File cacheDir = getExternalCacheDir() != null ? getExternalCacheDir() : getCacheDir();
+                    final File apkFile = new File(cacheDir, "Aristotle-POS-update.apk");
+                    if (apkFile.exists()) {
+                        apkFile.delete();
+                    }
+
+                    input = connection.getInputStream();
+                    output = new FileOutputStream(apkFile);
+
+                    byte[] data = new byte[8192];
+                    long total = 0;
+                    int count;
+                    long lastReportTime = 0;
+
+                    while ((count = input.read(data)) != -1) {
+                        total += count;
+                        output.write(data, 0, count);
+
+                        long now = System.currentTimeMillis();
+                        if (fileLength > 0 && (now - lastReportTime > 250)) {
+                            lastReportTime = now;
+                            final int progress = (int) ((total * 100) / fileLength);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (webView != null) {
+                                        webView.evaluateJavascript("window.KasirApp && window.KasirApp.onUpdateDownloadProgress && window.KasirApp.onUpdateDownloadProgress(" + progress + ");", null);
+                                    }
+                                }
+                            });
+                        }
+                    }
+
+                    output.flush();
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (webView != null) {
+                                webView.evaluateJavascript("window.KasirApp && window.KasirApp.onUpdateDownloadProgress && window.KasirApp.onUpdateDownloadProgress(100);", null);
+                            }
+                            installDownloadedApk(apkFile);
+                        }
+                    });
+
+                } catch (final Exception e) {
+                    Log.e(TAG, "Download error: " + e.getMessage(), e);
+                    notifyUpdateError(e.getMessage() != null ? e.getMessage() : "Koneksi terputus saat mengunduh");
+                } finally {
+                    try { if (output != null) output.close(); } catch (Exception ignored) {}
+                    try { if (input != null) input.close(); } catch (Exception ignored) {}
+                    if (connection != null) connection.disconnect();
+                }
+            }
+        }).start();
+    }
+
+    private void notifyUpdateError(final String msg) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (webView != null) {
+                    webView.evaluateJavascript("window.KasirApp && window.KasirApp.onUpdateDownloadError && window.KasirApp.onUpdateDownloadError('" + msg.replace("'", "\\'") + "');", null);
+                }
+                Toast.makeText(MainActivity.this, "Gagal mengunduh pembaruan: " + msg, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void installDownloadedApk(File apkFile) {
+        try {
+            if (!apkFile.exists()) {
+                notifyUpdateError("File APK tidak ditemukan.");
+                return;
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (!getPackageManager().canRequestPackageInstalls()) {
+                    Toast.makeText(this, "Izinkan Aristotle POS memasang aplikasi agar pembaruan dapat dipasang.", Toast.LENGTH_LONG).show();
+                    Intent permissionIntent = new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+                    permissionIntent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivity(permissionIntent);
+                    return;
+                }
+            }
+
+            Uri apkUri = androidx.core.content.FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", apkFile);
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } catch (Exception e) {
+            Log.e(TAG, "Install error: " + e.getMessage(), e);
+            notifyUpdateError("Gagal membuka installer: " + e.getMessage());
+        }
     }
 
     @Override

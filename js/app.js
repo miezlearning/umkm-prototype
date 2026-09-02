@@ -21,6 +21,7 @@ import * as report from './modules/report.js';
 import * as tour from './modules/tour.js';
 import * as superadmin from './modules/superadmin.js';
 import * as printer from './modules/printer.js?v=41';
+import * as updater from './modules/updater.js';
 import { 
   initFirebaseSync, 
   setRemoteUpdateCallback, 
@@ -706,6 +707,11 @@ export function init() {
       showToast(`Kasir [${state.storeProfile?.name || 'Toko'}] siap melayani`, 'success', 2500);
     }, 700);
   }
+
+  // Cek Pembaruan Aplikasi Otomatis di Latar Belakang (2.5 detik setelah aplikasi terbuka)
+  setTimeout(() => {
+    updater.checkForAppUpdates(false);
+  }, 2500);
 }
 
 export async function openSuperAdminChangePin(storeId, storeName, currentPin) {
@@ -874,7 +880,14 @@ const KasirApp = {
   closeGuideTour: tour.closeGuideTour,
   nextTourStep: tour.nextTourStep,
   prevTourStep: tour.prevTourStep,
-  goToTourStep: tour.goToTourStep
+  goToTourStep: tour.goToTourStep,
+
+  // In-App Auto-Updater
+  checkForAppUpdates: updater.checkForAppUpdates,
+  startAppUpdate: updater.startAppUpdate,
+  closeUpdateModal: updater.closeUpdateModal,
+  onUpdateDownloadProgress: updater.onUpdateDownloadProgress,
+  onUpdateDownloadError: updater.onUpdateDownloadError
 };
 
 // Expose to window for inline onclick HTML handlers

@@ -1,0 +1,201 @@
+/**
+ * In-App Auto Updater Module for Aristotle POS
+ * Mendeteksi versi rilis baru dari cloud (version.json)
+ * dan memicu pengunduhan serta instalasi APK otomatis di Android atau download di browser
+ */
+import { showToast, playClick } from '../utils.js';
+
+let updateInfo = null;
+
+/**
+ * Dapatkan versi terpasang saat ini
+ */
+export function getCurrentAppVersion() {
+  if (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionCode === 'function') {
+    return {
+      code: window.AndroidBridge.getAppVersionCode(),
+      name: window.AndroidBridge.getAppVersionName ? window.AndroidBridge.getAppVersionName() : '1.1.3',
+      isNative: true
+    };
+  }
+  return {
+    code: 5,
+    name: '1.1.3',
+    isNative: false
+  };
+}
+
+/**
+ * Periksa pembaruan aplikasi ke server
+ * @param {boolean} manual Jika true, tampilkan feedback jika sudah versi terbaru
+ */
+export async function checkForAppUpdates(manual = false) {
+  try {
+    const current = getCurrentAppVersion();
+    
+    // Perbarui teks versi di UI profil jika elemennya ada
+    const versionLabel = document.getElementById('appVersionLabel');
+    if (versionLabel) {
+      versionLabel.textContent = `v${current.name} (${current.isNative ? 'Android APK' : 'Web PWA'})`;
+    }
+
+    // Ambil version.json dengan cache-busting timestamp
+    const res = await fetch(`version.json?_t=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) {
+      if (manual) showToast('Gagal memeriksa pembaruan (Server tidak merespons).', 'warning');
+      return;
+    }
+
+    const data = await res.json();
+    updateInfo = data;
+
+    // Bandingkan version code
+    const isNewer = data.versionCode > current.code;
+
+    if (isNewer) {
+      showUpdateModal(data, current);
+    } else if (manual) {
+      showToast(`Aplikasi sudah menggunakan versi terbaru (v${current.name})! 🎉`, 'success');
+    }
+  } catch (err) {
+    console.warn('Check update error:', err);
+    if (manual) {
+      showToast('Gagal terhubung ke server pembaruan.', 'warning');
+    }
+  }
+}
+
+/**
+ * Tampilkan modal notifikasi pembaruan
+ */
+export function showUpdateModal(newRelease, current) {
+  const modal = document.getElementById('updateAppModal');
+  if (!modal) return;
+
+  const versionBadgeEl = document.getElementById('updateModalVersionBadge');
+  const currentVersionEl = document.getElementById('updateModalCurrentVersion');
+  const changelogEl = document.getElementById('updateModalChangelog');
+  const progressBar = document.getElementById('updateProgressBar');
+  const progressContainer = document.getElementById('updateProgressContainer');
+  const downloadBtn = document.getElementById('updateDownloadBtn');
+  const cancelBtn = document.getElementById('updateCancelBtn');
+
+  if (versionBadgeEl) {
+    versionBadgeEl.textContent = `v${newRelease.versionName || 'Terbaru'}`;
+  }
+  if (currentVersionEl) {
+    currentVersionEl.textContent = `Versi Anda saat ini: v${current.name}`;
+  }
+
+  if (changelogEl && Array.isArray(newRelease.changelog)) {
+    changelogEl.innerHTML = newRelease.changelog.map(item => `
+      <li class="flex items-start gap-2 text-xs text-stone-700">
+        <span class="text-emerald-600 font-black">•</span>
+        <span>${item}</span>
+      </li>
+    `).join('');
+  }
+
+  if (progressContainer) progressContainer.classList.add('hidden');
+  if (progressBar) progressBar.style.width = '0%';
+  if (downloadBtn) {
+    downloadBtn.disabled = false;
+    downloadBtn.innerHTML = `
+      <span class="material-symbols-rounded text-base">cloud_download</span>
+      <span>Perbarui Sekarang ⚡</span>
+    `;
+  }
+  if (cancelBtn) cancelBtn.disabled = false;
+
+  modal.classList.remove('hidden');
+}
+
+/**
+ * Tutup modal pembaruan
+ */
+export function closeUpdateModal() {
+  const modal = document.getElementById('updateAppModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+/**
+ * Mulai proses pengunduhan & instalasi pembaruan
+ */
+export function startAppUpdate() {
+  playClick('pop');
+  if (!updateInfo || !updateInfo.apkUrl) {
+    showToast('Tautan pembaruan tidak valid.', 'error');
+    return;
+  }
+
+  const downloadBtn = document.getElementById('updateDownloadBtn');
+  const cancelBtn = document.getElementById('updateCancelBtn');
+  const progressContainer = document.getElementById('updateProgressContainer');
+  const statusText = document.getElementById('updateProgressStatus');
+
+  if (progressContainer) progressContainer.classList.remove('hidden');
+  if (downloadBtn) {
+    downloadBtn.disabled = true;
+    downloadBtn.innerHTML = `
+      <span class="material-symbols-rounded animate-spin text-base">sync</span>
+      <span>Mengunduh...</span>
+    `;
+  }
+  if (cancelBtn) cancelBtn.disabled = true;
+
+  // Jalur Utama Native Android APK
+  if (window.AndroidBridge && typeof window.AndroidBridge.downloadAndInstallApk === 'function') {
+    if (statusText) statusText.textContent = 'Mengunduh paket pembaruan... 0%';
+    window.AndroidBridge.downloadAndInstallApk(updateInfo.apkUrl);
+  } else {
+    // Mode Web Browser / Laptop
+    if (statusText) statusText.textContent = 'Mengunduh APK pembaruan via browser...';
+    const a = document.createElement('a');
+    a.href = updateInfo.apkUrl;
+    a.download = 'Aristotle-POS.apk';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      a.remove();
+      closeUpdateModal();
+      showToast('File APK sedang diunduh oleh browser Anda.', 'info');
+    }, 1000);
+  }
+}
+
+/**
+ * Callback dari Java Android saat proses pengunduhan berjalan
+ */
+export function onUpdateDownloadProgress(percent) {
+  const progressBar = document.getElementById('updateProgressBar');
+  const statusText = document.getElementById('updateProgressStatus');
+
+  if (progressBar) progressBar.style.width = `${percent}%`;
+  if (statusText) {
+    if (percent >= 100) {
+      statusText.textContent = 'Unduhan selesai! Membuka installer Android...';
+    } else {
+      statusText.textContent = `Mengunduh paket pembaruan... ${percent}%`;
+    }
+  }
+}
+
+/**
+ * Callback dari Java Android jika pengunduhan gagal
+ */
+export function onUpdateDownloadError(msg) {
+  const downloadBtn = document.getElementById('updateDownloadBtn');
+  const cancelBtn = document.getElementById('updateCancelBtn');
+  const progressContainer = document.getElementById('updateProgressContainer');
+
+  if (downloadBtn) {
+    downloadBtn.disabled = false;
+    downloadBtn.innerHTML = `
+      <span class="material-symbols-rounded text-base">refresh</span>
+      <span>Coba Lagi</span>
+    `;
+  }
+  if (cancelBtn) cancelBtn.disabled = false;
+  if (progressContainer) progressContainer.classList.add('hidden');
+  showToast(`Gagal mengunduh pembaruan: ${msg}`, 'error');
+}
