@@ -46,6 +46,10 @@ android/local.properties
 *.keystore
 release-key.properties
 
+# Firebase Configuration Secret (Di-inject lewat GitHub Secrets pada CI/CD)
+js/firebase-config.js
+android/app/src/main/assets/js/firebase-config.js
+
 # Android APK / AAB Binaries (Dibangun otomatis oleh CI/CD)
 android/**/*.apk
 android/**/*.aab

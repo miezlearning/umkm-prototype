@@ -28,6 +28,16 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
+      - name: Inject Firebase Config from GitHub Secret
+        env:
+          FIREBASE_SECRET: ${{ secrets.FIREBASE_CONFIG }}
+        run: |
+          if [ -n "$FIREBASE_SECRET" ]; then
+            echo "export const firebaseConfig = $FIREBASE_SECRET;" > js/firebase-config.js
+          else
+            cp js/firebase-config.example.js js/firebase-config.js
+          fi
+
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
 
@@ -49,6 +59,16 @@ jobs:
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
+
+      - name: Inject Firebase Config from GitHub Secret
+        env:
+          FIREBASE_SECRET: ${{ secrets.FIREBASE_CONFIG }}
+        run: |
+          if [ -n "$FIREBASE_SECRET" ]; then
+            echo "export const firebaseConfig = $FIREBASE_SECRET;" > js/firebase-config.js
+          else
+            cp js/firebase-config.example.js js/firebase-config.js
+          fi
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
