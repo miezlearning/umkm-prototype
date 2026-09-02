@@ -20,7 +20,7 @@ import * as admin from './modules/admin.js';
 import * as report from './modules/report.js';
 import * as tour from './modules/tour.js';
 import * as superadmin from './modules/superadmin.js';
-import * as printer from './modules/printer.js';
+import * as printer from './modules/printer.js?v=41';
 import { 
   initFirebaseSync, 
   setRemoteUpdateCallback, 
