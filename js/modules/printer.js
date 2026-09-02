@@ -357,63 +357,54 @@ export async function connectBluetoothPrinter() {
   }
 
   try {
-    showToast('Mencari printer thermal Bluetooth...', 'info');
+    showToast('Membuka daftar printer Bluetooth...', 'info');
+    
+    // Panggil langsung dengan acceptAllDevices agar gesture user tidak hang/expire
     bluetoothDevice = await navigator.bluetooth.requestDevice({
-      filters: [
-        { services: ['000018f0-0000-1000-8000-00805f9b34fb'] },
-        { services: ['0000ffe0-0000-1000-8000-00805f9b34fb'] },
-        { services: ['e7810a71-73ae-499d-8c15-faa9aef0c3f2'] }
-      ],
+      acceptAllDevices: true,
       optionalServices: [
         '000018f0-0000-1000-8000-00805f9b34fb',
         '0000ffe0-0000-1000-8000-00805f9b34fb',
+        '0000ff00-0000-1000-8000-00805f9b34fb',
+        '0000fee7-0000-1000-8000-00805f9b34fb',
         'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
         '49535343-fe7d-4ae5-8fa9-9fafd205e455'
-      ],
-      acceptAllDevices: false
-    }).catch(async () => {
-      // Fallback: search all devices
-      return await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
-        optionalServices: [
-          '000018f0-0000-1000-8000-00805f9b34fb',
-          '0000ffe0-0000-1000-8000-00805f9b34fb',
-          'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
-          '49535343-fe7d-4ae5-8fa9-9fafd205e455'
-        ]
-      });
+      ]
     });
 
     if (!bluetoothDevice) return false;
 
+    showToast(`Menghubungkan ke ${bluetoothDevice.name || 'Printer'}...`, 'info');
     const server = await bluetoothDevice.gatt.connect();
     
-    // Cari characteristic yang writable
+    // Cari characteristic yang writable di seluruh service
     const services = await server.getPrimaryServices();
     for (const service of services) {
-      const characteristics = await service.getCharacteristics();
-      for (const char of characteristics) {
-        if (char.properties.write || char.properties.writeWithoutResponse) {
-          bluetoothCharacteristic = char;
-          break;
+      try {
+        const characteristics = await service.getCharacteristics();
+        for (const char of characteristics) {
+          if (char.properties.write || char.properties.writeWithoutResponse) {
+            bluetoothCharacteristic = char;
+            break;
+          }
         }
-      }
+      } catch (_) {}
       if (bluetoothCharacteristic) break;
     }
 
     if (!bluetoothCharacteristic) {
-      throw new Error('Tidak menemukan port tulis (write characteristic) pada printer.');
+      throw new Error('Printer tidak menyediakan port tulis BLE. Di Windows Laptop, silakan gunakan tombol "Pilih Port USB" (COM10).');
     }
 
     updatePrinterStatusBadge('bluetooth', bluetoothDevice.name || 'Bluetooth Printer');
     showToast(`Terhubung ke printer Bluetooth: ${bluetoothDevice.name || 'VSC TM-58V'}`, 'success');
     return true;
   } catch (err) {
-    if (err.name === 'NotFoundError' || err.message?.includes('User cancelled')) {
+    if (err.name === 'NotFoundError' || err.message?.includes('User cancelled') || err.message?.includes('cancelled')) {
       return false; // Pengguna membatalkan dialog
     }
     console.warn('Bluetooth Connection Warning:', err);
-    showToast(`Bluetooth: ${err.message || 'Dibatalkan'}`, 'warning');
+    showToast(`Bluetooth: ${err.message || 'Gagal terhubung'}`, 'warning');
     return false;
   }
 }
@@ -445,7 +436,35 @@ async function sendBluetoothData(bytes) {
 }
 
 /**
- * Koneksi ke Printer via Web Serial (USB Port)
+ * Coba sambungkan otomatis ke port Serial yang sudah pernah diizinkan sebelumnya
+ */
+export async function autoReconnectSerial() {
+  if (!navigator.serial) return false;
+  try {
+    const ports = await navigator.serial.getPorts();
+    if (ports && ports.length > 0) {
+      serialPort = ports[0];
+      if (!serialPort.readable || !serialPort.writable) {
+        await serialPort.open({ baudRate: 9600 });
+      }
+      serialWriter = serialPort.writable.getWriter();
+      updatePrinterStatusBadge('serial', 'USB Serial Printer');
+      console.log('Auto-reconnected to authorized serial/COM port');
+      return true;
+    }
+  } catch (err) {
+    console.warn('Auto reconnect serial note:', err);
+  }
+  return false;
+}
+
+// Inisialisasi auto-reconnect saat script dimuat
+if (typeof navigator !== 'undefined' && navigator.serial) {
+  setTimeout(() => { autoReconnectSerial().catch(() => {}); }, 500);
+}
+
+/**
+ * Koneksi ke Printer via Web Serial (USB Port / Bluetooth Virtual COM di Windows)
  */
 export async function connectSerialPrinter() {
   if (!navigator.serial) {
@@ -459,14 +478,14 @@ export async function connectSerialPrinter() {
     serialWriter = serialPort.writable.getWriter();
     
     updatePrinterStatusBadge('serial', 'USB Serial Printer');
-    showToast('Berhasil terhubung ke Printer USB Serial!', 'success');
+    showToast('Berhasil terhubung ke Printer Serial (COM / USB)!', 'success');
     return true;
   } catch (err) {
     if (err.name === 'NotFoundError' || err.message?.includes('No port selected')) {
       return false; // Pengguna membatalkan dialog
     }
     console.warn('Serial Connection Warning:', err);
-    showToast(`Serial USB: ${err.message}`, 'warning');
+    showToast(`Serial: ${err.message}`, 'warning');
     return false;
   }
 }

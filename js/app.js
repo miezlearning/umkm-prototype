@@ -806,6 +806,7 @@ const KasirApp = {
   testPrintReceipt: printer.testPrintReceipt,
   connectBluetoothPrinter: printer.connectBluetoothPrinter,
   connectSerialPrinter: printer.connectSerialPrinter,
+  autoReconnectSerial: printer.autoReconnectSerial,
   disconnectSerialPrinter: printer.disconnectSerialPrinter,
   disconnectBluetoothPrinter: printer.disconnectBluetoothPrinter,
   openPrinterConfigModal: printer.openPrinterConfigModal,
