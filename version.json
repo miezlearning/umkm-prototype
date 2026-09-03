@@ -1,10 +1,10 @@
 {
-  "versionCode": 23,
-  "versionName": "1.1.19",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.19/Aristotle-POS.apk",
+  "versionCode": 24,
+  "versionName": "1.1.20",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.20/Aristotle-POS.apk",
   "changelog": [
-    "Optimasi sinyal universal pembuka laci kasir (ESC/POS Pin 2, Pin 5, DLE DC4, LF buffer flush)",
-    "Perbaikan pemicu buka laci otomatis saat bayar tunai independen dari cetak struk"
+    "Sinkronisasi otomatis kartu menu kasir dari renderCart (single source of truth)",
+    "Invalidasi cache Service Worker & auto-refresh OTA"
   ],
   "releaseDate": "2026-09-03"
 }

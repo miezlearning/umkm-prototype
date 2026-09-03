@@ -6,6 +6,14 @@ Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelo
 
 ---
 
+## [v1.1.20] - 2026-09-03
+
+### 🛠️ Perbaikan Sinkronisasi Real-Time (Fixed & Optimized)
+- **Single Source of Truth Kartu Menu (`renderCart -> renderProducts`):** Memastikan kartu menu produk dan badge kuantitas (`1x`, `3x`) selalu otomatis tersinkronisasi 100% setiap kali isi keranjang diperbarui dari perangkat kasir manapun.
+- **Invalidasi Cache Service Worker & Auto-Refresh:** Memperbarui cache Service Worker (`aristotle-pos-v24`) dan menambahkan auto-reload saat Service Worker baru aktif agar browser pengguna di versi web selalu mengeksekusi kode JavaScript paling mutakhir tanpa perlu membersihkan cache secara manual.
+
+---
+
 ## [v1.1.19] - 2026-09-03
 
 ### 🛠️ Perbaikan & Peningkatan Laci Kasir (Cash Drawer)

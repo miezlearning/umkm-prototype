@@ -77,7 +77,16 @@ if (fs.existsSync(indexPath)) {
   console.log('Updated index.html badges');
 }
 
-// 4. Update RELEASE_NOTES.md
+// 4. Update sw.js CACHE_NAME
+const swPath = path.resolve('sw.js');
+if (fs.existsSync(swPath)) {
+  let swContent = fs.readFileSync(swPath, 'utf-8');
+  swContent = swContent.replace(/const CACHE_NAME = 'aristotle-pos-v[^']+';/, `const CACHE_NAME = 'aristotle-pos-v${newVersionCode}';`);
+  fs.writeFileSync(swPath, swContent);
+  console.log('Updated sw.js CACHE_NAME');
+}
+
+// 5. Update RELEASE_NOTES.md
 let notes = `# Aristotle POS v${targetVersion} Release Notes\n\n`;
 notes += `**Tanggal Rilis:** ${today}\n\n`;
 notes += `### Catatan Pembaruan:\n`;
@@ -88,4 +97,18 @@ notes += `\n---\n*Pembaruan ini dapat diunduh dan dipasang langsung dari dalam a
 fs.writeFileSync(releaseNotesPath, notes);
 console.log('Updated RELEASE_NOTES.md');
 
+// 6. Sync to Android Assets
+const assetsDir = path.resolve('android/app/src/main/assets');
+if (fs.existsSync(assetsDir)) {
+  ['index.html', 'version.json', 'sw.js'].forEach(f => {
+    const src = path.resolve(f);
+    const dest = path.join(assetsDir, f);
+    if (fs.existsSync(src)) {
+      fs.copyFileSync(src, dest);
+      console.log(`Synced ${f} to android assets`);
+    }
+  });
+}
+
 console.log(`\nBerhasil memperbarui ke v${targetVersion}! Tinggal 'git commit' dan 'git push' ke master untuk memicu rilis CI/CD otomatis.`);
+

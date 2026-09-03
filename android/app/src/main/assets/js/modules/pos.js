@@ -627,6 +627,9 @@ export function renderCart() {
   const drawerTotal = document.getElementById('mobileDrawerTotalDisplay');
   if (drawerList) drawerList.innerHTML = itemsHtml;
   if (drawerTotal) drawerTotal.innerText = formatRp(total);
+
+  // ponytail: single source of truth - card badges must always mirror cart
+  renderProducts();
 }
 
 export function toggleMobileCartDrawer(forcedState) {
