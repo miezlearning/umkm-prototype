@@ -993,6 +993,7 @@ const KasirApp = {
   testCloudRelayPrint: printer.testCloudRelayPrint,
   testLocalLanPing: printer.testLocalLanPing,
   autoDiscoverLocalPrinterHost: printer.autoDiscoverLocalPrinterHost,
+  handleLocalHostIpInput: printer.handleLocalHostIpInput,
   setupRemotePrintHostListener: printer.setupRemotePrintHostListener,
   setDevicePrinterRole: printer.setDevicePrinterMode,
   getDevicePrinterMode: printer.getDevicePrinterMode,

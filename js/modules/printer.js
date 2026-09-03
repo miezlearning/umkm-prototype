@@ -12,7 +12,9 @@ import {
   updateRemotePrintJobStatus,
   waitForRemotePrintJob,
   getDeviceId,
-  registerRemotePrintListener
+  registerRemotePrintListener,
+  syncPublishHostPresence,
+  listenToHostPresence
 } from '../firebase.js';
 
 // State koneksi hardware di runtime
@@ -1363,23 +1365,31 @@ export function updatePrinterUIStatus() {
       roleDesc.textContent = `Printer fisik (${printerName || 'Bluetooth'}) terhubung. Perangkat ini aktif menerima dan otomatis mencetak semua pesanan dari HP pelayan.`;
     }
     if (rolePrinterName) rolePrinterName.textContent = printerName ? `Hardware: ${printerName}` : 'Hardware: Bluetooth Thermal Standby';
-    if (btnTestRelay) btnTestRelay.classList.add('hidden');
-
-    // Tampilkan IP Server Lokal Offline jika berjalan di APK Android
+    const isAndroidApk = Boolean(window.AndroidBridge && typeof window.AndroidBridge.getLocalIpAddress === 'function');
     const localOfflineInfo = document.getElementById('localOfflineHostInfo');
+    const webHostInfo = document.getElementById('webBrowserHostInfo');
     const localIpBadge = document.getElementById('localHostIpBadge');
     const localHostIpContainer = document.getElementById('localHostIpInputContainer');
-    if (localOfflineInfo) localOfflineInfo.classList.remove('hidden');
-    if (localHostIpContainer) localHostIpContainer.classList.add('hidden');
-    if (localIpBadge) {
-      const myIp = (window.AndroidBridge && typeof window.AndroidBridge.getLocalIpAddress === 'function') 
-        ? window.AndroidBridge.getLocalIpAddress() 
-        : '192.168.43.1';
-      localIpBadge.textContent = `${myIp}:8088`;
+
+    if (isAndroidApk) {
+      if (localOfflineInfo) localOfflineInfo.classList.remove('hidden');
+      if (webHostInfo) webHostInfo.classList.add('hidden');
+      const myIp = window.AndroidBridge.getLocalIpAddress();
+      if (localIpBadge) localIpBadge.textContent = `${myIp}:8088`;
+      // Publikasikan IP lokal ke Firestore agar HP pelayan di Wi-Fi yang sama langsung tahu IP kasir
+      try {
+        syncPublishHostPresence(myIp, printerName || 'HP Kasir');
+      } catch (_) {}
+    } else {
+      if (localOfflineInfo) localOfflineInfo.classList.add('hidden');
+      if (webHostInfo) webHostInfo.classList.remove('hidden');
     }
 
+    if (localHostIpContainer) localHostIpContainer.classList.add('hidden');
+    if (btnTestRelay) btnTestRelay.classList.add('hidden');
+
   } else {
-    // HP PELAYAN (MODE CLOUD RELAY)
+    // HP PELAYAN (MODE CLOUD RELAY / CLIENT)
     if (headerBadge) {
       headerBadge.className = 'hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-50 hover:bg-sky-100/80 border border-sky-200/90 text-sky-950 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
     }
@@ -1409,18 +1419,22 @@ export function updatePrinterUIStatus() {
     if (btnTestRelay) btnTestRelay.classList.remove('hidden');
 
     const localOfflineInfo = document.getElementById('localOfflineHostInfo');
+    const webHostInfo = document.getElementById('webBrowserHostInfo');
     const localHostIpContainer = document.getElementById('localHostIpInputContainer');
     const printerLocalHostIp = document.getElementById('printerLocalHostIp');
     if (localOfflineInfo) localOfflineInfo.classList.add('hidden');
+    if (webHostInfo) webHostInfo.classList.add('hidden');
     if (localHostIpContainer) localHostIpContainer.classList.remove('hidden');
-    if (printerLocalHostIp) {
-      printerLocalHostIp.value = state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip') || '';
+
+    // PENTING: JANGAN PERNAH menimpa isi text input jika pengguna sedang mengetik di dalamnya!
+    if (printerLocalHostIp && document.activeElement !== printerLocalHostIp) {
+      const savedIp = state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip') || '';
+      if (!printerLocalHostIp.value) {
+        printerLocalHostIp.value = savedIp;
+      }
     }
 
-    // Otomatis deteksi HP kasir di latar belakang (Zero-Config untuk lansia)
-    setTimeout(() => {
-      autoDiscoverLocalPrinterHost(true);
-    }, 100);
+    setupHostPresenceListener();
   }
 
   // Update styling tombol toggle peran
@@ -2002,6 +2016,48 @@ export function savePrinterSettings(e) {
 }
 
 /**
+ * Handler input manual alamat IP Kasir Utama
+ * Menyimpan seketika tanpa perlu submit tombol, dan menguji otomatis jika sudah 4 blok angka
+ */
+export function handleLocalHostIpInput(val) {
+  const cleanIp = (val || '').trim();
+  if (!state.printerConfig) state.printerConfig = {};
+  state.printerConfig.localHostIp = cleanIp;
+  if (cleanIp) {
+    localStorage.setItem('aristotle_local_host_ip', cleanIp);
+  } else {
+    localStorage.removeItem('aristotle_local_host_ip');
+  }
+
+  // Jika format IP 4 oktet sudah lengkap (misal 192.168.1.5), uji otomatis seketika!
+  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(cleanIp)) {
+    testLocalLanPing(true, cleanIp);
+  }
+}
+
+// Listener keberadaan host kasir dari cloud
+let hostPresenceUnsub = null;
+export function setupHostPresenceListener() {
+  if (hostPresenceUnsub) {
+    try { hostPresenceUnsub(); } catch (_) {}
+    hostPresenceUnsub = null;
+  }
+  const role = getDevicePrinterMode();
+  if (role !== 'client') return;
+  try {
+    hostPresenceUnsub = listenToHostPresence((data) => {
+      if (!data || !data.ip) return;
+      console.log('Menerima IP Host Kasir dari Cloud:', data.ip);
+      localStorage.setItem('aristotle_cloud_host_ip', data.ip);
+      const badge = document.getElementById('localLanStatusBadge');
+      if (!badge || !badge.innerText.includes('🟢')) {
+        testLocalLanPing(true, data.ip);
+      }
+    });
+  } catch (_) {}
+}
+
+/**
  * Deteksi Otomatis HP Kasir Utama di Jaringan Lokal (Zero-Config, Senior-Friendly)
  * Lansia/Kasir tidak perlu tahu atau mengetik alamat IP sama sekali!
  */
@@ -2024,15 +2080,19 @@ export async function autoDiscoverLocalPrinterHost(silent = false) {
   const savedIp = state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip');
   if (savedIp && !candidates.includes(savedIp)) candidates.push(savedIp);
 
-  // B. Hotspot Android Default Gateway (99% kasus UMKM tethering ke HP Kasir)
+  // B. IP Host yang disiarkan lewat Cloud Firestore presence
+  const cloudHostIp = localStorage.getItem('aristotle_cloud_host_ip');
+  if (cloudHostIp && !candidates.includes(cloudHostIp)) candidates.push(cloudHostIp);
+
+  // C. Hotspot Android Default Gateway (99% kasus UMKM tethering ke HP Kasir)
   if (!candidates.includes('192.168.43.1')) candidates.push('192.168.43.1');
 
-  // C. Router Wi-Fi umum di Indonesia (IndiHome, FirstMedia, Biznet, Router Mini)
+  // D. Router Wi-Fi umum di Indonesia (IndiHome, FirstMedia, Biznet, Router Mini)
   ['192.168.1.1', '192.168.0.1', '192.168.100.1', '192.168.8.1'].forEach(ip => {
     if (!candidates.includes(ip)) candidates.push(ip);
   });
 
-  // D. Jika berjalan di APK Android, deteksi subnet perangkat ini
+  // E. Jika berjalan di APK Android, deteksi subnet perangkat ini
   if (window.AndroidBridge && typeof window.AndroidBridge.getLocalIpAddress === 'function') {
     try {
       const myIp = window.AndroidBridge.getLocalIpAddress();
@@ -2040,7 +2100,7 @@ export async function autoDiscoverLocalPrinterHost(silent = false) {
         const parts = myIp.split('.');
         if (parts.length === 4) {
           const subnet = `${parts[0]}.${parts[1]}.${parts[2]}`;
-          for (let i = 1; i <= 10; i++) {
+          for (let i = 1; i <= 20; i++) {
             const cand = `${subnet}.${i}`;
             if (!candidates.includes(cand) && cand !== myIp) candidates.push(cand);
           }
@@ -2049,11 +2109,11 @@ export async function autoDiscoverLocalPrinterHost(silent = false) {
     } catch (_) {}
   }
 
-  // Probe semua kandidat secara paralel dengan timeout super cepat (1200ms)
+  // Probe semua kandidat secara paralel dengan timeout super cepat (1500ms)
   const probe = async (ip) => {
     try {
       const ctrl = new AbortController();
-      const tm = setTimeout(() => ctrl.abort(), 1200);
+      const tm = setTimeout(() => ctrl.abort(), 1500);
       const res = await fetch(`http://${ip}:8088/ping`, { signal: ctrl.signal });
       clearTimeout(tm);
       if (res.ok) {
@@ -2072,7 +2132,7 @@ export async function autoDiscoverLocalPrinterHost(silent = false) {
     localStorage.setItem('aristotle_local_host_ip', found.ip);
     if (!state.printerConfig) state.printerConfig = {};
     state.printerConfig.localHostIp = found.ip;
-    if (inputIp) inputIp.value = found.ip;
+    if (inputIp && document.activeElement !== inputIp) inputIp.value = found.ip;
 
     if (badge) {
       badge.className = 'text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300';
@@ -2090,11 +2150,11 @@ export async function autoDiscoverLocalPrinterHost(silent = false) {
     // Tidak ada di LAN lokal, gunakan mode Cloud Relay
     if (badge) {
       badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200';
-      badge.textContent = '☁️ Siap via Cloud Relay';
+      badge.textContent = '☁️ Mode Cloud Relay Aktif';
     }
     if (desc) {
       desc.className = 'text-[11px] text-stone-600 leading-snug';
-      desc.textContent = 'HP Kasir belum terdeteksi di Wi-Fi/Hotspot lokal. Pesanan tetap otomatis terkirim via koneksi Internet (Cloud).';
+      desc.textContent = 'HP Kasir belum terdeteksi di server offline (Port 8088). Pesanan tetap otomatis terkirim dan dicetak via Cloud Internet (Firebase).';
     }
     if (!silent) {
       showToast('HP Kasir tidak terdeteksi di Wi-Fi lokal. Beralih ke Cloud Relay.', 'info', 3500);
@@ -2106,27 +2166,60 @@ export async function autoDiscoverLocalPrinterHost(silent = false) {
 /**
  * Uji Koneksi IP Wi-Fi Lokal (Offline Ping)
  */
-export async function testLocalLanPing() {
-  playClick('tap');
-  const ip = document.getElementById('printerLocalHostIp')?.value.trim();
+export async function testLocalLanPing(silent = false, targetIp = null) {
+  if (!silent) playClick('tap');
+  const input = document.getElementById('printerLocalHostIp');
+  const badge = document.getElementById('localLanStatusBadge');
+  const desc = document.getElementById('localLanStatusDesc');
+  const ip = (targetIp || (input ? input.value : '') || state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip') || '').trim();
+  
   if (!ip) {
-    showToast('Masukkan alamat IP Kasir Utama terlebih dahulu', 'warning');
-    return;
+    if (!silent) showToast('Ketikkan alamat IP Kasir terlebih dahulu', 'warning');
+    return false;
   }
-  showToast(`Mencoba koneksi ke http://${ip}:8088 ...`, 'info', 2000);
+
+  if (input && input.value !== ip && document.activeElement !== input) {
+    input.value = ip;
+  }
+
+  if (badge && !silent) {
+    badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 animate-pulse';
+    badge.textContent = 'Menguji IP...';
+  }
+
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2500);
+    const timeout = setTimeout(() => controller.abort(), 2000);
     const res = await fetch(`http://${ip}:8088/ping`, { signal: controller.signal });
     clearTimeout(timeout);
     if (res.ok) {
       const data = await res.json();
-      showToast(`Terhubung ke Kasir Utama (${data.host || 'Ready'}) via Wi-Fi Lokal!`, 'success', 4000);
-    } else {
-      showToast('Kasir Utama merespons, namun status bukan OK', 'warning', 3000);
+      localStorage.setItem('aristotle_local_host_ip', ip);
+      if (!state.printerConfig) state.printerConfig = {};
+      state.printerConfig.localHostIp = ip;
+
+      if (badge) {
+        badge.className = 'text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300';
+        badge.innerHTML = `🟢 Terhubung (${escapeHtml(data.host || ip)})`;
+      }
+      if (desc) {
+        desc.className = 'text-[11px] text-emerald-900 leading-snug font-semibold';
+        desc.textContent = `Tersambung langsung ke HP Kasir [${data.host || ip}] via Wi-Fi lokal. Pesanan akan tercetak seketika tanpa perlu internet!`;
+      }
+      if (!silent) showToast(`Berhasil terhubung ke Kasir (${data.host || ip})!`, 'success', 3500);
+      return true;
     }
   } catch (err) {
-    showToast('Gagal terhubung. Pastikan kedua HP terhubung ke Wi-Fi / Hotspot yang sama.', 'danger', 4500);
+    if (badge) {
+      badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300';
+      badge.textContent = '❌ Tidak Terhubung';
+    }
+    if (desc) {
+      desc.className = 'text-[11px] text-stone-600 leading-snug';
+      desc.textContent = `Tidak dapat terhubung ke ${ip}:8088. Pastikan Kasir Utama membuka aplikasi Android dan berada di Wi-Fi yang sama.`;
+    }
+    if (!silent) showToast(`Gagal terhubung ke ${ip}:8088. Pastikan HP Kasir membuka aplikasi Android.`, 'danger', 4500);
+    return false;
   }
 }
 

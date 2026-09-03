@@ -1126,3 +1126,47 @@ export async function deleteStoreFromCloud(storeId) {
   }
 }
 
+/**
+ * Publikasikan info IP lokal host kasir ke Cloud Firestore
+ */
+export async function syncPublishHostPresence(hostIp, hostModel = '') {
+  if (!db || !hostIp) return;
+  const storeId = getStoreId();
+  if (!storeId) return;
+  try {
+    const docRef = doc(db, 'stores', storeId, 'config', 'host_presence');
+    await setDoc(docRef, {
+      ip: hostIp,
+      port: 8088,
+      model: hostModel || 'Kasir Utama',
+      updatedAt: Date.now()
+    }, { merge: true });
+    console.log('Host presence synced to cloud:', hostIp);
+  } catch (e) {
+    console.warn('Publish host presence note:', e.message);
+  }
+}
+
+/**
+ * Dengarkan keberadaan Host Kasir dari Cloud Firestore
+ */
+export function listenToHostPresence(callback) {
+  if (!db) return null;
+  const storeId = getStoreId();
+  if (!storeId) return null;
+  try {
+    const docRef = doc(db, 'stores', storeId, 'config', 'host_presence');
+    return onSnapshot(docRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (typeof callback === 'function') callback(data);
+      }
+    }, (err) => {
+      console.warn('Listen host presence error:', err.message);
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+
