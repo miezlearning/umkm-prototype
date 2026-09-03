@@ -1,9 +1,11 @@
 {
-  "versionCode": 29,
-  "versionName": "1.1.25",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.25/Aristotle-POS.apk",
+  "versionCode": 30,
+  "versionName": "1.1.26",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.26/Aristotle-POS.apk",
   "changelog": [
-    "Perbaiki FOUT ikon dan hilangkan timeout gimmick saat loading awal"
+    "Kategori baru Topping & Ekstra untuk add-on menu yang senior-friendly",
+    "Fitur Catatan Cepat (Quick Note Chips) pada item pesanan keranjang & cetak struk",
+    "Mode Hybrid Cetak Offline LAN/Hotspot (Port 8088): Pelayan dapat mencetak langsung tanpa internet"
   ],
   "releaseDate": "2026-09-03"
 }

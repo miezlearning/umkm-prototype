@@ -307,6 +307,9 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
         addText(`${prefix}${itemName}\n`);
         addText(' '.repeat(Math.max(0, 32 - priceStr.length)) + priceStr + '\n');
       }
+      if (item.note) {
+        addText(`  * ${cleanAscii(item.note)}\n`);
+      }
     });
   }
 
@@ -1065,6 +1068,61 @@ export async function executeDirectLocalKitchenTicket(tx) {
  * Jika perangkat terhubung printer -> Buka langsung.
  * Jika perangkat sekunder (Device 2) -> Relay via Cloud Firestore ke Device 1!
  */
+/**
+ * Mencoba mencetak via Local Wi-Fi / Hotspot LAN HTTP Server (Offline, Zero Internet)
+ * Mengembalikan true jika berhasil, false jika gagal / timeout
+ */
+async function tryPrintViaLocalLan(bytes) {
+  const hostIp = state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip');
+  if (!hostIp) return false;
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 1800);
+
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    const b64 = window.btoa(binary);
+
+    const res = await fetch(`http://${hostIp}:8088/print`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base64: b64 }),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if (res.ok) {
+      const data = await res.json();
+      return data.status === 'success';
+    }
+  } catch (e) {
+    console.log('Local LAN print note:', e.message);
+  }
+  return false;
+}
+
+async function tryKickDrawerViaLocalLan() {
+  const hostIp = state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip');
+  if (!hostIp) return false;
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 1800);
+    const res = await fetch(`http://${hostIp}:8088/drawer`, {
+      method: 'POST',
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if (res.ok) {
+      const data = await res.json();
+      return data.status === 'success';
+    }
+  } catch (e) {
+    console.log('Local LAN drawer note:', e.message);
+  }
+  return false;
+}
+
 export async function kickCashDrawer(directOnly = false) {
   playClick('cash');
 
@@ -1077,7 +1135,16 @@ export async function kickCashDrawer(directOnly = false) {
     return ok;
   }
 
-  // 2. Jika TIDAK terhubung langsung (Device 2 / HP Pelayan), gunakan Cloud Drawer Relay!
+  // 2. Jalur Utama: Coba via Wi-Fi Lokal (Offline, Zero Internet)
+  try {
+    const localOk = await tryKickDrawerViaLocalLan();
+    if (localOk) {
+      showToast('Laci kasir dibuka via Wi-Fi Lokal (Offline)!', 'success', 3000);
+      return true;
+    }
+  } catch (_) {}
+
+  // 3. Jalur Cadangan (Fallback): Cloud Drawer Relay
   try {
     showToast('Mengirim sinyal buka laci ke Printer Kasir...', 'info', 3000);
     const jobId = await dispatchRemotePrintJob({ type: 'drawer' });
@@ -1106,7 +1173,19 @@ export async function printReceipt(tx, forceMethod = null) {
     return await executeDirectLocalPrintReceipt(tx, shouldKickDrawer, forceMethod);
   }
 
-  // 2. Jika TIDAK terhubung printer lokal (Device 2 / HP Pelayan), alihkan ke Cloud Print Relay!
+  // 2. Jalur Utama: Coba cetak langsung via Wi-Fi Lokal / Hotspot (Offline, Zero Internet!)
+  try {
+    const escPosBytes = await buildEscPosBytes(tx, shouldKickDrawer);
+    const localOk = await tryPrintViaLocalLan(escPosBytes);
+    if (localOk) {
+      showToast('Struk berhasil dicetak via Wi-Fi Lokal (Offline)!', 'success', 3500);
+      return true;
+    }
+  } catch (err) {
+    console.log('Gagal cetak LAN lokal, beralih ke Cloud Relay...', err);
+  }
+
+  // 3. Jalur Cadangan (Fallback): Cloud Print Relay Firebase
   try {
     showToast('Mengirim struk ke Printer Kasir...', 'info', 3000);
     const jobId = await dispatchRemotePrintJob({
@@ -1140,7 +1219,19 @@ export async function printKitchenTicket(tx) {
     return await executeDirectLocalKitchenTicket(tx);
   }
 
-  // 2. Jika TIDAK terhubung printer lokal (Device 2), alihkan ke Cloud Print Relay!
+  // 2. Jalur Utama: Coba cetak langsung via Wi-Fi Lokal / Hotspot (Offline, Zero Internet!)
+  try {
+    const escPosBytes = buildKitchenTicketEscPosBytes(tx);
+    const localOk = await tryPrintViaLocalLan(escPosBytes);
+    if (localOk) {
+      showToast('Tiket dapur berhasil dicetak via Wi-Fi Lokal (Offline)!', 'success', 3500);
+      return true;
+    }
+  } catch (err) {
+    console.log('Gagal cetak dapur via LAN lokal, beralih ke Cloud Relay...', err);
+  }
+
+  // 3. Jalur Cadangan (Fallback): Cloud Print Relay Firebase
   try {
     showToast('Mengirim tiket dapur ke Printer Kasir...', 'info', 3000);
     const jobId = await dispatchRemotePrintJob({
@@ -1274,6 +1365,19 @@ export function updatePrinterUIStatus() {
     if (rolePrinterName) rolePrinterName.textContent = printerName ? `Hardware: ${printerName}` : 'Hardware: Bluetooth Thermal Standby';
     if (btnTestRelay) btnTestRelay.classList.add('hidden');
 
+    // Tampilkan IP Server Lokal Offline jika berjalan di APK Android
+    const localOfflineInfo = document.getElementById('localOfflineHostInfo');
+    const localIpBadge = document.getElementById('localHostIpBadge');
+    const localHostIpContainer = document.getElementById('localHostIpInputContainer');
+    if (localOfflineInfo) localOfflineInfo.classList.remove('hidden');
+    if (localHostIpContainer) localHostIpContainer.classList.add('hidden');
+    if (localIpBadge) {
+      const myIp = (window.AndroidBridge && typeof window.AndroidBridge.getLocalIpAddress === 'function') 
+        ? window.AndroidBridge.getLocalIpAddress() 
+        : '192.168.43.1';
+      localIpBadge.textContent = `${myIp}:8088`;
+    }
+
   } else {
     // HP PELAYAN (MODE CLOUD RELAY)
     if (headerBadge) {
@@ -1301,8 +1405,17 @@ export function updatePrinterUIStatus() {
     if (roleDesc) {
       roleDesc.textContent = 'Perangkat ini tidak terhubung ke printer Bluetooth. Setiap struk, tiket dapur, atau buka laci yang Anda tekan otomatis dicetak di Kasir Utama.';
     }
-    if (rolePrinterName) rolePrinterName.textContent = 'Jalur: Cloud Firestore Relay (Zero Config)';
+    if (rolePrinterName) rolePrinterName.textContent = 'Jalur: Hybrid (Wi-Fi Lokal + Cloud Relay)';
     if (btnTestRelay) btnTestRelay.classList.remove('hidden');
+
+    const localOfflineInfo = document.getElementById('localOfflineHostInfo');
+    const localHostIpContainer = document.getElementById('localHostIpInputContainer');
+    const printerLocalHostIp = document.getElementById('printerLocalHostIp');
+    if (localOfflineInfo) localOfflineInfo.classList.add('hidden');
+    if (localHostIpContainer) localHostIpContainer.classList.remove('hidden');
+    if (printerLocalHostIp) {
+      printerLocalHostIp.value = state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip') || '';
+    }
   }
 
   // Update styling tombol toggle peran
@@ -1424,9 +1537,12 @@ export function renderPrintableReceiptArea(tx, cfg = null) {
     itemListEl.innerHTML = tx.items.map(item => {
       const priceStr = formatRp(item.subtotal || (item.qty * item.price)).replace('Rp ', '');
       return `
-        <div class="py-0.5 flex justify-between items-start text-[10.5px] leading-tight gap-1">
-          <span class="font-bold text-stone-900 break-words flex-1 text-left">${item.qty} pcs ${item.name}</span>
-          <span class="font-black text-stone-900 whitespace-nowrap text-right shrink-0">${priceStr}</span>
+        <div class="py-0.5 flex flex-col text-[10.5px] leading-tight">
+          <div class="flex justify-between items-start gap-1">
+            <span class="font-bold text-stone-900 break-words flex-1 text-left">${item.qty} pcs ${escapeHtml(item.name)}</span>
+            <span class="font-black text-stone-900 whitespace-nowrap text-right shrink-0">${priceStr}</span>
+          </div>
+          ${item.note ? `<span class="text-[9px] text-stone-600 italic pl-2">* ${escapeHtml(item.note)}</span>` : ''}
         </div>
       `;
     }).join('');
@@ -1685,6 +1801,11 @@ export function openPrinterConfigModal() {
   if (footerNoteInput) footerNoteInput.value = cfg.footerNote || 'Terimakasih telah berkunjung.';
   if (showQueueBottomCheckbox) showQueueBottomCheckbox.checked = cfg.showQueueBottom !== false;
 
+  const localHostIpInput = document.getElementById('printerLocalHostIp');
+  if (localHostIpInput) {
+    localHostIpInput.value = cfg.localHostIp || localStorage.getItem('aristotle_local_host_ip') || '';
+  }
+
   updateLiveReceiptPreview();
   updatePrinterUIStatus();
 
@@ -1859,13 +1980,47 @@ export function savePrinterSettings(e) {
     footerNote,
     footerHelp: 'Powered by Aristotle POS',
     showQueueBottom,
-    feedLines
+    feedLines,
+    localHostIp: document.getElementById('printerLocalHostIp')?.value.trim() || ''
   };
+
+  if (newConfig.localHostIp) {
+    localStorage.setItem('aristotle_local_host_ip', newConfig.localHostIp);
+  } else {
+    localStorage.removeItem('aristotle_local_host_ip');
+  }
 
   savePrinterConfig(newConfig);
   syncSavePrinterConfig(newConfig);
   closePrinterConfigModal();
-  showToast('Desain & pengaturan struk berhasil disimpan!', 'success');
+  showToast('Pengaturan printer & struk berhasil disimpan!', 'success');
+}
+
+/**
+ * Uji Koneksi IP Wi-Fi Lokal (Offline Ping)
+ */
+export async function testLocalLanPing() {
+  playClick('tap');
+  const ip = document.getElementById('printerLocalHostIp')?.value.trim();
+  if (!ip) {
+    showToast('Masukkan alamat IP Kasir Utama terlebih dahulu', 'warning');
+    return;
+  }
+  showToast(`Mencoba koneksi ke http://${ip}:8088 ...`, 'info', 2000);
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2500);
+    const res = await fetch(`http://${ip}:8088/ping`, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (res.ok) {
+      const data = await res.json();
+      showToast(`Terhubung ke Kasir Utama (${data.host || 'Ready'}) via Wi-Fi Lokal!`, 'success', 4000);
+    } else {
+      showToast('Kasir Utama merespons, namun status bukan OK', 'warning', 3000);
+    }
+  } catch (err) {
+    showToast('Gagal terhubung. Pastikan kedua HP terhubung ke Wi-Fi / Hotspot yang sama.', 'danger', 4500);
+  }
 }
 
 /**

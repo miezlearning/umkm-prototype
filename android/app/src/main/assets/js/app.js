@@ -926,6 +926,11 @@ const KasirApp = {
   confirmClearCart: pos.confirmClearCart,
   renderCart: pos.renderCart,
   toggleMobileCartDrawer: pos.toggleMobileCartDrawer,
+  openItemNoteModal: pos.openItemNoteModal,
+  closeItemNoteModal: pos.closeItemNoteModal,
+  appendQuickNote: pos.appendQuickNote,
+  clearItemNote: pos.clearItemNote,
+  saveItemNote: pos.saveItemNote,
 
   // Payment & QRIS
   openPaymentModal: payment.openPaymentModal,
@@ -969,6 +974,7 @@ const KasirApp = {
   removeLogoImage: printer.removeLogoImage,
   updatePrinterUIStatus: printer.updatePrinterUIStatus,
   testCloudRelayPrint: printer.testCloudRelayPrint,
+  testLocalLanPing: printer.testLocalLanPing,
   setupRemotePrintHostListener: printer.setupRemotePrintHostListener,
   setDevicePrinterRole: printer.setDevicePrinterMode,
   getDevicePrinterMode: printer.getDevicePrinterMode,

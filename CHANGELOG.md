@@ -4,6 +4,18 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.1.26] - 2026-09-03
+
+### 🍳 Kategori Topping & Ekstra Ramah Lansia (Senior-Friendly Add-Ons)
+- **Kategori Khusus "Topping & Ekstra":** Menyediakan kategori menu mandiri untuk add-on fisik berbayar (Nasi Tambah, Telur Dadar/Ceplok, Ekstra Sambal, Keju Parut, Es Batu Ekstra) tanpa memunculkan modal pop-up bertingkat yang membingungkan kasir lansia atau pemula.
+- **Catatan Cepat 1-Sentuh (Quick Note Chips):** Kasir/pelayan dapat menambahkan instruksi khusus pada item keranjang (`🔥 Pedas`, `🌶️ Sedang`, `🍃 Tidak Pedas`, `🧅 Tanpa Bawang`, `🥣 Pisah Sambal`, `🧊 Es Sedikit`, `🧂 Kurang Manis`, `🥡 Bungkus`) hanya dengan sekali sentuh tanpa perlu mengetik di keyboard HP.
+- **Pencetakan Otomatis Catatan Pesanan:** Catatan instruksi item otomatis tercetak di bawah nama produk pada struk pembayaran pelanggan maupun tiket pesanan dapur thermal ESC/POS.
+
+### 🌐 Mode Hybrid Cetak Offline LAN/Hotspot (Zero Internet Requirement)
+- **Embedded Local HTTP Server (Port 8088):** Host Kasir Utama (Device 1) yang berjalan di APK Android kini otomatis menjalankan server HTTP lokal ringan (`ServerSocket`).
+- **Pencetakan Langsung Tanpa Kuota:** HP Pelayan (Device 2) yang berada di satu jaringan Wi-Fi atau Hotspot HP yang sama dapat mencetak tiket struk & dapur langsung dalam ~50ms tanpa memerlukan koneksi internet aktif.
+- **Fallback Cerdas Otomatis:** Jika perangkat pelayan berada di luar jangkauan Wi-Fi lokal, sistem secara otomatis dan senyap mengalihkan jalur pencetakan ke Firebase Cloud Relay.
+
 ---
 
 ## [v1.1.25] - 2026-09-03

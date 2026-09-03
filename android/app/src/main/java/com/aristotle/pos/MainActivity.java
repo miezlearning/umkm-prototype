@@ -13,11 +13,19 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.URL;
+import java.util.Collections;
 import android.util.Base64;
 import android.util.Log;
 import android.webkit.GeolocationPermissions;
@@ -292,6 +300,9 @@ public class MainActivity extends AppCompatActivity {
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
 
         checkAndRequestPermissions();
+
+        // Jalankan Local Offline LAN Print Server (Zero Internet Printer Relay)
+        startLocalHttpServer();
 
         // Bersihkan file update lama jika versi saat ini sudah sama atau lebih baru
         try {
@@ -577,14 +588,17 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public boolean kickDrawer() {
-            // Murni pulsa elektrik laci kasir (Pin 2 & Pin 5), TANPA pergerakan motor kertas (NO LF)
-            byte[] drawerPulse = new byte[] {
-                0x1B, 0x70, 0x00, 0x1E, 0x7D,         // ESC p Pin 2 (60ms ON, 250ms OFF)
-                0x1B, 0x70, 0x01, 0x1E, 0x7D,         // ESC p Pin 5 (60ms ON, 250ms OFF)
-                0x10, 0x14, 0x01, 0x00, 0x08,         // DLE DC4 Pin 2
-                0x10, 0x14, 0x01, 0x01, 0x08          // DLE DC4 Pin 5
-            };
-            return sendRawBytesToPrinter(drawerPulse);
+            return MainActivity.this.kickDrawer();
+        }
+
+        @JavascriptInterface
+        public String getLocalIpAddress() {
+            return MainActivity.this.getLocalIpAddress();
+        }
+
+        @JavascriptInterface
+        public int getLocalServerPort() {
+            return LOCAL_SERVER_PORT;
         }
 
         private boolean sendRawBytesToPrinter(byte[] data) {
@@ -594,6 +608,16 @@ public class MainActivity extends AppCompatActivity {
         private void showToastOnUI(final String msg) {
             runOnUiThread(() -> Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show());
         }
+    }
+
+    public boolean kickDrawer() {
+        byte[] drawerPulse = new byte[] {
+            0x1B, 0x70, 0x00, 0x1E, 0x7D,         // ESC p Pin 2 (60ms ON, 250ms OFF)
+            0x1B, 0x70, 0x01, 0x1E, 0x7D,         // ESC p Pin 5 (60ms ON, 250ms OFF)
+            0x10, 0x14, 0x01, 0x00, 0x08,         // DLE DC4 Pin 2
+            0x10, 0x14, 0x01, 0x01, 0x08          // DLE DC4 Pin 5
+        };
+        return sendRawBytesToPrinter(drawerPulse);
     }
 
     private OutputStream getOrConnectPrinter() throws IOException {
@@ -874,9 +898,165 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // ================= LOCAL OFFLINE LAN/HOTSPOT HTTP SERVER =================
+    private ServerSocket localHttpServer = null;
+    private static final int LOCAL_SERVER_PORT = 8088;
+    private boolean isLocalServerRunning = false;
+
+    private void startLocalHttpServer() {
+        if (isLocalServerRunning) return;
+        isLocalServerRunning = true;
+        new Thread(() -> {
+            try {
+                localHttpServer = new ServerSocket(LOCAL_SERVER_PORT);
+                Log.i(TAG, "Local Offline LAN Print Server berjalan di port " + LOCAL_SERVER_PORT);
+                while (isLocalServerRunning && localHttpServer != null && !localHttpServer.isClosed()) {
+                    try {
+                        Socket client = localHttpServer.accept();
+                        handleLocalClient(client);
+                    } catch (Exception e) {
+                        if (!isLocalServerRunning) break;
+                    }
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "Gagal menjalankan local server di port " + LOCAL_SERVER_PORT + ": " + e.getMessage());
+            }
+        }).start();
+    }
+
+    private void stopLocalHttpServer() {
+        isLocalServerRunning = false;
+        if (localHttpServer != null) {
+            try { localHttpServer.close(); } catch (Exception ignored) {}
+            localHttpServer = null;
+        }
+    }
+
+    private void handleLocalClient(Socket client) {
+        new Thread(() -> {
+            try {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream(), "UTF-8"));
+                OutputStream out = client.getOutputStream();
+
+                String line = reader.readLine();
+                if (line == null) {
+                    client.close();
+                    return;
+                }
+
+                String[] parts = line.split(" ");
+                String method = parts.length > 0 ? parts[0] : "";
+                String path = parts.length > 1 ? parts[1] : "";
+
+                int contentLength = 0;
+                while ((line = reader.readLine()) != null && !line.isEmpty()) {
+                    if (line.toLowerCase().startsWith("content-length:")) {
+                        contentLength = Integer.parseInt(line.substring(15).trim());
+                    }
+                }
+
+                // Handle CORS Preflight
+                if ("OPTIONS".equalsIgnoreCase(method)) {
+                    String resp = "HTTP/1.1 200 OK\r\n" +
+                            "Access-Control-Allow-Origin: *\r\n" +
+                            "Access-Control-Allow-Methods: POST, GET, OPTIONS\r\n" +
+                            "Access-Control-Allow-Headers: *\r\n" +
+                            "Content-Length: 0\r\n\r\n";
+                    out.write(resp.getBytes("UTF-8"));
+                    out.flush();
+                    client.close();
+                    return;
+                }
+
+                if ("GET".equalsIgnoreCase(method) && path.startsWith("/ping")) {
+                    String json = "{\"status\":\"ok\",\"host\":\"" + Build.MODEL + "\",\"port\":" + LOCAL_SERVER_PORT + "}";
+                    byte[] b = json.getBytes("UTF-8");
+                    String resp = "HTTP/1.1 200 OK\r\n" +
+                            "Content-Type: application/json\r\n" +
+                            "Access-Control-Allow-Origin: *\r\n" +
+                            "Content-Length: " + b.length + "\r\n\r\n";
+                    out.write(resp.getBytes("UTF-8"));
+                    out.write(b);
+                    out.flush();
+                    client.close();
+                    return;
+                }
+
+                if ("POST".equalsIgnoreCase(method) && path.startsWith("/print")) {
+                    char[] bodyChars = new char[contentLength];
+                    int read = 0;
+                    while (read < contentLength) {
+                        int r = reader.read(bodyChars, read, contentLength - read);
+                        if (r == -1) break;
+                        read += r;
+                    }
+                    String body = new String(bodyChars);
+                    JSONObject json = new JSONObject(body);
+                    String b64 = json.optString("base64", "");
+                    boolean printed = false;
+                    if (!b64.isEmpty()) {
+                        byte[] raw = Base64.decode(b64, Base64.DEFAULT);
+                        printed = sendRawBytesToPrinter(raw);
+                    }
+
+                    String respJson = "{\"status\":\"" + (printed ? "success" : "failed") + "\"}";
+                    byte[] b = respJson.getBytes("UTF-8");
+                    String resp = "HTTP/1.1 200 OK\r\n" +
+                            "Content-Type: application/json\r\n" +
+                            "Access-Control-Allow-Origin: *\r\n" +
+                            "Content-Length: " + b.length + "\r\n\r\n";
+                    out.write(resp.getBytes("UTF-8"));
+                    out.write(b);
+                    out.flush();
+                    client.close();
+                    return;
+                }
+
+                if ("POST".equalsIgnoreCase(method) && path.startsWith("/drawer")) {
+                    boolean kicked = kickDrawer();
+                    String respJson = "{\"status\":\"" + (kicked ? "success" : "failed") + "\"}";
+                    byte[] b = respJson.getBytes("UTF-8");
+                    String resp = "HTTP/1.1 200 OK\r\n" +
+                            "Content-Type: application/json\r\n" +
+                            "Access-Control-Allow-Origin: *\r\n" +
+                            "Content-Length: " + b.length + "\r\n\r\n";
+                    out.write(resp.getBytes("UTF-8"));
+                    out.write(b);
+                    out.flush();
+                    client.close();
+                    return;
+                }
+
+                String resp = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+                out.write(resp.getBytes("UTF-8"));
+                out.flush();
+                client.close();
+
+            } catch (Exception e) {
+                try { client.close(); } catch (Exception ignored) {}
+            }
+        }).start();
+    }
+
+    public String getLocalIpAddress() {
+        try {
+            List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface intf : interfaces) {
+                List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
+                for (InetAddress addr : addrs) {
+                    if (!addr.isLoopbackAddress() && addr instanceof Inet4Address) {
+                        return addr.getHostAddress();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return "127.0.0.1";
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        stopLocalHttpServer();
         closeActiveSocket();
         printExecutor.shutdown();
     }

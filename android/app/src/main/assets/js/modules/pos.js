@@ -518,7 +518,12 @@ export function updateCartQty(productId, delta) {
   const q = getActiveQueue();
   if (!q || !q.cart[productId]) return;
   q.cart[productId] += delta;
-  if (q.cart[productId] <= 0) delete q.cart[productId];
+  if (q.cart[productId] <= 0) {
+    delete q.cart[productId];
+    if (q.notes && q.notes[productId]) {
+      delete q.notes[productId];
+    }
+  }
   saveQueues();
   syncSaveQueues(state.orderQueues);
   renderOrderQueueTabs();
@@ -538,6 +543,7 @@ export async function confirmClearCart() {
   });
   if (ok) {
     q.cart = {};
+    q.notes = {};
     saveQueues();
     syncSaveQueues(state.orderQueues);
     toggleMobileCartDrawer(false);
@@ -552,6 +558,7 @@ export function renderCart() {
   const { total, count } = calculateCartTotal();
   const hasItems = count > 0;
   const currentCart = getCurrentCart();
+  const curQueue = getActiveQueue();
 
   const desktopList = document.getElementById('cartItemsList');
   const desktopTotal = document.getElementById('cartTotalDisplay');
@@ -605,17 +612,31 @@ export function renderCart() {
     if (!p) return '';
     const qty = currentCart[id];
     const subtotal = p.price * qty;
+    const note = (curQueue && curQueue.notes && curQueue.notes[id]) || '';
 
     return `
-      <div class="py-2.5 flex items-center justify-between gap-1.5 border-b border-stone-100 last:border-0">
+      <div class="py-2.5 flex items-start justify-between gap-1.5 border-b border-stone-100 last:border-0">
         <div class="flex-1 min-w-0">
           <h4 class="font-extrabold text-stone-900 text-xs sm:text-sm truncate">${escapeHtml(p.name)}</h4>
           <p class="text-[11px] font-bold text-stone-500">${formatRp(p.price)} &times; ${qty} = <span class="text-emerald-800 font-black">${formatRp(subtotal)}</span></p>
+          ${note ? `
+            <button type="button" onclick="window.KasirApp.openItemNoteModal('${id}')" 
+              class="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded-md border border-amber-200 transition text-left">
+              <span class="material-symbols-rounded text-xs text-amber-700">edit_note</span>
+              <span class="truncate max-w-[140px] sm:max-w-[200px]">${escapeHtml(note)}</span>
+            </button>
+          ` : `
+            <button type="button" onclick="window.KasirApp.openItemNoteModal('${id}')"
+              class="mt-1 inline-flex items-center gap-0.5 text-[10px] font-bold text-stone-400 hover:text-emerald-700 hover:bg-emerald-50 px-1.5 py-0.5 rounded border border-transparent hover:border-emerald-200 transition">
+              <span class="material-symbols-rounded text-xs">add_comment</span>
+              <span>+ Catatan</span>
+            </button>
+          `}
         </div>
-        <div class="flex items-center gap-1 shrink-0">
+        <div class="flex items-center gap-1 shrink-0 mt-0.5">
           <button onclick="window.KasirApp.updateCartQty('${id}', -1)" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-black text-sm flex items-center justify-center touch-target-large transition">-</button>
           <span class="w-5 text-center font-black text-xs text-stone-800">${qty}</span>
-          <button onclick="window.KasirApp.updateCartQty('${id}', 1)" class="w-7 h-7 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-stone-950 font-black text-sm flex items-center justify-center touch-target-large shadow-sm transition">+</button>
+          <button onclick="window.KasirApp.updateCartQty('${id}', 1)" class="w-7 h-7 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm flex items-center justify-center touch-target-large shadow-sm transition">+</button>
         </div>
       </div>
     `;
@@ -640,4 +661,76 @@ export function toggleMobileCartDrawer(forcedState) {
   } else {
     drawer.classList.toggle('hidden');
   }
+}
+
+// ================= SENIOR-FRIENDLY ITEM NOTE MODAL =================
+export function openItemNoteModal(productId) {
+  playClick('pop');
+  const q = getActiveQueue();
+  if (!q) return;
+
+  const p = state.products.find(prod => prod.id === productId);
+  const prodNameEl = document.getElementById('itemNoteProductName');
+  const prodIdEl = document.getElementById('itemNoteProductId');
+  const inputEl = document.getElementById('itemNoteInput');
+  const modal = document.getElementById('itemNoteModal');
+
+  if (prodNameEl) prodNameEl.innerText = p ? p.name : 'Pesanan';
+  if (prodIdEl) prodIdEl.value = productId;
+  if (inputEl) inputEl.value = (q.notes && q.notes[productId]) || '';
+
+  if (modal) modal.classList.remove('hidden');
+  setTimeout(() => { if (inputEl) inputEl.focus(); }, 100);
+}
+
+export function closeItemNoteModal() {
+  playClick('pop');
+  const modal = document.getElementById('itemNoteModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+export function appendQuickNote(chipText) {
+  playClick('tap');
+  const inputEl = document.getElementById('itemNoteInput');
+  if (!inputEl) return;
+  const current = inputEl.value.trim();
+  if (!current) {
+    inputEl.value = chipText;
+  } else {
+    if (!current.toLowerCase().includes(chipText.toLowerCase())) {
+      inputEl.value = `${current}, ${chipText}`;
+    }
+  }
+}
+
+export function clearItemNote() {
+  playClick('del');
+  const inputEl = document.getElementById('itemNoteInput');
+  if (inputEl) inputEl.value = '';
+}
+
+export function saveItemNote(e) {
+  if (e) e.preventDefault();
+  playClick('pop');
+  const q = getActiveQueue();
+  const prodIdEl = document.getElementById('itemNoteProductId');
+  const inputEl = document.getElementById('itemNoteInput');
+  if (!q || !prodIdEl) return;
+
+  const productId = prodIdEl.value;
+  const note = (inputEl ? inputEl.value : '').trim();
+
+  q.notes = q.notes || {};
+  if (note) {
+    q.notes[productId] = note;
+    showToast('Catatan pesanan disimpan', 'success', 2000);
+  } else {
+    delete q.notes[productId];
+    showToast('Catatan pesanan dihapus', 'info', 2000);
+  }
+
+  saveQueues();
+  syncSaveQueues(state.orderQueues);
+  closeItemNoteModal();
+  renderCart();
 }

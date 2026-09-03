@@ -286,12 +286,14 @@ export function completeTransaction() {
 
   const orderItems = Object.entries(currentCart).map(([id, qty]) => {
     const p = state.products.find(prod => prod.id === id);
+    const note = (activeQueue && activeQueue.notes && activeQueue.notes[id]) || '';
     return {
       id,
       name: p ? p.name : 'Item',
       price: p ? p.price : 0,
       qty,
-      subtotal: (p ? p.price : 0) * qty
+      subtotal: (p ? p.price : 0) * qty,
+      note
     };
   });
 
@@ -366,6 +368,7 @@ export function completeTransaction() {
   } else {
     // Jika hanya 1 antrian, kosongkan keranjang dan kembalikan namanya menjadi 'Pesanan #1'
     state.orderQueues[0].cart = {};
+    state.orderQueues[0].notes = {};
     state.orderQueues[0].name = 'Pesanan #1';
   }
 
