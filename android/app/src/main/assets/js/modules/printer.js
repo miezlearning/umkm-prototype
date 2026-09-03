@@ -4,7 +4,7 @@
  */
 
 import { state, savePrinterConfig } from '../state.js';
-import { formatRp, formatDateShort, showToast, playClick } from '../utils.js';
+import { formatRp, formatDateShort, showToast, playClick, escapeHtml } from '../utils.js';
 import { 
   syncSavePrinterConfig,
   dispatchRemotePrintJob,

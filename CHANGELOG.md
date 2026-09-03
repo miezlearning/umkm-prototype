@@ -4,6 +4,13 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.1.29] - 2026-09-04
+
+### 🐛 Perbaikan Impor `escapeHtml` pada Modul Printer
+- **Resolusi ReferenceError `escapeHtml`:** Menambahkan impor fungsi sanitasi HTML `escapeHtml` dari `../utils.js` ke dalam `js/modules/printer.js`. Memperbaiki galat `escapeHtml is not defined` saat mencetak struk tes, preview struk belanja, dan perenderan status badge printer.
+
+---
+
 ## [v1.1.28] - 2026-09-03
 
 ### ⚡ Eliminasi Status Menguji IP Menggantung & Tombol Tes Cetak Instan

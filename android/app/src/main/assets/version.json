@@ -1,11 +1,9 @@
 {
-  "versionCode": 32,
-  "versionName": "1.1.28",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.28/Aristotle-POS.apk",
+  "versionCode": 33,
+  "versionName": "1.1.29",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.29/Aristotle-POS.apk",
   "changelog": [
-    "Perbaikan timeout pengujian IP (Promise.race 1.2s anti-hang)",
-    "Tombol tes cetak langsung ke kasir via cloud",
-    "Penyempurnaan panduan koneksi offline vs Wi-Fi router"
+    "Perbaikan impor escapeHtml pada modul printer dan cetak struk"
   ],
   "releaseDate": "2026-09-03"
 }
