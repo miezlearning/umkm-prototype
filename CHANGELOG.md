@@ -4,6 +4,15 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.1.30] - 2026-09-04
+
+### 📷 Sistem Pairing QR Code Instan (Zero-Config Kasir ➔ Pelayan)
+- **Tampilan QR Sambungan di Kasir Utama:** Tombol baru *"📱 QR Sambungkan HP Pelayan"* di profil toko dan pengaturan printer. Menghasilkan kode QR presisi tinggi yang memuat kredensial toko, role client, dan konfigurasi IP kasir dalam satu sentuhan.
+- **Live Camera Scanner di HP Pelayan:** Fitur pemindai kamera langsung terintegrasi (*jsQR*) lengkap dengan bidik beranimasi (*laser glow effect*) dan fallback unggah gambar dari galeri. Pelayan cukup mengarahkan kamera ke layar Kasir Utama untuk otomatis login, mengatur peran ke pelayan, dan langsung terhubung.
+- **Pairing 1-Sentuh di Layar Masuk:** Tombol scan QR juga disematkan di halaman login toko, sehingga karyawan/pelayan baru tidak perlu mengetik nama toko, ID toko, atau alamat IP sama sekali.
+
+---
+
 ## [v1.1.29] - 2026-09-04
 
 ### 🐛 Perbaikan Impor `escapeHtml` pada Modul Printer

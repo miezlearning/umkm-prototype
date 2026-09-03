@@ -1750,6 +1750,11 @@
                   <span id="localHostIpBadge" class="px-2 py-0.5 rounded bg-emerald-800 text-white font-mono text-[10px]">Aktif</span>
                 </div>
                 <p class="text-[10px] text-emerald-800 font-medium">HP Pelayan di Wi-Fi / Hotspot yang sama dapat mencetak langsung tanpa kuota internet.</p>
+                <button type="button" onclick="KasirApp.openHostQrPairingModal()"
+                  class="mt-1 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition">
+                  <span class="material-symbols-rounded text-base">qr_code_scanner</span>
+                  <span>📱 QR Sambungkan HP Pelayan</span>
+                </button>
               </div>
 
               <!-- Info jika Kasir Utama dibuka di Web Browser -->
@@ -1761,10 +1766,29 @@
                 <p class="text-[10px] text-amber-800">
                   Kasir ini dibuka di Web Browser. Pesanan dari HP pelayan otomatis terkirim dan dicetak via Cloud Internet (Firebase).
                 </p>
+                <button type="button" onclick="KasirApp.openHostQrPairingModal()"
+                  class="mt-1 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition">
+                  <span class="material-symbols-rounded text-base">qr_code_scanner</span>
+                  <span>📱 Tampilkan QR Sambungkan HP Pelayan</span>
+                </button>
               </div>
 
               <!-- Deteksi Otomatis Sambungan HP Kasir (Untuk HP Pelayan / Device 2) -->
-              <div id="localHostIpInputContainer" class="hidden mt-1 p-3 bg-white/90 rounded-xl border border-sky-200 flex flex-col gap-2 shadow-2xs">
+              <div id="localHostIpInputContainer" class="hidden mt-1 p-3 bg-white/90 rounded-xl border border-sky-200 flex flex-col gap-2.5 shadow-2xs">
+                
+                <!-- Tombol Utama: Scan QR Kasir Utama (Pairing Instan) -->
+                <button type="button" onclick="KasirApp.openQrPairingScannerModal()"
+                  class="py-3 px-4 rounded-2xl bg-gradient-to-r from-sky-600 to-indigo-700 hover:from-sky-700 hover:to-indigo-800 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition">
+                  <span class="material-symbols-rounded text-xl">photo_camera</span>
+                  <span>📷 Scan QR Kasir Utama (Pairing Instan)</span>
+                </button>
+
+                <div class="relative flex py-0.5 items-center">
+                  <div class="flex-grow border-t border-sky-200"></div>
+                  <span class="flex-shrink mx-2 text-[10px] text-sky-800 font-bold uppercase">atau deteksi otomatis</span>
+                  <div class="flex-grow border-t border-sky-200"></div>
+                </div>
+
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-black text-sky-950 flex items-center gap-1.5">
                     <span class="material-symbols-rounded text-base text-sky-700">sensors</span>
@@ -2444,12 +2468,20 @@
           </p>
         </div>
 
-        <!-- Tombol Utama: Buka di HP Lain via WhatsApp -->
-        <button onclick="copyStoreShareLink()"
-          class="w-full py-3 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-sm flex items-center justify-center gap-2 transition active:scale-95 shadow-sm">
-          <span class="material-symbols-rounded text-xl">share</span>
-          <span>Buka di HP Lain via WhatsApp</span>
-        </button>
+        <!-- Tombol Utama: QR Code Sambungkan HP Pelayan & WhatsApp -->
+        <div class="flex flex-col gap-2">
+          <button onclick="KasirApp.openHostQrPairingModal()"
+            class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-sm flex items-center justify-center gap-2 transition active:scale-95 shadow-md">
+            <span class="material-symbols-rounded text-xl">qr_code_scanner</span>
+            <span>📱 Tampilkan QR Sambungkan HP Pelayan</span>
+          </button>
+
+          <button onclick="copyStoreShareLink()"
+            class="w-full py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95">
+            <span class="material-symbols-rounded text-base">share</span>
+            <span>Kirim Link Pairing via WhatsApp</span>
+          </button>
+        </div>
 
         <!-- Aksi Tambahan: Ganti Toko / Login & Buat Toko Baru -->
         <div class="grid grid-cols-2 gap-2 pt-1 border-t border-stone-100">
@@ -2487,7 +2519,7 @@
             <span class="material-symbols-rounded text-emerald-600 text-lg">system_update</span>
             <div>
               <p class="font-bold text-stone-800">Pembaruan Aplikasi</p>
-              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.1.29 (Terkini)</p>
+              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.1.30 (Terkini)</p>
             </div>
           </div>
           <button onclick="KasirApp.checkForAppUpdates(true)"
@@ -2550,6 +2582,19 @@
       <!-- Tab Content: LOGIN KE TOKO -->
       <div id="authContentLogin" class="p-5 flex flex-col gap-4 overflow-y-auto">
         
+        <!-- Tombol Scan QR Pairing Kasir Utama -->
+        <button type="button" onclick="KasirApp.openQrPairingScannerModal()"
+          class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-sm flex items-center justify-center gap-2.5 shadow-md active:scale-95 transition">
+          <span class="material-symbols-rounded text-2xl">qr_code_scanner</span>
+          <span>📷 Scan QR Kasir Utama (Pairing Instan)</span>
+        </button>
+
+        <div class="relative flex py-0.5 items-center">
+          <div class="flex-grow border-t border-stone-200"></div>
+          <span class="flex-shrink mx-2 text-[10px] text-stone-400 font-bold uppercase">atau pilih toko tersimpan</span>
+          <div class="flex-grow border-t border-stone-200"></div>
+        </div>
+
         <!-- Quick Select Remembered Stores on Device -->
         <div id="savedStoresContainer" class="flex flex-col gap-2">
           <label class="block text-stone-700 font-bold text-xs">Toko Tersimpan di Perangkat Ini:</label>
@@ -2708,7 +2753,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-black tracking-tight" id="updateModalTitle">Pembaruan Aplikasi Tersedia!</h3>
-              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.1.29</span>
+              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.1.30</span>
             </div>
             <p id="updateModalCurrentVersion" class="text-emerald-100 text-xs mt-0.5">Versi Anda saat ini: v1.1.3</p>
           </div>
@@ -2760,6 +2805,105 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: QR CODE PAIRING HOST (KASIR UTAMA) ==================== -->
+  <div id="hostQrPairingModal"
+    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col animate-in zoom-in-95">
+      
+      <!-- Header -->
+      <div class="p-5 pb-3 flex items-start justify-between border-b border-stone-100 bg-emerald-50/50">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <span class="material-symbols-rounded text-2xl">qr_code_2</span>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-stone-900 leading-tight">Sambungkan HP Pelayan</h3>
+            <p class="text-xs text-stone-500 font-medium mt-0.5">Scan QR ini dari HP pelayan untuk terhubung</p>
+          </div>
+        </div>
+        <button onclick="KasirApp.closeHostQrPairingModal()" class="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition">
+          <span class="material-symbols-rounded text-2xl">close</span>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-5 flex flex-col items-center gap-4 text-center">
+        <!-- QR Canvas Container -->
+        <div class="p-3 bg-white rounded-2xl border-2 border-emerald-500/80 shadow-lg flex flex-col items-center justify-center">
+          <div id="hostQrCanvasContainer" class="flex items-center justify-center min-w-[220px] min-h-[220px]">
+            <!-- Injected by QRCode.toCanvas -->
+          </div>
+          <span id="hostQrStoreName" class="font-extrabold text-stone-900 text-sm mt-1.5 truncate max-w-[210px]">Nama Toko</span>
+          <span id="hostQrIpDisplay" class="text-[10px] font-mono text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md mt-0.5">IP Kasir: ...</span>
+        </div>
+
+        <!-- Instruksi Simpel -->
+        <div class="w-full bg-stone-50 p-3 rounded-2xl border border-stone-200 text-left text-xs flex flex-col gap-1.5">
+          <p class="font-bold text-stone-800">Cara menyambungkan:</p>
+          <ol class="list-decimal list-inside text-stone-600 space-y-1 text-[11px] leading-relaxed">
+            <li>Buka aplikasi Aristotle POS di HP Pelayan.</li>
+            <li>Tekan tombol <b>📷 Scan QR Kasir Utama</b>.</li>
+            <li>Arahkan kamera ke QR ini ➔ <b>Terhubung seketika!</b></li>
+          </ol>
+        </div>
+
+        <!-- Action: Bagikan Link -->
+        <button type="button" onclick="copyStoreShareLink()"
+          class="w-full py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition">
+          <span class="material-symbols-rounded text-base">share</span>
+          <span>Bagikan Tautan Pairing via WhatsApp</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: LIVE CAMERA QR SCANNER (HP PELAYAN) ==================== -->
+  <div id="qrPairingScannerModal"
+    class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-stone-950 w-full max-w-sm rounded-3xl shadow-2xl border border-stone-800 overflow-hidden flex flex-col text-white animate-in zoom-in-95">
+      
+      <!-- Header -->
+      <div class="p-4 flex items-center justify-between border-b border-stone-800">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-rounded text-emerald-400 text-xl">qr_code_scanner</span>
+          <span class="font-black text-sm">Pindai QR Kasir Utama</span>
+        </div>
+        <button onclick="KasirApp.closeQrPairingScannerModal()" class="w-8 h-8 rounded-full bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-white flex items-center justify-center transition">
+          <span class="material-symbols-rounded text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Camera Viewfinder -->
+      <div class="p-5 flex flex-col items-center gap-4">
+        <div class="relative w-64 h-64 rounded-3xl overflow-hidden border-2 border-emerald-500 shadow-[0_0_25px_rgba(16,185,129,0.3)] bg-black flex items-center justify-center">
+          <video id="qrScanVideo" class="w-full h-full object-cover"></video>
+          <canvas id="qrScanCanvasHidden" class="hidden"></canvas>
+          
+          <!-- Viewfinder Frame & Scan Line Animation -->
+          <div class="absolute inset-0 border-2 border-dashed border-white/40 m-4 rounded-2xl pointer-events-none"></div>
+          <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent animate-bounce shadow-[0_0_12px_#10b981]"></div>
+        </div>
+
+        <p class="text-xs text-stone-300 text-center leading-relaxed">
+          Arahkan kamera ke layar HP Kasir Utama yang menampilkan <b>QR Sambungkan HP Pelayan</b>.
+        </p>
+
+        <!-- Error Notice (Jika Kamera Ditolak / Tidak Tersedia) -->
+        <div id="qrScanError" class="hidden w-full p-2.5 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-200 text-xs text-center leading-tight"></div>
+
+        <!-- Fallback: Unggah Foto dari Galeri -->
+        <div class="w-full pt-2 border-t border-stone-800 flex flex-col gap-2">
+          <input type="file" id="qrScanFileInput" accept="image/*" class="hidden" onchange="KasirApp.handleQrScanFromFile(event)">
+          <button type="button" onclick="document.getElementById('qrScanFileInput').click()"
+            class="w-full py-2.5 px-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white font-bold text-xs flex items-center justify-center gap-2 border border-stone-800 transition">
+            <span class="material-symbols-rounded text-base">photo_library</span>
+            <span>Unggah Foto QR dari Galeri</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 

@@ -5,6 +5,7 @@
 
 import { state, savePrinterConfig } from '../state.js';
 import { formatRp, formatDateShort, showToast, playClick, escapeHtml } from '../utils.js';
+import { renderQRToContainer } from '../qris.js';
 import { 
   syncSavePrinterConfig,
   dispatchRemotePrintJob,
@@ -2245,3 +2246,221 @@ function updatePrinterStatusBadge(type, name) {
     badge.className = 'px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-300 font-extrabold text-[11px] flex items-center gap-1.5';
   }
 }
+
+// ==================== SISTEM PAIRING QR CODE (SENIOR & CASUAL FRIENDLY) ====================
+
+/**
+ * Buka Modal Tampilan QR Code di HP Kasir Utama (Host)
+ */
+export function openHostQrPairingModal() {
+  playClick('tap');
+  const modal = document.getElementById('hostQrPairingModal');
+  if (!modal) return;
+
+  const storeId = state.storeId;
+  const storeName = state.storeProfile?.name || storeId;
+  let hostIp = '';
+  if (window.AndroidBridge && typeof window.AndroidBridge.getLocalIpAddress === 'function') {
+    try {
+      const ip = window.AndroidBridge.getLocalIpAddress();
+      if (ip && ip !== '127.0.0.1') hostIp = ip;
+    } catch (_) {}
+  }
+  if (!hostIp) {
+    hostIp = state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip') || '';
+  }
+
+  // URL pairing lengkap yang memuat store, role, dan hostIp
+  const baseUrl = window.location.origin + window.location.pathname;
+  const params = new URLSearchParams();
+  params.set('store', storeId);
+  params.set('role', 'client');
+  if (hostIp) params.set('hostIp', hostIp);
+  const pairingUrl = `${baseUrl}?${params.toString()}`;
+
+  const container = document.getElementById('hostQrCanvasContainer');
+  if (container) {
+    renderQRToContainer(container, pairingUrl, 220);
+  }
+
+  const nameEl = document.getElementById('hostQrStoreName');
+  if (nameEl) nameEl.textContent = storeName;
+
+  const ipEl = document.getElementById('hostQrIpDisplay');
+  if (ipEl) {
+    ipEl.textContent = hostIp ? `IP Kasir: ${hostIp}:8088` : 'Mode Cloud Internet Realtime';
+  }
+
+  modal.classList.remove('hidden');
+}
+
+export function closeHostQrPairingModal() {
+  playClick('tap');
+  const modal = document.getElementById('hostQrPairingModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// State Live Camera Scanner untuk HP Pelayan
+let qrScanStream = null;
+let qrScanAnimFrame = null;
+let isScanning = false;
+
+/**
+ * Buka Modal Live Camera Scanner di HP Pelayan
+ */
+export async function openQrPairingScannerModal() {
+  playClick('tap');
+  const modal = document.getElementById('qrPairingScannerModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+
+  const video = document.getElementById('qrScanVideo');
+  const errorEl = document.getElementById('qrScanError');
+  if (errorEl) errorEl.classList.add('hidden');
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if (errorEl) {
+      errorEl.textContent = 'Browser ini belum mendukung akses kamera langsung. Silakan gunakan tombol pilih foto QR.';
+      errorEl.classList.remove('hidden');
+    }
+    return;
+  }
+
+  try {
+    isScanning = true;
+    qrScanStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } }
+    });
+    if (video) {
+      video.srcObject = qrScanStream;
+      video.setAttribute('playsinline', true);
+      await video.play();
+      qrScanAnimFrame = requestAnimationFrame(tickQrScanner);
+    }
+  } catch (err) {
+    console.warn('Camera open error:', err);
+    isScanning = false;
+    if (errorEl) {
+      errorEl.textContent = 'Izin kamera belum aktif. Berikan izin kamera di pengaturan browser/HP, atau gunakan tombol pilih foto QR di bawah.';
+      errorEl.classList.remove('hidden');
+    }
+  }
+}
+
+function tickQrScanner() {
+  if (!isScanning) return;
+  const video = document.getElementById('qrScanVideo');
+  const canvas = document.getElementById('qrScanCanvasHidden');
+  if (!video || !canvas) return;
+
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    if (window.jsQR) {
+      const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: 'dontInvert'
+      });
+      if (code && code.data) {
+        isScanning = false;
+        handleScannedPairingData(code.data);
+        return;
+      }
+    }
+  }
+
+  qrScanAnimFrame = requestAnimationFrame(tickQrScanner);
+}
+
+export function closeQrPairingScannerModal() {
+  playClick('tap');
+  isScanning = false;
+  if (qrScanAnimFrame) {
+    cancelAnimationFrame(qrScanAnimFrame);
+    qrScanAnimFrame = null;
+  }
+  if (qrScanStream) {
+    qrScanStream.getTracks().forEach(t => t.stop());
+    qrScanStream = null;
+  }
+  const modal = document.getElementById('qrPairingScannerModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+/**
+ * Tangani Data QR yang Terbaca (Auto-Pairing & Auto-Login Toko)
+ */
+export function handleScannedPairingData(rawText) {
+  closeQrPairingScannerModal();
+
+  try {
+    let url;
+    if (rawText.startsWith('http://') || rawText.startsWith('https://')) {
+      url = new URL(rawText);
+    } else {
+      url = new URL('https://dummy/?' + rawText);
+    }
+    const store = url.searchParams.get('store');
+    const role = url.searchParams.get('role') || 'client';
+    const hostIp = url.searchParams.get('hostIp');
+
+    if (!store) {
+      showToast('Kode QR tidak valid (Data Toko tidak ditemukan).', 'warning', 4000);
+      return;
+    }
+
+    if (hostIp) {
+      localStorage.setItem('aristotle_local_host_ip', hostIp);
+      if (!state.printerConfig) state.printerConfig = {};
+      state.printerConfig.localHostIp = hostIp;
+    }
+    localStorage.setItem('aristotle_device_role', role);
+
+    showToast(`Berhasil tersambung ke Toko [${store}]! Membuka...`, 'success', 3500);
+    setTimeout(() => {
+      const targetUrl = `${window.location.origin}${window.location.pathname}?store=${encodeURIComponent(store)}&role=${role}${hostIp ? `&hostIp=${encodeURIComponent(hostIp)}` : ''}`;
+      window.location.href = targetUrl;
+    }, 450);
+
+  } catch (err) {
+    console.error('Scan parse error:', err);
+    showToast('Gagal memproses kode QR.', 'warning', 3000);
+  }
+}
+
+/**
+ * Pindai dari File / Gambar Galeri HP jika kamera tidak dapat dibuka
+ */
+export function handleQrScanFromFile(event) {
+  const file = event.target?.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      if (window.jsQR) {
+        const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'attemptBoth'
+        });
+        if (code && code.data) {
+          handleScannedPairingData(code.data);
+          return;
+        }
+      }
+      showToast('Tidak ada kode QR pairing yang terdeteksi pada gambar.', 'warning', 4000);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+

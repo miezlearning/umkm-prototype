@@ -645,8 +645,12 @@ export async function init() {
     pos.renderProductSkeletons(8);
     initState();
 
-    // Baca parameter hostIp jika ada di URL (misal dibuka dari link WA kasir)
+    // Baca parameter pairing (role, hostIp) jika ada di URL (misal dibuka dari scan QR / link WA)
     const urlParams = new URLSearchParams(window.location.search);
+    const roleParam = urlParams.get('role');
+    if (roleParam) {
+      localStorage.setItem('aristotle_device_role', roleParam);
+    }
     const hostIpParam = urlParams.get('hostIp');
     if (hostIpParam) {
       localStorage.setItem('aristotle_local_host_ip', hostIpParam);
@@ -997,6 +1001,11 @@ const KasirApp = {
   setupRemotePrintHostListener: printer.setupRemotePrintHostListener,
   setDevicePrinterRole: printer.setDevicePrinterMode,
   getDevicePrinterMode: printer.getDevicePrinterMode,
+  openHostQrPairingModal: printer.openHostQrPairingModal,
+  closeHostQrPairingModal: printer.closeHostQrPairingModal,
+  openQrPairingScannerModal: printer.openQrPairingScannerModal,
+  closeQrPairingScannerModal: printer.closeQrPairingScannerModal,
+  handleQrScanFromFile: printer.handleQrScanFromFile,
 
   // Admin & Backup & QRIS & Menu
   renderAdminTable: admin.renderAdminTable,

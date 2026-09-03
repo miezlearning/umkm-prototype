@@ -1,9 +1,11 @@
 {
-  "versionCode": 33,
-  "versionName": "1.1.29",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.29/Aristotle-POS.apk",
+  "versionCode": 34,
+  "versionName": "1.1.30",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.30/Aristotle-POS.apk",
   "changelog": [
-    "Perbaikan impor escapeHtml pada modul printer dan cetak struk"
+    "Sistem Pairing QR Code instan antara Kasir Utama dan HP Pelayan",
+    "Live Camera QR Scanner dengan jsQR dan fallback galeri",
+    "Penyempurnaan arsitektur sinkronisasi multi-device"
   ],
   "releaseDate": "2026-09-03"
 }
