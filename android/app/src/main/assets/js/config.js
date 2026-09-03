@@ -35,7 +35,7 @@ export const DEFAULT_PRINTER_CONFIG = {
   headerTagline: '--- SPESIAL RASA NUSANTARA ---',
   headerAddress: 'Samarinda, Kalimantan Timur',
   headerPhone: '081345028895',
-  footerSocial: 'Follow IG: @kedai.usaha.mami',
+  footerSocial: 'Follow IG: @miezlipp',
   footerNote: 'Terimakasih telah berkunjung.',
   footerHelp: 'Powered by Aristotle POS',
   showQueueBottom: true, // Tampilkan NO ANTRIAN besar di bagian paling bawah

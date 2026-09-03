@@ -158,7 +158,14 @@ export function generateReceiptPlainText(tx, customConfig = null) {
   if (Array.isArray(tx.items)) {
     tx.items.forEach(item => {
       const priceStr = formatRp(item.subtotal || (item.qty * item.price)).replace('Rp ', '');
-      lines.push(padBetween(`${item.qty} pcs ${cleanAscii(item.name || 'Item')}`, priceStr));
+      const itemName = cleanAscii(item.name || 'Item');
+      const prefix = `${item.qty} pcs `;
+      if ((prefix.length + itemName.length + priceStr.length + 1) <= width) {
+        lines.push(padBetween(`${prefix}${itemName}`, priceStr));
+      } else {
+        lines.push(cleanAscii(`${prefix}${itemName}`));
+        lines.push(' '.repeat(Math.max(0, width - priceStr.length)) + priceStr);
+      }
     });
   }
 
@@ -294,7 +301,14 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
   if (Array.isArray(tx.items)) {
     tx.items.forEach(item => {
       const priceStr = formatRp(item.subtotal || (item.qty * item.price)).replace('Rp ', '');
-      addText(padBetween(`${item.qty} pcs ${item.name || 'Item'}`, priceStr) + '\n');
+      const itemName = cleanAscii(item.name || 'Item');
+      const prefix = `${item.qty} pcs `;
+      if ((prefix.length + itemName.length + priceStr.length + 1) <= 32) {
+        addText(padBetween(`${prefix}${itemName}`, priceStr, 32) + '\n');
+      } else {
+        addText(`${prefix}${itemName}\n`);
+        addText(' '.repeat(Math.max(0, 32 - priceStr.length)) + priceStr + '\n');
+      }
     });
   }
 
@@ -449,13 +463,21 @@ export function buildKitchenTicketEscPosBytes(tx) {
     tx.items.forEach(item => {
       const qty = item.qty || 1;
       totalQty += qty;
-      const itemName = String(item.name || 'Item').substring(0, 23);
-      // Format: [  ] Nama Menu              x2
+      const itemName = cleanAscii(item.name || 'Item');
+      const qtyStr = `x${qty}`;
+      const prefix = '[  ] ';
+
       addBytes(0x1B, 0x45, 0x01); // Bold ON
-      addText(padBetween(`[  ] ${itemName}`, `x${qty}`) + '\n');
+      if ((prefix.length + itemName.length + qtyStr.length + 1) <= 32) {
+        addText(padBetween(`${prefix}${itemName}`, qtyStr, 32) + '\n');
+      } else {
+        addText(`${prefix}${itemName}\n`);
+        addText(' '.repeat(Math.max(0, 32 - qtyStr.length)) + qtyStr + '\n');
+      }
       addBytes(0x1B, 0x45, 0x00); // Bold OFF
+
       if (item.note) {
-        addText(`     * Ket: ${item.note}\n`);
+        addText(`     * Ket: ${cleanAscii(item.note)}\n`);
       }
     });
   }
@@ -463,13 +485,13 @@ export function buildKitchenTicketEscPosBytes(tx) {
   // 6. Ringkasan Total Porsi
   addText(divider);
   addBytes(0x1B, 0x45, 0x01); // Bold ON
-  addText(padBetween(`Total: ${tx.items ? tx.items.length : 0} Item`, `${totalQty} Porsi`) + '\n');
+  addText(padBetween(`Total: ${tx.items ? tx.items.length : 0} Item`, `${totalQty} Porsi`, 32) + '\n');
   addBytes(0x1B, 0x45, 0x00); // Bold OFF
   addText(divider);
 
-  // 7. Checkpoint Selesai
+  // 7. Checkpoint Selesai (Pas 25 karakter, tidak akan terpotong / turun baris)
   addBytes(0x1B, 0x61, 0x01); // Align Center
-  addText('[  ] SELESAI DIMASAK --> SERAHKAN\n');
+  addText('[  ] SELESAI --> SERAHKAN\n');
   addText(doubleDivider);
 
   // 8. Feed baris minimal tanpa ruang kosong berlebih
@@ -1352,9 +1374,9 @@ export function renderPrintableReceiptArea(tx, cfg = null) {
     itemListEl.innerHTML = tx.items.map(item => {
       const priceStr = formatRp(item.subtotal || (item.qty * item.price)).replace('Rp ', '');
       return `
-        <div class="py-1 flex justify-between items-center text-xs">
-          <span class="font-bold text-stone-900">${item.qty} pcs ${item.name}</span>
-          <span class="font-black text-stone-900">${priceStr}</span>
+        <div class="py-0.5 flex justify-between items-start text-[10.5px] leading-tight gap-1">
+          <span class="font-bold text-stone-900 break-words flex-1 text-left">${item.qty} pcs ${item.name}</span>
+          <span class="font-black text-stone-900 whitespace-nowrap text-right shrink-0">${priceStr}</span>
         </div>
       `;
     }).join('');
