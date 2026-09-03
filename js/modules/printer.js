@@ -756,12 +756,8 @@ export function resetPrinterStatusBadge() {
  * Cek apakah perangkat saat ini terhubung langsung ke printer fisik
  */
 export function isLocalPrinterReady() {
-  if (window.AndroidBridge && typeof window.AndroidBridge.isPrinterReady === 'function') {
-    try {
-      return !!window.AndroidBridge.isPrinterReady();
-    } catch (e) {
-      return false;
-    }
+  if (window.AndroidBridge && typeof window.AndroidBridge.printBluetooth === 'function') {
+    return true;
   }
   if (bluetoothCharacteristic && bluetoothDevice && bluetoothDevice.gatt && bluetoothDevice.gatt.connected) {
     return true;
@@ -1102,8 +1098,8 @@ export async function printKitchenTicket(tx) {
     return true;
   } catch (err) {
     console.warn('Cloud kitchen print relay note:', err);
-    showToast('Gagal cetak tiket: ' + (err.message || 'Printer Kasir tidak merespons.'), 'warning', 5000);
-    return false;
+    // Fallback: cetak langsung secara lokal agar tidak mandek!
+    return await executeDirectLocalKitchenTicket(tx);
   }
 }
 
@@ -1524,10 +1520,16 @@ function getSampleTxData() {
 /**
  * Uji Coba Cetak Struk 58mm (Sample Test Print Menu Riil Toko)
  */
-export function testPrintReceipt() {
+export async function testPrintReceipt() {
   playClick('tap');
-  const sampleTx = getSampleTxData();
-  printReceipt(sampleTx);
+  try {
+    const sampleTx = getSampleTxData();
+    showToast('Menguji cetak struk kasir...', 'info', 2000);
+    await executeDirectLocalPrintReceipt(sampleTx, false);
+  } catch (err) {
+    console.error('Test receipt error:', err);
+    showToast('Gagal tes struk: ' + (err.message || 'Kesalahan sistem'), 'error');
+  }
 }
 
 /**
@@ -1537,10 +1539,11 @@ export async function testPrintKitchenTicket() {
   playClick('tap');
   try {
     const sampleTx = getSampleTxData();
-    await printKitchenTicket(sampleTx);
+    showToast('Menguji cetak tiket dapur...', 'info', 2000);
+    await executeDirectLocalKitchenTicket(sampleTx);
   } catch (err) {
     console.error('Test kitchen ticket error:', err);
-    showToast('Gagal cetak tiket dapur: ' + (err.message || 'Kesalahan sistem'), 'error');
+    showToast('Gagal tes tiket dapur: ' + (err.message || 'Kesalahan sistem'), 'error');
   }
 }
 

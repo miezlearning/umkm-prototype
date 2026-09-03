@@ -1,9 +1,9 @@
 {
-  "versionCode": 14,
-  "versionName": "1.1.10",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.10/Aristotle-POS.apk",
+  "versionCode": 15,
+  "versionName": "1.1.11",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.11/Aristotle-POS.apk",
   "changelog": [
-    "Perbaikan variabel konfigurasi pada generator byte tiket dapur & error handling async"
+    "Pengujian virtual cetak tiket dapur & pemastian eksekusi langsung lokal pada tombol tes dan struk"
   ],
   "releaseDate": "2026-09-03"
 }
