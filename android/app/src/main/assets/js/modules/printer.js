@@ -97,18 +97,20 @@ export async function convertImageToEscPosRaster(base64Data, maxWidth = 160) {
  * Buat text struk 58mm persis sesuai struktur struk thermal modern
  * Pure ASCII Sanitized: Bebas anomali karakter (Rupiah bersih, tanpa 'Rpá')
  */
+/**
+ * Bersihkan karakter unicode yang bisa merusak printer thermal
+ */
+function cleanAscii(text) {
+  return String(text || '')
+    .replace(/[\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]/g, ' ')
+    .replace(/[^\x20-\x7E\n]/g, '')
+    .trim();
+}
+
 export function generateReceiptPlainText(tx, customConfig = null) {
   const cfg = customConfig || state.printerConfig || {};
   const width = cfg.paperWidth === '80mm' ? 48 : 32;
   const divider = '-'.repeat(width);
-
-  // Bersihkan karakter unicode yang bisa merusak printer thermal
-  const cleanAscii = (text) => {
-    return String(text || '')
-      .replace(/[\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]/g, ' ')
-      .replace(/[^\x20-\x7E\n]/g, '')
-      .trim();
-  };
 
   const padCenter = (text) => {
     const str = cleanAscii(text);
@@ -1036,12 +1038,16 @@ export async function executeDirectLocalKitchenTicket(tx) {
  * Jika perangkat terhubung printer -> Buka langsung.
  * Jika perangkat sekunder (Device 2) -> Relay via Cloud Firestore ke Device 1!
  */
-export async function kickCashDrawer() {
+export async function kickCashDrawer(directOnly = false) {
   playClick('cash');
 
-  // 1. Jika terhubung langsung ke printer lokal fisik (Device 1)
-  if (isLocalPrinterReady()) {
-    return await executeDirectLocalKickDrawer();
+  // 1. Jika diminta tes langsung atau terhubung ke printer lokal fisik (Device 1)
+  if (directOnly || isLocalPrinterReady()) {
+    const ok = await executeDirectLocalKickDrawer();
+    if (!ok && directOnly) {
+      showToast('Laci kasir belum terhubung di perangkat ini.', 'warning');
+    }
+    return ok;
   }
 
   // 2. Jika TIDAK terhubung langsung (Device 2 / HP Pelayan), gunakan Cloud Drawer Relay!

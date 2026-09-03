@@ -1,9 +1,9 @@
 {
-  "versionCode": 16,
-  "versionName": "1.1.12",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.12/Aristotle-POS.apk",
+  "versionCode": 17,
+  "versionName": "1.1.13",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.13/Aristotle-POS.apk",
   "changelog": [
-    "Penyempurnaan responsivitas layout struk thermal 58mm: nama menu panjang tidak terpotong & pencegahan teks footer tiket dapur keluar batas"
+    "Perbaikan fatal ReferenceError cleanAscii pada pipeline cetak struk & tiket dapur serta optimasi tes buka laci langsung"
   ],
   "releaseDate": "2026-09-03"
 }
