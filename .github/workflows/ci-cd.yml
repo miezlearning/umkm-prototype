@@ -78,6 +78,34 @@ jobs:
             -dname "CN=Android Debug,O=Android,C=US" \
             -noprompt
 
+      - name: Extract Release Version Metadata
+        id: version_meta
+        run: |
+          VERSION_NAME=$(node -p "require('./version.json').versionName || '1.1.3'")
+          VERSION_CODE=$(node -p "require('./version.json').versionCode || ${{ github.run_number }}")
+          TAG_NAME="v${VERSION_NAME}"
+          echo "version_name=${VERSION_NAME}" >> $GITHUB_OUTPUT
+          echo "version_code=${VERSION_CODE}" >> $GITHUB_OUTPUT
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "release_name=Aristotle POS ${TAG_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Generate Dynamic Release Notes
+        run: |
+          node -e "
+            const fs = require('fs');
+            if (fs.existsSync('./version.json')) {
+              const v = require('./version.json');
+              let notes = '# Aristotle POS v' + v.versionName + '\n\n';
+              if (v.releaseDate) notes += '**Tanggal Rilis:** ' + v.releaseDate + '\n\n';
+              notes += '### Catatan Pembaruan:\n';
+              if (Array.isArray(v.changelog)) {
+                v.changelog.forEach(c => { notes += '- ' + c + '\n'; });
+              }
+              notes += '\n---\n*Pembaruan ini tersedia otomatis dari dalam aplikasi (In-App Auto-Updater).*';
+              fs.writeFileSync('RELEASE_NOTES.md', notes);
+            }
+          "
+
       - name: Sync Latest Web Assets to Android Assets
         run: |
           mkdir -p android/app/src/main/assets/
@@ -86,7 +114,7 @@ jobs:
       - name: Build Android Debug APK
         run: |
           cd android
-          ./gradlew assembleDebug -PcustomVersionCode=${{ github.run_number }} -PcustomVersionName=1.1.3 --no-daemon
+          ./gradlew assembleDebug -PcustomVersionCode=${{ steps.version_meta.outputs.version_code }} -PcustomVersionName=${{ steps.version_meta.outputs.version_name }} --no-daemon
 
       - name: Prepare APK Artifact
         run: |
@@ -103,8 +131,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/master'
         with:
-          tag_name: v1.1.3
-          name: "Aristotle POS v1.1.3 - Kitchen Checkpoint & Thermal Stability Release"
+          tag_name: ${{ steps.version_meta.outputs.tag_name }}
+          name: ${{ steps.version_meta.outputs.release_name }}
           body_path: RELEASE_NOTES.md
           files: Aristotle-POS.apk
           prerelease: false

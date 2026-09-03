@@ -2,7 +2,7 @@ plugins {
     id 'com.android.application'
 }
 
-def appVersionCode = project.hasProperty('customVersionCode') ? project.property('customVersionCode').toInteger() : 5
+def appVersionCode = project.hasProperty('customVersionCode') ? project.property('customVersionCode').toInteger() : 6
 def appVersionName = project.hasProperty('customVersionName') ? project.property('customVersionName') : "1.1.3"
 
 android {
