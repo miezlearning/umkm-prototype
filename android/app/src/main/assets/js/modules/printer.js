@@ -924,45 +924,53 @@ export async function executeDirectLocalPrintReceipt(tx, shouldKickDrawer, force
  * Eksekusi Langsung Cetak Tiket Dapur secara lokal (hardware direct)
  */
 export async function executeDirectLocalKitchenTicket(tx) {
+  const bytes = buildKitchenTicketEscPosBytes(tx);
+  const cfg = state.printerConfig || {};
+  const method = cfg.printMethod || 'browser';
+
+  // 1. Android APK Native
   if (window.AndroidBridge && typeof window.AndroidBridge.printBluetooth === 'function') {
     try {
-      const bytes = buildKitchenTicketEscPosBytes(tx);
       let binary = '';
       for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-      const b64 = window.btoa(binary);
-      const ok = window.AndroidBridge.printBluetooth(b64);
-      if (ok) {
+      if (window.AndroidBridge.printBluetooth(window.btoa(binary))) {
         showToast('Tiket dapur tercetak!', 'success');
         return true;
       }
     } catch (e) {
-      console.warn('Native Android Bluetooth kitchen print error:', e);
+      console.warn('Android kitchen print note:', e);
     }
   }
 
-  const cfg = state.printerConfig || {};
-  const method = cfg.printMethod || 'browser';
-
-  if (method === 'serial') {
+  // 2. Web Bluetooth
+  if (method === 'bluetooth' || bluetoothCharacteristic) {
     try {
-      const bytes = buildKitchenTicketEscPosBytes(tx);
-      await sendSerialData(bytes);
-      showToast('Tiket dapur terkirim (USB Serial)!', 'success');
+      await sendBluetoothData(bytes);
+      showToast('Tiket dapur tercetak (Bluetooth)!', 'success');
       return true;
     } catch (e) {
-      console.warn('Serial kitchen print error:', e);
+      console.warn('Bluetooth kitchen print note:', e);
     }
   }
 
+  // 3. USB Serial
+  if (method === 'serial' || serialWriter) {
+    try {
+      await sendSerialData(bytes);
+      showToast('Tiket dapur tercetak (USB Serial)!', 'success');
+      return true;
+    } catch (e) {
+      console.warn('Serial kitchen print note:', e);
+    }
+  }
+
+  // 4. RawBT
   if (method === 'rawbt') {
     try {
-      const bytes = buildKitchenTicketEscPosBytes(tx);
       let binary = '';
       for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-      const b64 = window.btoa(binary);
-      const intentUri = `intent:base64,${b64}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
       const link = document.createElement('a');
-      link.href = intentUri;
+      link.href = `intent:base64,${window.btoa(binary)}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
       link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
@@ -970,18 +978,38 @@ export async function executeDirectLocalKitchenTicket(tx) {
       showToast('Tiket dapur terkirim ke RawBT!', 'success');
       return true;
     } catch (e) {
-      console.warn('RawBT kitchen print error:', e);
+      console.warn('RawBT kitchen print note:', e);
     }
   }
 
-  renderPrintableKitchenArea(tx);
-  document.body.classList.add('printing-kitchen');
-  showToast('Mencetak tiket dapur via browser...', 'info');
-  window.print();
-  setTimeout(() => {
-    document.body.classList.remove('printing-kitchen');
-  }, 1000);
-  return true;
+  // 5. Browser Fallback
+  const kitchenEl = document.getElementById('kitchenPrintArea');
+  if (kitchenEl) {
+    const rawOrder = String(tx.orderName || '01').replace(/^NO ANTRIAN:?\s*/i, '');
+    const itemsHtml = (tx.items || []).map(it => `
+      <div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px dashed #ccc;">
+        <span>[  ] <b>${it.name || 'Menu'}</b>${it.note ? `<br><small>* ${it.note}</small>` : ''}</span>
+        <b>x${it.qty || 1}</b>
+      </div>
+    `).join('');
+
+    kitchenEl.innerHTML = `
+      <div style="font-family:sans-serif;font-size:11px;padding:5px;">
+        <div style="text-align:center;border-bottom:2px dashed #000;padding-bottom:5px;margin-bottom:5px;">
+          <b>*** TIKET DAPUR / BAR ***</b><br>
+          <span style="font-size:18px;font-weight:900;">NO ANTRIAN ${rawOrder.toUpperCase()}</span>
+        </div>
+        ${itemsHtml}
+        <div style="text-align:center;margin-top:10px;font-size:10px;">[  ] SELESAI DIMASAK</div>
+      </div>
+    `;
+    document.body.classList.add('printing-kitchen');
+    window.print();
+    setTimeout(() => document.body.classList.remove('printing-kitchen'), 1000);
+    return true;
+  }
+
+  return false;
 }
 
 /**
