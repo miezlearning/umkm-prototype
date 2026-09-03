@@ -1,9 +1,9 @@
 {
-  "versionCode": 39,
-  "versionName": "1.1.35",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.35/Aristotle-POS.apk",
+  "versionCode": 40,
+  "versionName": "1.1.36",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.36/Aristotle-POS.apk",
   "changelog": [
-    "Layar mesin kasir standby otomatis menyala (FLAG_KEEP_SCREEN_ON)"
+    "Perbaikan SyntaxError modul printer dan inisialisasi database"
   ],
   "releaseDate": "2026-09-03"
 }

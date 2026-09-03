@@ -4,6 +4,20 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.1.36] - 2026-09-04
+
+### 🐛 Perbaikan SyntaxError Modul Printer & Inisialisasi Database
+- **Resolusi SyntaxError Evaluasi Modul:** Memperbaiki duplikasi blok `if (isReady)` yang tidak tertutup di `js/modules/printer.js` dan mendeklarasikan variabel `btnTestRelay`. Galat ini sebelumnya menggagalkan pemuatan modul ES (`import * as printer`), yang mengakibatkan fungsi inisialisasi aplikasi (`init`) dan sinkronisasi database tidak tereksekusi.
+
+---
+
+## [v1.1.35] - 2026-09-04
+
+### ⚡ Layar Mesin Kasir Standby Otomatis Menyala
+- **FLAG_KEEP_SCREEN_ON:** Mengaktifkan flag sistem Android agar layar perangkat Kasir Utama tidak redup atau mati otomatis saat standby menunggu pesanan.
+
+---
+
 ## [v1.1.34] - 2026-09-04
 
 ### 🏷️ Pembeda Visual Status Hotspot Lokal vs Cloud Internet

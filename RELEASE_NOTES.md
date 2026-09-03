@@ -1,9 +1,9 @@
-# Aristotle POS v1.1.35 Release Notes
+# Aristotle POS v1.1.36 Release Notes
 
 **Tanggal Rilis:** 2026-09-03
 
 ### Catatan Pembaruan:
-- Layar mesin kasir standby otomatis menyala (FLAG_KEEP_SCREEN_ON)
+- Perbaikan SyntaxError modul printer dan inisialisasi database
 
 ---
 *Pembaruan ini dapat diunduh dan dipasang langsung dari dalam aplikasi (In-App Auto-Updater).*

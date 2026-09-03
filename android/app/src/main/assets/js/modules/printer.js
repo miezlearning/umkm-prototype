@@ -1344,25 +1344,6 @@ export function updatePrinterUIStatus() {
   const roleDesc = document.getElementById('multiDeviceRoleDesc');
   const rolePrinterName = document.getElementById('multiDevicePrinterNameDisplay');
   const btnTestRelay = document.getElementById('btnTestCloudRelay');
-
-  if (isReady) {
-    // KASIR UTAMA (HOST PRINTER AKTIF)
-    const displayName = printerName ? `Printer: ${printerName}` : 'Kasir Utama';
-    if (headerBadge) {
-      headerBadge.className = 'hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/90 text-emerald-950 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
-    }
-    if (headerDot) headerDot.className = 'w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse';
-    if (headerIcon) {
-      headerIcon.textContent = 'print';
-      headerIcon.className = 'material-symbols-rounded text-sm text-emerald-700';
-    }
-    if (headerText) headerText.textContent = displayName;
-    if (mobileDot) mobileDot.className = 'absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
-
-    if (modalBadge) {
-      modalBadge.innerHTML = `<span class="text-emerald-700 font-black">● ${printerName || 'Terhubung (Kasir Host)'}</span>`;
-    }
-
   const isHotspot = detectHotspotConnection();
 
   if (isReady) {
