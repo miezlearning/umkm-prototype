@@ -4,6 +4,14 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.1.31] - 2026-09-04
+
+### 🧼 Penyederhanaan Teks & Pembersihan Emoji
+- **Label Tombol Bersih dan Langsung:** Menyederhanakan seluruh label tombol aksi menjadi ringkas dan profesional (`Scan QR Kasir`, `Sambungkan HP Pelayan`, `Cari Kasir Otomatis`, `Tes Cetak ke Kasir`, `Kirim Link via WhatsApp`, `Pilih dari Galeri`).
+- **Penghapusan Emoji dan Kata Berbunga-bunga:** Menghapus emoji dekoratif yang berlebihan pada badge status dan tombol. Menghilangkan penjelasan teknis yang bertele-tele dan tanda kurung yang tidak perlu agar antarmuka rapi dan mudah dibaca kasir.
+
+---
+
 ## [v1.1.30] - 2026-09-04
 
 ### 📷 Sistem Pairing QR Code Instan (Zero-Config Kasir ➔ Pelayan)

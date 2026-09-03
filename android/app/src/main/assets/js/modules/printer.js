@@ -1403,20 +1403,20 @@ export function updatePrinterUIStatus() {
     if (mobileDot) mobileDot.className = 'absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-sky-500';
 
     if (modalBadge) {
-      modalBadge.innerHTML = `<span class="text-sky-700 font-black">☁️ Mode Cloud Relay</span>`;
+      modalBadge.innerHTML = `<span class="text-sky-700 font-bold">Cloud Relay</span>`;
     }
 
     if (roleCard) roleCard.className = 'bg-sky-50 border border-sky-200 rounded-2xl p-4 flex flex-col gap-2.5';
     if (roleDot) roleDot.className = 'w-2.5 h-2.5 rounded-full bg-sky-500';
-    if (roleTitle) roleTitle.textContent = 'HP PELAYAN (MODE CLOUD RELAY)';
+    if (roleTitle) roleTitle.textContent = 'HP PELAYAN';
     if (roleBadge) {
-      roleBadge.textContent = 'Siap Kirim ke Kasir';
+      roleBadge.textContent = 'Siap';
       roleBadge.className = 'px-2 py-0.5 rounded-full bg-sky-200/80 text-sky-900 font-extrabold text-[10px]';
     }
     if (roleDesc) {
-      roleDesc.textContent = 'Perangkat ini tidak terhubung ke printer Bluetooth. Setiap struk, tiket dapur, atau buka laci yang Anda tekan otomatis dicetak di Kasir Utama.';
+      roleDesc.textContent = 'Struk dan tiket pesanan otomatis dicetak di kasir utama.';
     }
-    if (rolePrinterName) rolePrinterName.textContent = 'Jalur: Hybrid (Wi-Fi Lokal + Cloud Relay)';
+    if (rolePrinterName) rolePrinterName.textContent = 'Jalur: Cloud Relay';
     if (btnTestRelay) btnTestRelay.classList.remove('hidden');
 
     const localOfflineInfo = document.getElementById('localOfflineHostInfo');
@@ -2140,28 +2140,28 @@ export async function autoDiscoverLocalPrinterHost(silent = false) {
 
     if (badge) {
       badge.className = 'text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300';
-      badge.innerHTML = `🟢 Terhubung (${escapeHtml(found.host)})`;
+      badge.textContent = `Terhubung (${found.host})`;
     }
     if (desc) {
-      desc.className = 'text-[11px] text-emerald-900 leading-snug font-semibold';
-      desc.textContent = `Tersambung langsung ke HP Kasir [${found.host}] via Wi-Fi/Hotspot lokal. Pesanan akan tercetak seketika tanpa perlu internet!`;
+      desc.className = 'text-[11px] text-emerald-900 leading-snug font-medium';
+      desc.textContent = `Terhubung ke ${found.host} via jaringan lokal.`;
     }
     if (!silent) {
-      showToast(`Tersambung ke HP Kasir (${found.host})!`, 'success', 3500);
+      showToast(`Terhubung ke ${found.host}`, 'success', 2500);
     }
     return true;
   } else {
     // Tidak ada di LAN lokal, gunakan mode Cloud Relay
     if (badge) {
-      badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200';
-      badge.textContent = '☁️ Mode Cloud Relay Aktif';
+      badge.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200';
+      badge.textContent = 'Cloud Relay Aktif';
     }
     if (desc) {
       desc.className = 'text-[11px] text-stone-600 leading-snug';
-      desc.textContent = 'HP Kasir belum terdeteksi di server offline (Port 8088). Pesanan tetap otomatis terkirim dan dicetak via Cloud Internet (Firebase).';
+      desc.textContent = 'Koneksi lokal tidak merespons. Pesanan dialihkan melalui cloud.';
     }
     if (!silent) {
-      showToast('HP Kasir tidak terdeteksi di Wi-Fi lokal. Beralih ke Cloud Relay.', 'info', 3500);
+      showToast('Menggunakan jalur Cloud Relay.', 'info', 2500);
     }
     return false;
   }
@@ -2188,7 +2188,7 @@ export async function testLocalLanPing(silent = false, targetIp = null) {
 
   if (badge) {
     badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 animate-pulse';
-    badge.textContent = 'Menguji IP...';
+    badge.textContent = 'Menguji koneksi...';
   }
 
   try {
@@ -2208,27 +2208,27 @@ export async function testLocalLanPing(silent = false, targetIp = null) {
 
       if (badge) {
         badge.className = 'text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300';
-        badge.innerHTML = `🟢 Terhubung (${escapeHtml(data.host || ip)})`;
+        badge.textContent = `Terhubung (${data.host || ip})`;
       }
       if (desc) {
-        desc.className = 'text-[11px] text-emerald-900 leading-snug font-semibold';
-        desc.textContent = `Tersambung langsung ke HP Kasir [${data.host || ip}] via Wi-Fi lokal. Pesanan akan tercetak seketika tanpa perlu internet!`;
+        desc.className = 'text-[11px] text-emerald-900 leading-snug font-medium';
+        desc.textContent = `Terhubung ke kasir via jaringan lokal.`;
       }
-      if (!silent) showToast(`Berhasil terhubung ke Kasir (${data.host || ip})!`, 'success', 3500);
+      if (!silent) showToast(`Terhubung ke ${data.host || ip}`, 'success', 2500);
       return true;
     } else {
       throw new Error('Response not OK');
     }
   } catch (err) {
     if (badge) {
-      badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200';
-      badge.textContent = '☁️ Siap via Cloud Relay';
+      badge.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200';
+      badge.textContent = 'Cloud Relay Aktif';
     }
     if (desc) {
       desc.className = 'text-[11px] text-stone-600 leading-snug';
-      desc.textContent = `Server offline (${ip}:8088) tidak merespons (Wi-Fi router membatasi koneksi antar-HP). Jalur cetak otomatis dialihkan ke Cloud Relay.`;
+      desc.textContent = `Server lokal (${ip}) tidak merespons. Pesanan dialihkan melalui cloud.`;
     }
-    if (!silent) showToast(`Server offline (${ip}) tidak merespons. Jalur dialihkan ke Cloud Relay.`, 'info', 3500);
+    if (!silent) showToast(`Server lokal tidak merespons. Dialihkan ke cloud.`, 'info', 2500);
     return false;
   }
 }
