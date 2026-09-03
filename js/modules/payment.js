@@ -391,9 +391,14 @@ export function printCurrentReceipt() {
   }
 }
 
-export function printCurrentKitchenTicket() {
+export async function printCurrentKitchenTicket() {
   if (currentReceiptTx) {
-    printKitchenTicket(currentReceiptTx);
+    try {
+      await printKitchenTicket(currentReceiptTx);
+    } catch (err) {
+      console.error('Print kitchen ticket error:', err);
+      showToast('Gagal cetak tiket dapur: ' + (err.message || 'Kesalahan sistem'), 'error');
+    }
   } else {
     showToast('Belum ada transaksi aktif.', 'warning');
   }

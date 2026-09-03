@@ -1,9 +1,9 @@
 {
-  "versionCode": 13,
-  "versionName": "1.1.9",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.9/Aristotle-POS.apk",
+  "versionCode": 14,
+  "versionName": "1.1.10",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.10/Aristotle-POS.apk",
   "changelog": [
-    "Penyempurnaan auto-updater (pembersihan cache instalasi lama dan pencegahan notifikasi update berulang)"
+    "Perbaikan variabel konfigurasi pada generator byte tiket dapur & error handling async"
   ],
   "releaseDate": "2026-09-03"
 }

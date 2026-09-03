@@ -378,6 +378,7 @@ export function buildOpenDrawerBytes() {
  * Format tanpa harga, nomor antrian/meja ekstra besar, dan ada kotak checklist [  ]
  */
 export function buildKitchenTicketEscPosBytes(tx) {
+  const cfg = state.printerConfig || {};
   const commands = [];
 
   const addBytes = (...bytes) => {
@@ -1532,10 +1533,15 @@ export function testPrintReceipt() {
 /**
  * Uji Coba Cetak Tiket Dapur 58mm (Sample Test Print Kitchen Ticket)
  */
-export function testPrintKitchenTicket() {
+export async function testPrintKitchenTicket() {
   playClick('tap');
-  const sampleTx = getSampleTxData();
-  printKitchenTicket(sampleTx);
+  try {
+    const sampleTx = getSampleTxData();
+    await printKitchenTicket(sampleTx);
+  } catch (err) {
+    console.error('Test kitchen ticket error:', err);
+    showToast('Gagal cetak tiket dapur: ' + (err.message || 'Kesalahan sistem'), 'error');
+  }
 }
 
 /**
