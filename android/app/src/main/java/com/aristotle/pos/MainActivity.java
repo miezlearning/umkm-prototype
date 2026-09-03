@@ -615,22 +615,26 @@ public class MainActivity extends AppCompatActivity {
                 HttpURLConnection connection = null;
                 try {
                     URL url = new URL(downloadUrl);
-                    connection = (HttpURLConnection) url.openConnection();
-                    connection.setConnectTimeout(15000);
-                    connection.setReadTimeout(30000);
-                    connection.setInstanceFollowRedirects(true);
-                    connection.connect();
-
-                    // Tangani redirect jika ada (misal GitHub Releases 302 redirect ke AWS S3)
-                    int status = connection.getResponseCode();
-                    if (status == HttpURLConnection.HTTP_MOVED_TEMP || status == HttpURLConnection.HTTP_MOVED_PERM || status == 307 || status == 308) {
-                        String newUrl = connection.getHeaderField("Location");
-                        connection.disconnect();
-                        url = new URL(newUrl);
+                    int redirects = 0;
+                    while (redirects < 6) {
                         connection = (HttpURLConnection) url.openConnection();
-                        connection.setConnectTimeout(15000);
-                        connection.setReadTimeout(30000);
+                        connection.setConnectTimeout(20000);
+                        connection.setReadTimeout(60000);
+                        connection.setInstanceFollowRedirects(true);
+                        connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36 AristotlePOS");
+                        connection.setRequestProperty("Accept", "*/*");
                         connection.connect();
+
+                        int status = connection.getResponseCode();
+                        if (status == HttpURLConnection.HTTP_MOVED_TEMP || status == HttpURLConnection.HTTP_MOVED_PERM || status == 307 || status == 308) {
+                            String newUrl = connection.getHeaderField("Location");
+                            connection.disconnect();
+                            if (newUrl == null) break;
+                            url = new URL(newUrl);
+                            redirects++;
+                        } else {
+                            break;
+                        }
                     }
 
                     if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {

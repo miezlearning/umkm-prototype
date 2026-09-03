@@ -143,12 +143,30 @@ export function startAppUpdate() {
   }
   if (cancelBtn) cancelBtn.disabled = true;
 
-  // Jalur Utama Native Android APK
+  // 1. Jalur Utama Native Android APK (v1.1.3+)
   if (window.AndroidBridge && typeof window.AndroidBridge.downloadAndInstallApk === 'function') {
     if (statusText) statusText.textContent = 'Mengunduh paket pembaruan... 0%';
-    window.AndroidBridge.downloadAndInstallApk(updateInfo.apkUrl);
+    try {
+      window.AndroidBridge.downloadAndInstallApk(updateInfo.apkUrl);
+    } catch (e) {
+      console.error('Failed to call downloadAndInstallApk:', e);
+      onUpdateDownloadError(e.message || 'Gagal memulai unduhan native');
+    }
+  } else if (window.AndroidBridge) {
+    // 2. Aplikasi Native Android Lama (v1.1.0) yang belum memiliki modul native installer
+    if (statusText) statusText.textContent = 'Membuka tautan paket instalasi...';
+    showToast('Aplikasi di HP Anda masih versi dasar. Pasang pembaruan sekali ini untuk mengaktifkan fitur pembaru otomatis selamanya.', 'warning', 7000);
+    const a = document.createElement('a');
+    a.href = updateInfo.apkUrl;
+    a.download = 'Aristotle-POS.apk';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      a.remove();
+      closeUpdateModal();
+    }, 1500);
   } else {
-    // Mode Web Browser / Laptop
+    // 3. Mode Web Browser / Laptop
     if (statusText) statusText.textContent = 'Mengunduh APK pembaruan via browser...';
     const a = document.createElement('a');
     a.href = updateInfo.apkUrl;
