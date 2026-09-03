@@ -246,7 +246,7 @@ export function updateChangeDisplay() {
       changeDisplay.className = 'text-xl sm:text-3xl font-black text-emerald-700';
     }
     if (changeNotice) {
-      changeNotice.innerText = change === 0 ? '✓ Uang pas, tidak ada kembalian' : `Kembalikan ${formatRp(change)}`;
+      changeNotice.innerText = change === 0 ? 'Uang pas, tidak ada kembalian' : `Kembalikan ${formatRp(change)}`;
     }
     if (btnFinish) btnFinish.disabled = false;
   } else {

@@ -342,15 +342,15 @@ export function shareReportWhatsApp() {
   const periodLabel = state.currentPeriod === 'today' ? 'Hari Ini' : (state.currentPeriod === 'month' ? 'Bulan Ini' : 'Semua Periode');
   const storeName = state.storeProfile?.name || 'Kasir UMKM';
 
-  const message = `📊 *REKAP LAPORAN PENJUALAN - ${storeName.toUpperCase()}*
+  const message = `*REKAP LAPORAN PENJUALAN - ${storeName.toUpperCase()}*
 Periode: ${periodLabel} (${formatDateFull(new Date())})
 
-💰 *Pemasukan (Omset)*: ${formatRp(totalRevenue)} (${filteredTx.length} Transaksi)
+*Pemasukan (Omset)*: ${formatRp(totalRevenue)} (${filteredTx.length} Transaksi)
    • Tunai di Laci: ${formatRp(totalCash)}
    • QRIS / Transfer: ${formatRp(totalQris)}
 
-🛒 *Total Pengeluaran*: ${formatRp(totalExpenses)}
-🏆 *LABA BERSIH (UNTUNG)*: ${formatRp(netProfit)}
+*Total Pengeluaran*: ${formatRp(totalExpenses)}
+*LABA BERSIH (UNTUNG)*: ${formatRp(netProfit)}
 
 _Dibuat otomatis oleh Aristotle POS_
 _Layanan & Bantuan: 081345028895_`;

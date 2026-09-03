@@ -55,7 +55,7 @@ export async function checkForAppUpdates(manual = false) {
     if (isNewer) {
       showUpdateModal(data, current);
     } else if (manual) {
-      showToast(`Aplikasi sudah menggunakan versi terbaru (v${current.name})! 🎉`, 'success');
+      showToast(`Aplikasi sudah menggunakan versi terbaru (v${current.name}).`, 'success');
     }
   } catch (err) {
     console.warn('Check update error:', err);
@@ -102,7 +102,7 @@ export function showUpdateModal(newRelease, current) {
     downloadBtn.disabled = false;
     downloadBtn.innerHTML = `
       <span class="material-symbols-rounded text-base">cloud_download</span>
-      <span>Perbarui Sekarang ⚡</span>
+      <span>Perbarui Sekarang</span>
     `;
   }
   if (cancelBtn) cancelBtn.disabled = false;

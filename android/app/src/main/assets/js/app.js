@@ -358,7 +358,7 @@ export async function handleStoreLoginSubmit(e) {
   }
 
   if (!inputPin) {
-    showToast('⚠️ Harap masukkan PIN toko.', 'warning', 3000);
+    showToast('Harap masukkan PIN toko.', 'warning', 3000);
     if (pinInput) pinInput.focus();
     return;
   }
@@ -374,7 +374,7 @@ export async function handleStoreLoginSubmit(e) {
 
     if (!authResult.success) {
       playClick('error');
-      showToast(`❌ ${authResult.message}`, 'error', 4500);
+      showToast(authResult.message, 'error', 4500);
       if (pinInput) {
         pinInput.value = '';
         pinInput.focus();
@@ -394,7 +394,7 @@ export async function handleStoreLoginSubmit(e) {
 
     quickSelectStore(cleanId);
     if (pinInput) pinInput.value = '';
-    showToast(`✅ Login Berhasil! Kasir [${authResult.storeName}] siap melayani.`, 'success');
+    showToast(`Login Berhasil! Kasir [${authResult.storeName}] siap melayani.`, 'success');
   } catch (err) {
     console.error('Login error:', err);
     showToast('Terjadi kesalahan saat memverifikasi: ' + err.message, 'error');
@@ -669,7 +669,7 @@ export function init() {
 
     if (isSuperAdminRoute) {
       switchView('superadmin');
-      showToast('⚡ Masuk ke Super Admin Monitoring Hub', 'info', 3000);
+      showToast('Masuk ke Super Admin Monitoring Hub', 'info', 3000);
       return;
     }
   } catch (e) {}
@@ -692,7 +692,7 @@ export function init() {
             pinInput.value = '';
             pinInput.focus();
           }
-          showToast(`🔒 Masukkan PIN 4 digit untuk membuka kasir [${sanitized.replace(/_/g, ' ').toUpperCase()}]`, 'info', 4000);
+          showToast(`Masukkan PIN 4 digit untuk membuka kasir [${sanitized.replace(/_/g, ' ').toUpperCase()}]`, 'info', 4000);
           return;
         }
       } catch (e) {}

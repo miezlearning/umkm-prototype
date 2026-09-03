@@ -308,13 +308,13 @@ export async function handleQrisImageUpload(event) {
 
     const meta = parseQRISMetadata(rawPayload);
     if (statusEl) {
-      statusEl.innerText = `✅ Berhasil membaca QRIS "${meta.merchantName}"! Klik "Simpan QRIS" di bawah.`;
+      statusEl.innerText = `Berhasil membaca QRIS "${meta.merchantName}". Klik "Simpan QRIS" di bawah.`;
       statusEl.className = 'text-xs font-bold text-emerald-700 block';
     }
   } catch (err) {
     console.error('Scan QRIS error:', err);
     if (statusEl) {
-      statusEl.innerText = '❌ Gagal: ' + (err.message || 'Tidak dapat membaca QRIS');
+      statusEl.innerText = 'Gagal: ' + (err.message || 'Tidak dapat membaca QRIS');
       statusEl.className = 'text-xs font-bold text-red-600 block';
     }
     showToast('Gagal membaca gambar QRIS. Pastikan foto tegak dan jelas.', 'error');

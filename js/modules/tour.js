@@ -153,7 +153,7 @@ function createTourElements() {
     box-shadow: 0 10px 25px rgba(16, 185, 129, 0.5);
     transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   `;
-  pointerBadge.innerHTML = '👆';
+  pointerBadge.innerHTML = '<span class="material-symbols-rounded text-white text-2xl">arrow_downward</span>';
   document.body.appendChild(pointerBadge);
 
   // 4. Responsive Guide Card
@@ -233,9 +233,9 @@ function updateHighlight(targetEl) {
   let pointerY = y - 48;
   if (pointerY < 10) {
     pointerY = y + height + 10;
-    pointerBadge.innerHTML = '👇';
+    pointerBadge.innerHTML = '<span class="material-symbols-rounded text-white text-2xl">arrow_upward</span>';
   } else {
-    pointerBadge.innerHTML = '👆';
+    pointerBadge.innerHTML = '<span class="material-symbols-rounded text-white text-2xl">arrow_downward</span>';
   }
   pointerBadge.style.left = `${pointerX}px`;
   pointerBadge.style.top = `${pointerY}px`;
@@ -360,7 +360,7 @@ function renderCard(step, idx) {
 
         <button type="button" onclick="${isLast ? 'KasirApp.closeGuideTour()' : 'KasirApp.nextTourStep()'}"
           class="py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md hover:shadow-lg transition active:scale-95 touch-target-large">
-          <span>${isLast ? 'Mulai Kasir 🚀' : 'Lanjut'}</span>
+          <span>${isLast ? 'Mulai Kasir' : 'Lanjut'}</span>
           <span class="material-symbols-rounded text-base">${isLast ? 'check_circle' : 'arrow_forward'}</span>
         </button>
       </div>

@@ -446,8 +446,8 @@ export function renderProducts() {
         <div class="mt-2 pt-1.5 border-t ${hasQty ? 'border-emerald-200/80' : 'border-stone-100'}">
           ${!isReady ? `
             <div class="flex items-center justify-between text-[11px] font-extrabold text-rose-500">
-              <span>❌ Stok Kosong</span>
-              <span class="material-symbols-rounded text-base text-rose-400">block</span>
+              <span class="font-black text-rose-600">Stok Kosong</span>
+              <span class="material-symbols-rounded text-base text-rose-500">block</span>
             </div>
           ` : (hasQty ? `
             <div class="flex items-center justify-between gap-1.5 pt-0.5" onclick="event.stopPropagation()">
