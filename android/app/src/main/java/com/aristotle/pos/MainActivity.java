@@ -319,6 +319,7 @@ public class MainActivity extends AppCompatActivity {
                 filePathCallback.onReceiveValue(results);
                 filePathCallback = null;
             }
+        }
         if (requestCode == UNKNOWN_SOURCES_PERMISSION_REQUEST_CODE) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().canRequestPackageInstalls()) {
                 installExistingUpdateApk();
