@@ -4,6 +4,15 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.1.27] - 2026-09-03
+
+### 🔧 Perbaikan Input Alamat IP & Kejelasan Mode Cetak
+- **Proteksi Ketikan Input IP Manual:** Memperbaiki bug agresif di mana isi kolom input alamat IP kasir terhapus secara otomatis saat pengguna baru mengetik 3 digit pertama (`192`). Sekarang input diproteksi penuh dan langsung disimpan secara realtime ke state/localStorage pada setiap ketikan (`oninput`).
+- **Sinkronisasi Host Otomatis via Cloud Presence:** Kasir Utama di APK Android kini otomatis mempublikasikan alamat IP lokalnya ke Cloud Firestore. HP Pelayan yang berada di satu router Wi-Fi langsung mendeteksi dan terhubung ke IP kasir tanpa perlu menebak atau mencari manual.
+- **Kejelasan Arsitektur Cetak Web Browser vs Android APK:** Menambahkan deteksi dan keterangan visual yang transparan jika Kasir dibuka di Web Browser (jalur cetak menggunakan Cloud Relay) dibandingkan jika dibuka di Android APK (jalur server offline port 8088).
+
+---
+
 ## [v1.1.26] - 2026-09-03
 
 ### 🍳 Kategori Topping & Ekstra Ramah Lansia (Senior-Friendly Add-Ons)

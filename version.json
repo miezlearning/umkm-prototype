@@ -1,11 +1,11 @@
 {
-  "versionCode": 30,
-  "versionName": "1.1.26",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.26/Aristotle-POS.apk",
+  "versionCode": 31,
+  "versionName": "1.1.27",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.27/Aristotle-POS.apk",
   "changelog": [
-    "Kategori baru Topping & Ekstra untuk add-on menu yang senior-friendly",
-    "Fitur Catatan Cepat (Quick Note Chips) pada item pesanan keranjang & cetak struk",
-    "Mode Hybrid Cetak Offline LAN/Hotspot (Port 8088): Pelayan dapat mencetak langsung tanpa internet"
+    "Perbaikan input IP manual agar tidak terhapus saat mengetik",
+    "Sinkronisasi host kasir otomatis via Cloud presence untuk Wi-Fi router",
+    "Kejelasan mode cetak Web Browser (Cloud) vs Android APK (LAN Offline)"
   ],
   "releaseDate": "2026-09-03"
 }
