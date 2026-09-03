@@ -4,6 +4,15 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.1.37] - 2026-09-04
+
+### 🧼 Pembersihan UI/UX Mode Pelayan (Ponytail Simplification)
+- **Hapus Label Jaringan Membingungkan:** Menghapus seluruh badge status teknis ("Online Cloud", "Hotspot", scan gimmick) yang tidak perlu dan membingungkan pengguna.
+- **Kartu Pelayan Bersih & Fungsional:** Menampilkan status bersih *"Mode HP Pelayan | Siap"* dengan dua tombol aksi langsung: `[ Tes Struk ]` dan `[ Buka Laci ]`.
+- **Rute Otomatis di Belakang Layar:** Sistem di balik layar otomatis mencoba Hotspot kasir lokal terlebih dahulu untuk kecepatan maksimal (offline zero-delay), dan otomatis beralih ke Cloud jika berada di jaringan internet/Wi-Fi biasa tanpa menuntut konfigurasi pengguna.
+
+---
+
 ## [v1.1.36] - 2026-09-04
 
 ### 🐛 Perbaikan SyntaxError Modul Printer & Inisialisasi Database

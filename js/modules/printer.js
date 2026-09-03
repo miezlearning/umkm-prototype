@@ -1412,69 +1412,35 @@ export function updatePrinterUIStatus() {
 
   } else {
     // HP PELAYAN
-    const pelayanTitle = document.getElementById('pelayanConnectionTitle');
-    const pelayanBadge = document.getElementById('pelayanConnectionBadge');
-    const pelayanDesc = document.getElementById('pelayanConnectionDesc');
-    const pelayanDot = document.getElementById('pelayanConnectionDot');
-
     if (headerBadge) {
-      headerBadge.className = isHotspot
-        ? 'hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100/80 border border-amber-300 text-amber-950 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0'
-        : 'hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-50 hover:bg-sky-100/80 border border-sky-200/90 text-sky-950 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
+      headerBadge.className = 'hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-50 hover:bg-sky-100/80 border border-sky-200/90 text-sky-950 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
     }
-    if (headerDot) headerDot.className = isHotspot ? 'w-2 h-2 rounded-full bg-amber-500 shrink-0' : 'w-2 h-2 rounded-full bg-sky-500 shrink-0';
+    if (headerDot) headerDot.className = 'w-2 h-2 rounded-full bg-sky-500 shrink-0';
     if (headerIcon) {
-      headerIcon.textContent = isHotspot ? 'wifi_tethering' : 'cloud_sync';
-      headerIcon.className = isHotspot ? 'material-symbols-rounded text-sm text-amber-700' : 'material-symbols-rounded text-sm text-sky-700';
+      headerIcon.textContent = 'smartphone';
+      headerIcon.className = 'material-symbols-rounded text-sm text-sky-700';
     }
-    if (headerText) headerText.textContent = isHotspot ? 'Hotspot Kasir' : 'Cloud Relay';
-    if (mobileDot) mobileDot.className = isHotspot ? 'absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500' : 'absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-sky-500';
+    if (headerText) headerText.textContent = 'HP Pelayan';
+    if (mobileDot) mobileDot.className = 'absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-sky-500';
 
     if (modalBadge) {
-      modalBadge.innerHTML = isHotspot
-        ? `<span class="text-amber-800 font-bold">Hotspot Kasir (Offline)</span>`
-        : `<span class="text-sky-700 font-bold">Cloud Relay (Internet)</span>`;
+      modalBadge.innerHTML = `<span class="text-sky-700 font-bold">HP Pelayan</span>`;
     }
 
     if (roleCard) {
-      roleCard.className = isHotspot
-        ? 'bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col gap-2.5'
-        : 'bg-sky-50 border border-sky-200 rounded-2xl p-4 flex flex-col gap-2.5';
+      roleCard.className = 'bg-sky-50 border border-sky-200 rounded-2xl p-4 flex flex-col gap-2.5';
     }
-    if (roleDot) roleDot.className = isHotspot ? 'w-2.5 h-2.5 rounded-full bg-amber-500' : 'w-2.5 h-2.5 rounded-full bg-sky-500';
+    if (roleDot) roleDot.className = 'w-2.5 h-2.5 rounded-full bg-sky-500';
     if (roleTitle) roleTitle.textContent = 'HP PELAYAN';
     if (roleBadge) {
-      roleBadge.textContent = isHotspot ? 'Hotspot (Offline)' : 'Cloud (Internet)';
-      roleBadge.className = isHotspot
-        ? 'px-2 py-0.5 rounded-full bg-amber-200 text-amber-950 font-extrabold text-[10px]'
-        : 'px-2 py-0.5 rounded-full bg-sky-200/80 text-sky-900 font-extrabold text-[10px]';
+      roleBadge.textContent = 'Siap';
+      roleBadge.className = 'px-2 py-0.5 rounded-full bg-sky-200/80 text-sky-900 font-extrabold text-[10px]';
     }
     if (roleDesc) {
-      roleDesc.textContent = isHotspot
-        ? 'Tersambung ke Hotspot HP Kasir. Pesanan dicetak langsung tanpa internet.'
-        : 'Struk dan tiket pesanan otomatis dicetak di kasir utama via Cloud.';
+      roleDesc.textContent = 'Pesanan dan cetak struk dari HP ini otomatis dieksekusi di kasir utama.';
     }
     if (rolePrinterName) {
-      rolePrinterName.textContent = isHotspot ? 'Jalur: Hotspot Kasir (Lokal)' : 'Jalur: Cloud Relay';
-    }
-    if (btnTestRelay) btnTestRelay.classList.remove('hidden');
-
-    if (pelayanTitle) {
-      pelayanTitle.textContent = isHotspot ? 'Jalur: Hotspot Kasir' : 'Jalur: Cloud Realtime';
-    }
-    if (pelayanBadge) {
-      pelayanBadge.textContent = isHotspot ? 'Hotspot (Offline)' : 'Online Cloud';
-      pelayanBadge.className = isHotspot
-        ? 'text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300'
-        : 'text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-sky-100 text-sky-900 border border-sky-200';
-    }
-    if (pelayanDesc) {
-      pelayanDesc.textContent = isHotspot
-        ? 'Tersambung langsung ke hotspot kasir (192.168.43.1). Pesanan dicetak tanpa kuota internet.'
-        : 'Tersambung ke kasir via cloud. Pesanan otomatis dicetak di kasir utama.';
-    }
-    if (pelayanDot) {
-      pelayanDot.className = isHotspot ? 'w-2 h-2 rounded-full bg-amber-500' : 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+      rolePrinterName.textContent = 'Tersambung ke Kasir';
     }
 
     const localOfflineInfo = document.getElementById('localOfflineHostInfo');

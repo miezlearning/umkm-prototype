@@ -1,9 +1,9 @@
 {
-  "versionCode": 40,
-  "versionName": "1.1.36",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.36/Aristotle-POS.apk",
+  "versionCode": 41,
+  "versionName": "1.1.37",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.37/Aristotle-POS.apk",
   "changelog": [
-    "Perbaikan SyntaxError modul printer dan inisialisasi database"
+    "Pembersihan total UI/UX Pelayan: eliminasi badge jaringan membingungkan"
   ],
   "releaseDate": "2026-09-03"
 }
