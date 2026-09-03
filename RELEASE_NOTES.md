@@ -1,9 +1,9 @@
-# Aristotle POS v1.1.15 Release Notes
+# Aristotle POS v1.1.16 Release Notes
 
 **Tanggal Rilis:** 2026-09-03
 
 ### Catatan Pembaruan:
-- Perbaikan event bubbling navbar: modal Hubungkan Perangkat hanya terbuka jika nama toko diklik spesifik
+- Penyelesaian kendala loading terhenti di 20%: pembersihan query string modul, penjaminan watchdog splash screen, dan optimalisasi cache
 
 ---
 *Pembaruan ini dapat diunduh dan dipasang langsung dari dalam aplikasi (In-App Auto-Updater).*

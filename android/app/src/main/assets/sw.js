@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aristotle-pos-v45';
+const CACHE_NAME = 'aristotle-pos-v46';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
@@ -81,14 +81,22 @@ self.addEventListener('fetch', (event) => {
         return networkResponse;
       } catch (fetchErr) {
         // Fallback 1: Coba match persis di cache
-        const cachedResponse = await caches.match(event.request);
+        let cachedResponse = await caches.match(event.request);
         if (cachedResponse) return cachedResponse;
 
         // Fallback 2: Coba match tanpa query string (?v=...)
-        const cachedWithoutSearch = await caches.match(event.request, { ignoreSearch: true });
-        if (cachedWithoutSearch) return cachedWithoutSearch;
+        cachedResponse = await caches.match(event.request, { ignoreSearch: true });
+        if (cachedResponse) return cachedResponse;
 
-        // Fallback 3: Navigasi HTML fallback ke index.html
+        // Fallback 3: Buka cache langsung dan cari path bersih
+        try {
+          const cache = await caches.open(CACHE_NAME);
+          const cleanUrl = url.split('?')[0];
+          const cleanMatch = (await cache.match(cleanUrl)) || (await cache.match(new Request(cleanUrl)));
+          if (cleanMatch) return cleanMatch;
+        } catch (_) {}
+
+        // Fallback 4: Navigasi HTML fallback ke index.html
         if (
           event.request.mode === 'navigate' ||
           event.request.headers.get('accept')?.includes('text/html')
@@ -97,7 +105,7 @@ self.addEventListener('fetch', (event) => {
           if (indexFallback) return indexFallback;
         }
 
-        // Fallback 4: Wajib kembalikan Response agar tidak muncul TypeError "Failed to convert value to 'Response'"
+        // Fallback 5: Wajib kembalikan Response valid agar tidak crash
         return new Response('Offline: Konten tidak tersedia saat tanpa koneksi internet.', {
           status: 503,
           statusText: 'Service Unavailable',
