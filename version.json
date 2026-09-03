@@ -1,9 +1,9 @@
 {
-  "versionCode": 28,
-  "versionName": "1.1.24",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.24/Aristotle-POS.apk",
+  "versionCode": 29,
+  "versionName": "1.1.25",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.25/Aristotle-POS.apk",
   "changelog": [
-    "Tambahkan fitur swipe down to refresh (pull-to-refresh) di web dan mobile"
+    "Perbaiki FOUT ikon dan hilangkan timeout gimmick saat loading awal"
   ],
   "releaseDate": "2026-09-03"
 }

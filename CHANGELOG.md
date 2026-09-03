@@ -6,6 +6,15 @@ Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelo
 
 ---
 
+## [v1.1.25] - 2026-09-03
+
+### 🛡️ Eliminasi Teks Ikon Mentah & Penghentian Loading Gimmick (Fixed FOUT)
+- **Anti-FOUT Strict Containment:** Mengunci dimensi dan membendung teks ligature mentah (`width: 1em; height: 1em; overflow: hidden; flex-shrink: 0;`) sehingga kata panjang seperti `system_update` dan `cloud_download` tidak akan pernah meluap atau menabrak teks tombol saat font sedang dimuat.
+- **Pemuatan Aset Riil (No Fake Timeout):** Menghapus batasan timeout 2 detik palsu pada splash screen. Sistem kini benar-benar menunggu konfirmasi `document.fonts.ready` sebelum melepaskan layar loading dan sebelum menampilkan modal update.
+- **Prioritas Font Lokal Ringan:** Mengarahkan `@font-face` untuk memuat font core lokal (455 KB) terlebih dahulu dibandingkan font raksasa (5.3 MB), mempercepat render ikon hingga 12x lipat.
+
+---
+
 ## [v1.1.24] - 2026-09-03
 
 ### 🔄 Fitur Swipe Down to Refresh (Pull-to-Refresh)

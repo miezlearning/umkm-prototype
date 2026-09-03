@@ -643,17 +643,19 @@ export async function init() {
     pos.renderProducts();
     pos.renderCart();
 
-    // 3. Real Asset Readiness Check (70%) - Tunggu font ikon sistem selesai dimuat
+    // 3. Real Asset Readiness Check (70%) - Tunggu font ikon sistem benar-benar siap
     updateLoadingProgress(70, 'Memuat font aset & ikon sistem...');
-    try {
-      if (document.fonts) {
+    if (document.fonts) {
+      try {
         await Promise.race([
-          document.fonts.load('24px "Material Symbols Rounded"'),
-          document.fonts.ready,
-          new Promise(resolve => setTimeout(resolve, 2000))
+          Promise.all([
+            document.fonts.load('24px "Material Symbols Rounded"'),
+            document.fonts.ready
+          ]),
+          new Promise(resolve => setTimeout(resolve, 6000)) // Toleransi maksimal jaringan lambat
         ]);
-      }
-    } catch (_) {}
+      } catch (_) {}
+    }
     document.documentElement.classList.remove('fonts-loading');
 
     // 4. Setup Service Worker for offline PWA & Multi-Device sync (90%)

@@ -75,9 +75,21 @@ export async function checkForAppUpdates(manual = false) {
 /**
  * Tampilkan modal notifikasi pembaruan
  */
-export function showUpdateModal(newRelease, current) {
+export async function showUpdateModal(newRelease, current) {
   const modal = document.getElementById('updateAppModal');
   if (!modal) return;
+
+  // Pastikan font ikon sudah siap sebelum modal dibuka agar tidak FOUT
+  if (document.fonts && !document.fonts.check('24px "Material Symbols Rounded"')) {
+    try {
+      await Promise.race([
+        document.fonts.load('24px "Material Symbols Rounded"'),
+        document.fonts.ready,
+        new Promise(r => setTimeout(r, 2000))
+      ]);
+    } catch (_) {}
+    document.documentElement.classList.remove('fonts-loading');
+  }
 
   const versionBadgeEl = document.getElementById('updateModalVersionBadge');
   const currentVersionEl = document.getElementById('updateModalCurrentVersion');

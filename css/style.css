@@ -16,8 +16,8 @@
   font-style: normal;
   font-weight: 100 700;
   font-display: block;
-  src: url('../fonts/material-symbols-rounded.woff2') format('woff2'),
-       url('../fonts/material-symbols-rounded-core.woff2') format('woff2'),
+  src: url('../fonts/material-symbols-rounded-core.woff2') format('woff2'),
+       url('../fonts/material-symbols-rounded.woff2') format('woff2'),
        url('https://fonts.gstatic.com/s/materialsymbolsrounded/v369/sykg-zNym6YjUruM-QrEh7-nyTnjDwKNJ_190FjzaqkNCeE.woff2') format('woff2');
 }
 
@@ -37,7 +37,9 @@ body {
   line-height: 1;
   letter-spacing: normal;
   text-transform: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
@@ -47,10 +49,18 @@ body {
   text-rendering: optimizeLegibility;
   font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
   vertical-align: middle;
+
+  /* Anti-FOUT: Batasi dimensi ketat agar teks mentah ligature TIDAK PERNAH tumpah / melebar */
+  width: 1em;
+  height: 1em;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-sizing: content-box;
 }
 
 /* Anti-FOUT: Saat fase pemuatan awal, sembunyikan teks ligature mentah sampai font aktif */
 html.fonts-loading .material-symbols-rounded {
+  opacity: 0 !important;
   visibility: hidden !important;
 }
 

@@ -2333,7 +2333,7 @@
             <span class="material-symbols-rounded text-emerald-600 text-lg">system_update</span>
             <div>
               <p class="font-bold text-stone-800">Pembaruan Aplikasi</p>
-              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.1.24 (Terkini)</p>
+              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.1.25 (Terkini)</p>
             </div>
           </div>
           <button onclick="KasirApp.checkForAppUpdates(true)"
@@ -2548,20 +2548,20 @@
       <!-- Gradient Header -->
       <div class="bg-gradient-to-br from-emerald-600 to-teal-800 p-5 text-white flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-inner">
-            <span class="material-symbols-rounded text-2xl">system_update</span>
+          <div class="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-inner shrink-0 overflow-hidden">
+            <span class="material-symbols-rounded text-2xl w-8 h-8 flex items-center justify-center overflow-hidden">system_update</span>
           </div>
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-black tracking-tight" id="updateModalTitle">Pembaruan Aplikasi Tersedia!</h3>
-              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.1.24</span>
+              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.1.25</span>
             </div>
             <p id="updateModalCurrentVersion" class="text-emerald-100 text-xs mt-0.5">Versi Anda saat ini: v1.1.3</p>
           </div>
         </div>
         <button type="button" onclick="KasirApp.closeUpdateModal()" id="updateCancelBtnTop"
-          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
-          <span class="material-symbols-rounded text-sm">close</span>
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition shrink-0 overflow-hidden">
+          <span class="material-symbols-rounded text-sm w-4 h-4 flex items-center justify-center overflow-hidden">close</span>
         </button>
       </div>
 
@@ -2595,12 +2595,12 @@
           </button>
           <button type="button" onclick="KasirApp.startAppUpdate()" id="updateDownloadBtn"
             class="py-3 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs flex items-center justify-center gap-1.5 touch-target-large shadow-md transition active:scale-95">
-            <span class="material-symbols-rounded text-base">cloud_download</span>
+            <span class="material-symbols-rounded text-base w-5 h-5 flex items-center justify-center overflow-hidden shrink-0">cloud_download</span>
             <span>Perbarui Sekarang</span>
           </button>
           <button type="button" onclick="KasirApp.installDownloadedUpdate()" id="updateInstallBtn"
             class="hidden py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center justify-center gap-1.5 touch-target-large shadow-md transition active:scale-95 animate-pulse">
-            <span class="material-symbols-rounded text-base">system_update</span>
+            <span class="material-symbols-rounded text-base w-5 h-5 flex items-center justify-center overflow-hidden shrink-0">system_update</span>
             <span>Pasang Sekarang</span>
           </button>
         </div>
