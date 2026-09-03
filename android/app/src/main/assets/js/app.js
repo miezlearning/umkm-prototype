@@ -679,6 +679,7 @@ export async function init() {
     // 5. Setup Remote Print Host Listener (Device 1 otomatis mengeksekusi print dari Device 2)
     try {
       printer.setupRemotePrintHostListener();
+      printer.updatePrinterUIStatus();
     } catch (e) {
       console.warn('Remote print listener init note:', e);
     }
@@ -880,6 +881,9 @@ const KasirApp = {
   updateLiveReceiptPreview: printer.updateLiveReceiptPreview,
   handleLogoUpload: printer.handleLogoUpload,
   removeLogoImage: printer.removeLogoImage,
+  updatePrinterUIStatus: printer.updatePrinterUIStatus,
+  testCloudRelayPrint: printer.testCloudRelayPrint,
+  setupRemotePrintHostListener: printer.setupRemotePrintHostListener,
 
   // Admin & Backup & QRIS & Menu
   renderAdminTable: admin.renderAdminTable,

@@ -308,6 +308,18 @@ export function setupRealtimeListeners() {
     console.error('Config onSnapshot error:', error);
   });
   listenersUnsubscribe.push(unsubConfig);
+
+  // 6. AUTO ATTACH REMOTE PRINT HOST LISTENER
+  try {
+    if (typeof window.KasirApp?.setupRemotePrintHostListener === 'function') {
+      window.KasirApp.setupRemotePrintHostListener();
+    }
+    if (typeof window.KasirApp?.updatePrinterUIStatus === 'function') {
+      window.KasirApp.updatePrinterUIStatus();
+    }
+  } catch (e) {
+    console.warn('Auto attach print host listener note:', e);
+  }
 }
 
 export async function syncSavePrinterConfig(printerConfig) {

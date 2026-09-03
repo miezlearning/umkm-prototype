@@ -139,9 +139,16 @@
             <button type="button" onclick="event.stopPropagation(); KasirApp.checkForAppUpdates(true)"
               class="px-1.5 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-black border border-emerald-200/80 transition flex items-center gap-0.5 shadow-2xs"
               title="Klik untuk memeriksa pembaruan aplikasi">
-              <span id="appVersionBadge">v1.1.5</span>
-              <span class="material-symbols-rounded text-[11px] text-emerald-600">sync</span>
-            </button>
+            <span id="appVersionBadge">v1.1.6</span>
+            <span class="material-symbols-rounded text-[11px] text-emerald-600">sync</span>
+          </button>
+          <span class="text-stone-300 text-[10px]">•</span>
+          <div id="headerPrinterStatusBadge" onclick="window.KasirApp.openPrinterConfigModal()"
+            class="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-stone-100 border border-stone-200 text-stone-600 text-[10px] font-black cursor-pointer shadow-2xs hover:bg-stone-200 transition"
+            title="Klik untuk membuka pengaturan printer">
+            <span id="headerPrinterDot" class="w-1.5 h-1.5 rounded-full bg-stone-400"></span>
+            <span id="headerPrinterIcon" class="material-symbols-rounded text-xs text-stone-500">print</span>
+            <span id="headerPrinterText" class="truncate max-w-[160px]">Memeriksa Printer...</span>
           </div>
         </div>
       </div>
@@ -183,6 +190,12 @@
 
       <!-- Quick Action Buttons on Mobile Header -->
       <div class="lg:hidden flex items-center gap-1.5">
+        <button id="mobileHeaderPrinterBtn" onclick="window.KasirApp.openPrinterConfigModal()"
+          class="w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-700 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large relative"
+          title="Status Printer & Multi-Device">
+          <span id="mobileHeaderPrinterDot" class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-stone-400"></span>
+          <span class="material-symbols-rounded text-lg text-stone-600">print</span>
+        </button>
         <a href="https://wa.me/6281345028895" target="_blank" title="Bantuan WhatsApp: 081345028895"
           class="w-9 h-9 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large">
           <span class="material-symbols-rounded text-lg">chat</span>
@@ -1656,6 +1669,30 @@
           <!-- Left Column: Settings Form -->
           <div class="lg:col-span-7 flex flex-col gap-4">
             
+            <!-- Multi-Device Status Card (Host Kasir vs Cloud Relay) -->
+            <div id="multiDeviceRoleCard" class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col gap-2.5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span id="multiDeviceRoleDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <h4 id="multiDeviceRoleTitle" class="text-xs font-black text-emerald-950 uppercase tracking-wider">
+                    KASIR UTAMA (PENCETAK TOKO)
+                  </h4>
+                </div>
+                <span id="multiDeviceRoleBadge" class="px-2 py-0.5 rounded-full bg-emerald-200/70 text-emerald-900 font-extrabold text-[10px]">
+                  Host Aktif
+                </span>
+              </div>
+              <p id="multiDeviceRoleDesc" class="text-xs text-emerald-900 leading-relaxed font-medium">
+                Printer thermal fisik terhubung. Perangkat ini aktif menerima dan otomatis mencetak pesanan dari HP pelayan.
+              </p>
+              <div class="flex items-center justify-between pt-2 border-t border-emerald-200/60 text-[11px] font-bold text-emerald-950">
+                <span id="multiDevicePrinterNameDisplay">Hardware: Memeriksa...</span>
+                <button type="button" id="btnTestCloudRelay" onclick="window.KasirApp.testCloudRelayPrint()" class="hidden px-2.5 py-1 rounded-lg bg-white border border-sky-300 text-sky-800 font-black text-[10px] hover:bg-sky-100 transition shadow-2xs">
+                  Tes Kirim ke Kasir
+                </button>
+              </div>
+            </div>
+
             <!-- Hardware Connection & Quick Test Card -->
             <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 flex flex-col gap-3">
               <div class="flex items-center justify-between">
@@ -2166,7 +2203,7 @@
             <span class="material-symbols-rounded text-emerald-600 text-lg">system_update</span>
             <div>
               <p class="font-bold text-stone-800">Pembaruan Aplikasi</p>
-              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.1.5 (Terkini)</p>
+              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.1.6 (Terkini)</p>
             </div>
           </div>
           <button onclick="KasirApp.checkForAppUpdates(true)"
@@ -2387,7 +2424,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-black tracking-tight" id="updateModalTitle">Pembaruan Aplikasi Tersedia!</h3>
-              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.1.5</span>
+              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.1.6</span>
             </div>
             <p id="updateModalCurrentVersion" class="text-emerald-100 text-xs mt-0.5">Versi Anda saat ini: v1.1.3</p>
           </div>

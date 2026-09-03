@@ -992,32 +992,17 @@ export async function kickCashDrawer() {
     return await executeDirectLocalKickDrawer();
   }
 
-  // 2. Jika di Android native APK, coba kickDrawer langsung
-  if (window.AndroidBridge && typeof window.AndroidBridge.kickDrawer === 'function') {
-    try {
-      const ok = window.AndroidBridge.kickDrawer();
-      if (ok) {
-        showToast('Laci kasir terbuka!', 'success');
-        return true;
-      }
-    } catch (e) {}
-  }
-
-  // 3. Jika TIDAK terhubung langsung (Device 2 / HP Pelayan), gunakan Cloud Drawer Relay!
+  // 2. Jika TIDAK terhubung langsung (Device 2 / HP Pelayan), gunakan Cloud Drawer Relay!
   try {
-    showToast('Mengirim sinyal buka laci ke Printer Kasir...', 'info');
+    showToast('Mengirim sinyal buka laci ke Printer Kasir...', 'info', 3000);
     const jobId = await dispatchRemotePrintJob({ type: 'drawer' });
-    await waitForRemotePrintJob(jobId, 8000);
-    showToast('Laci kasir dibuka oleh Printer Kasir!', 'success');
+    await waitForRemotePrintJob(jobId, 10000);
+    showToast('Laci kasir dibuka oleh Printer Kasir!', 'success', 3500);
     return true;
   } catch (err) {
     console.warn('Remote drawer kick note:', err);
-    // Fallback jika cloud offline atau tidak ada host
-    const ok = await executeDirectLocalKickDrawer();
-    if (!ok) {
-      showToast('Fitur buka laci membutuhkan printer kasir fisik yang terhubung.', 'info');
-    }
-    return ok;
+    showToast('Gagal buka laci: ' + (err.message || 'Printer Kasir tidak merespons.'), 'warning', 4500);
+    return false;
   }
 }
 
@@ -1036,30 +1021,22 @@ export async function printReceipt(tx, forceMethod = null) {
     return await executeDirectLocalPrintReceipt(tx, shouldKickDrawer, forceMethod);
   }
 
-  // 2. Jika di Android native APK, coba cetak Bluetooth lokal terlebih dahulu
-  if (window.AndroidBridge && typeof window.AndroidBridge.printBluetooth === 'function') {
-    try {
-      const ok = await executeDirectLocalPrintReceipt(tx, shouldKickDrawer, forceMethod);
-      if (ok) return true;
-    } catch (e) {}
-  }
-
-  // 3. Jika TIDAK terhubung printer lokal (Device 2 / HP Pelayan), alihkan ke Cloud Print Relay!
+  // 2. Jika TIDAK terhubung printer lokal (Device 2 / HP Pelayan), alihkan ke Cloud Print Relay!
   try {
-    showToast('Mengirim struk ke Printer Kasir...', 'info');
+    showToast('Mengirim struk ke Printer Kasir...', 'info', 3000);
     const jobId = await dispatchRemotePrintJob({
       type: 'receipt',
       tx: tx,
       forceMethod: forceMethod
     });
-    showToast('Menunggu Printer Kasir mencetak...', 'info');
-    await waitForRemotePrintJob(jobId, 12000);
-    showToast('Struk berhasil dicetak di Printer Kasir!', 'success');
+    showToast('Menunggu Printer Kasir mencetak...', 'info', 3000);
+    await waitForRemotePrintJob(jobId, 15000);
+    showToast('Struk berhasil dicetak di Printer Kasir!', 'success', 3500);
     return true;
   } catch (err) {
-    console.warn('Cloud print relay fallback:', err);
-    showToast('Printer Kasir tidak merespons, beralih ke cetak browser...', 'warning');
-    return await executeDirectLocalPrintReceipt(tx, shouldKickDrawer, forceMethod);
+    console.warn('Cloud print relay note:', err);
+    showToast('Gagal cetak via kasir: ' + (err.message || 'Printer Kasir tidak merespons.'), 'warning', 5000);
+    return false;
   }
 }
 
@@ -1073,32 +1050,26 @@ export async function printKitchenTicket(tx) {
     return false;
   }
 
-  // 1. Jika perangkat ini terhubung ke printer lokal
+  // 1. Jika perangkat ini terhubung ke printer lokal (Device 1)
   if (isLocalPrinterReady()) {
     return await executeDirectLocalKitchenTicket(tx);
   }
 
-  // 2. Jika di Android native APK
-  if (window.AndroidBridge && typeof window.AndroidBridge.printBluetooth === 'function') {
-    try {
-      const ok = await executeDirectLocalKitchenTicket(tx);
-      if (ok) return true;
-    } catch (e) {}
-  }
-
-  // 3. Jika TIDAK terhubung printer lokal (Device 2), alihkan ke Cloud Print Relay!
+  // 2. Jika TIDAK terhubung printer lokal (Device 2), alihkan ke Cloud Print Relay!
   try {
-    showToast('Mengirim tiket dapur ke Printer Kasir...', 'info');
+    showToast('Mengirim tiket dapur ke Printer Kasir...', 'info', 3000);
     const jobId = await dispatchRemotePrintJob({
       type: 'kitchen',
       tx: tx
     });
-    await waitForRemotePrintJob(jobId, 12000);
-    showToast('Tiket dapur berhasil dicetak di Printer Kasir!', 'success');
+    showToast('Menunggu Printer Kasir mencetak tiket...', 'info', 3000);
+    await waitForRemotePrintJob(jobId, 15000);
+    showToast('Tiket dapur berhasil dicetak di Printer Kasir!', 'success', 3500);
     return true;
   } catch (err) {
-    console.warn('Cloud kitchen print relay fallback:', err);
-    return await executeDirectLocalKitchenTicket(tx);
+    console.warn('Cloud kitchen print relay note:', err);
+    showToast('Gagal cetak tiket: ' + (err.message || 'Printer Kasir tidak merespons.'), 'warning', 5000);
+    return false;
   }
 }
 
@@ -1117,9 +1088,12 @@ export function setupRemotePrintHostListener() {
   remotePrintUnsubscribe = listenToRemotePrintJobs(async (job) => {
     if (!job || job.status !== 'pending') return;
 
-    // Periksa apakah perangkat ini terhubung ke printer fisik
-    const canPrint = isLocalPrinterReady() || (window.AndroidBridge && typeof window.AndroidBridge.printBluetooth === 'function');
-    if (!canPrint) return;
+    // Periksa apakah perangkat ini dapat mencetak (Host Kasir)
+    const canPrint = isLocalPrinterReady();
+    if (!canPrint) {
+      console.log('Tugas cetak diterima, namun perangkat ini sedang bukan Host Printer (isLocalPrinterReady = false).');
+      return;
+    }
 
     // Abaikan jika job dibuat oleh perangkat ini sendiri (hindari loop)
     if (job.createdBy === getDeviceId()) return;
@@ -1134,13 +1108,13 @@ export function setupRemotePrintHostListener() {
         const cfg = state.printerConfig || {};
         const shouldKick = cfg.autoKickDrawer && (job.tx.method === 'TUNAI');
         await executeDirectLocalPrintReceipt(job.tx, shouldKick, job.forceMethod);
-        showToast(`Mencetak struk dari [${job.createdByName || 'HP Pelayan'}]`, 'info', 3000);
+        showToast(`Mencetak struk dari [${job.createdByName || 'HP Pelayan'}]`, 'info', 3500);
       } else if (job.type === 'kitchen' && job.tx) {
         await executeDirectLocalKitchenTicket(job.tx);
-        showToast(`Mencetak tiket dapur dari [${job.createdByName || 'HP Pelayan'}]`, 'info', 3000);
+        showToast(`Mencetak tiket dapur dari [${job.createdByName || 'HP Pelayan'}]`, 'info', 3500);
       } else if (job.type === 'drawer') {
         await executeDirectLocalKickDrawer();
-        showToast(`Membuka laci kasir atas perintah [${job.createdByName || 'HP Pelayan'}]`, 'info', 3000);
+        showToast(`Membuka laci kasir atas perintah [${job.createdByName || 'HP Pelayan'}]`, 'info', 3500);
       }
 
       await updateRemotePrintJobStatus(job.id, 'completed');
@@ -1149,6 +1123,140 @@ export function setupRemotePrintHostListener() {
       await updateRemotePrintJobStatus(job.id, 'failed', { error: err.message || 'Gagal cetak' });
     }
   });
+}
+
+/**
+ * Update realtime UI indikator status printer di Header & Modal
+ */
+export function updatePrinterUIStatus() {
+  const isReady = isLocalPrinterReady();
+  let printerName = '';
+
+  if (window.AndroidBridge && typeof window.AndroidBridge.getConnectedPrinterInfo === 'function') {
+    try {
+      printerName = window.AndroidBridge.getConnectedPrinterInfo();
+    } catch (_) {}
+  }
+
+  // Header badges
+  const headerBadge = document.getElementById('headerPrinterStatusBadge');
+  const headerDot = document.getElementById('headerPrinterDot');
+  const headerIcon = document.getElementById('headerPrinterIcon');
+  const headerText = document.getElementById('headerPrinterText');
+  const mobileDot = document.getElementById('mobileHeaderPrinterDot');
+
+  // Modal elements
+  const modalBadge = document.getElementById('printerConnectionBadge');
+  const roleCard = document.getElementById('multiDeviceRoleCard');
+  const roleDot = document.getElementById('multiDeviceRoleDot');
+  const roleTitle = document.getElementById('multiDeviceRoleTitle');
+  const roleBadge = document.getElementById('multiDeviceRoleBadge');
+  const roleDesc = document.getElementById('multiDeviceRoleDesc');
+  const rolePrinterName = document.getElementById('multiDevicePrinterNameDisplay');
+  const btnTestRelay = document.getElementById('btnTestCloudRelay');
+
+  if (isReady) {
+    // KASIR UTAMA (HOST PRINTER AKTIF)
+    const displayName = printerName ? `Printer: ${printerName}` : 'Printer Terhubung (Kasir Host)';
+    if (headerBadge) {
+      headerBadge.className = 'hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-800 text-[10px] font-black cursor-pointer shadow-2xs hover:bg-emerald-100 transition';
+    }
+    if (headerDot) headerDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse';
+    if (headerIcon) {
+      headerIcon.textContent = 'print';
+      headerIcon.className = 'material-symbols-rounded text-xs text-emerald-700';
+    }
+    if (headerText) headerText.textContent = displayName;
+    if (mobileDot) mobileDot.className = 'absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+
+    if (modalBadge) {
+      modalBadge.innerHTML = `<span class="text-emerald-700 font-black">● ${printerName || 'Terhubung (Kasir Host)'}</span>`;
+    }
+
+    if (roleCard) roleCard.className = 'bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col gap-2.5';
+    if (roleDot) roleDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+    if (roleTitle) roleTitle.textContent = 'KASIR UTAMA (PENCETAK TOKO)';
+    if (roleBadge) {
+      roleBadge.textContent = 'Host Aktif';
+      roleBadge.className = 'px-2 py-0.5 rounded-full bg-emerald-200/80 text-emerald-900 font-extrabold text-[10px]';
+    }
+    if (roleDesc) {
+      roleDesc.textContent = `Printer fisik (${printerName || 'Bluetooth'}) terhubung. Perangkat ini aktif menerima dan otomatis mencetak semua pesanan dari HP pelayan.`;
+    }
+    if (rolePrinterName) rolePrinterName.textContent = printerName ? `Hardware: ${printerName}` : 'Hardware: Bluetooth Thermal Standby';
+    if (btnTestRelay) btnTestRelay.classList.add('hidden');
+
+  } else {
+    // HP PELAYAN (MODE CLOUD RELAY)
+    if (headerBadge) {
+      headerBadge.className = 'hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-50 border border-sky-300 text-sky-800 text-[10px] font-black cursor-pointer shadow-2xs hover:bg-sky-100 transition';
+    }
+    if (headerDot) headerDot.className = 'w-1.5 h-1.5 rounded-full bg-sky-500';
+    if (headerIcon) {
+      headerIcon.textContent = 'cloud_sync';
+      headerIcon.className = 'material-symbols-rounded text-xs text-sky-700';
+    }
+    if (headerText) headerText.textContent = 'Cloud Relay (HP Pelayan)';
+    if (mobileDot) mobileDot.className = 'absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-sky-500';
+
+    if (modalBadge) {
+      modalBadge.innerHTML = `<span class="text-sky-700 font-black">☁️ Mode Cloud Relay</span>`;
+    }
+
+    if (roleCard) roleCard.className = 'bg-sky-50 border border-sky-200 rounded-2xl p-4 flex flex-col gap-2.5';
+    if (roleDot) roleDot.className = 'w-2.5 h-2.5 rounded-full bg-sky-500';
+    if (roleTitle) roleTitle.textContent = 'HP PELAYAN (MODE CLOUD RELAY)';
+    if (roleBadge) {
+      roleBadge.textContent = 'Siap Kirim ke Kasir';
+      roleBadge.className = 'px-2 py-0.5 rounded-full bg-sky-200/80 text-sky-900 font-extrabold text-[10px]';
+    }
+    if (roleDesc) {
+      roleDesc.textContent = 'Perangkat ini tidak terhubung ke printer Bluetooth. Setiap struk, tiket dapur, atau buka laci yang Anda tekan otomatis dicetak di Kasir Utama.';
+    }
+    if (rolePrinterName) rolePrinterName.textContent = 'Jalur: Cloud Firestore Relay (Zero Config)';
+    if (btnTestRelay) btnTestRelay.classList.remove('hidden');
+  }
+}
+
+/**
+ * Uji Coba Pengiriman Cetak dari Device 2 ke Device 1
+ */
+export async function testCloudRelayPrint() {
+  playClick('pop');
+  const tx = {
+    id: 'TES-' + Math.floor(1000 + Math.random() * 9000),
+    date: new Date().toISOString(),
+    items: [
+      { name: 'Tes Koneksi Cloud Relay', qty: 1, price: 0, subtotal: 0 },
+      { name: 'Dari: HP Pelayan', qty: 1, price: 0, subtotal: 0 },
+      { name: 'Ke: Printer Kasir Utama', qty: 1, price: 0, subtotal: 0 }
+    ],
+    total: 0,
+    paid: 0,
+    change: 0,
+    method: 'TUNAI',
+    cashier: getDeviceName() || 'Pelayan'
+  };
+
+  try {
+    showToast('Mengirim tes cetak ke Kasir Utama via Cloud...', 'info', 3000);
+    const jobId = await dispatchRemotePrintJob({
+      type: 'receipt',
+      tx: tx
+    });
+    showToast('Menunggu printer kasir merespons...', 'info', 3000);
+    await waitForRemotePrintJob(jobId, 12000);
+    showToast('SUKSES! Printer Kasir Utama telah mencetak struk tes.', 'success', 5000);
+  } catch (err) {
+    showToast('Gagal tes relay: ' + (err.message || 'Kasir Utama tidak merespons.'), 'error', 5000);
+  }
+}
+
+// Auto-update UI status badge periodically
+if (typeof window !== 'undefined') {
+  setInterval(() => {
+    try { updatePrinterUIStatus(); } catch (_) {}
+  }, 3500);
 }
 
 /**
@@ -1450,6 +1558,7 @@ export function openPrinterConfigModal() {
   if (showQueueBottomCheckbox) showQueueBottomCheckbox.checked = cfg.showQueueBottom !== false;
 
   updateLiveReceiptPreview();
+  updatePrinterUIStatus();
 
   if (modal) modal.classList.remove('hidden');
 }

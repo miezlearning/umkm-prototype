@@ -492,7 +492,46 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public boolean isPrinterReady() {
             synchronized (socketLock) {
-                return activeSocket != null && activeSocket.isConnected() && activeOutputStream != null;
+                if (activeSocket != null && activeSocket.isConnected() && activeOutputStream != null) {
+                    return true;
+                }
+                if (bluetoothAdapter != null && bluetoothAdapter.isEnabled()) {
+                    try {
+                        Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+                        if (pairedDevices != null && !pairedDevices.isEmpty()) {
+                            OutputStream out = getOrConnectPrinter();
+                            return out != null && activeSocket != null && activeSocket.isConnected();
+                        }
+                    } catch (Exception ignored) {}
+                }
+                return false;
+            }
+        }
+
+        @JavascriptInterface
+        public String getConnectedPrinterInfo() {
+            synchronized (socketLock) {
+                if (activeSocket != null && activeSocket.isConnected()) {
+                    BluetoothDevice dev = activeSocket.getRemoteDevice();
+                    if (dev != null) {
+                        return dev.getName() != null && !dev.getName().isEmpty() ? dev.getName() : dev.getAddress();
+                    }
+                }
+                if (bluetoothAdapter != null && bluetoothAdapter.isEnabled()) {
+                    try {
+                        Set<BluetoothDevice> paired = bluetoothAdapter.getBondedDevices();
+                        if (paired != null && !paired.isEmpty()) {
+                            for (BluetoothDevice d : paired) {
+                                if (preferredPrinterAddress != null && preferredPrinterAddress.equalsIgnoreCase(d.getAddress())) {
+                                    return d.getName() != null && !d.getName().isEmpty() ? d.getName() : d.getAddress();
+                                }
+                            }
+                            BluetoothDevice first = paired.iterator().next();
+                            return first.getName() != null && !first.getName().isEmpty() ? first.getName() : first.getAddress();
+                        }
+                    } catch (Exception ignored) {}
+                }
+                return "";
             }
         }
 
