@@ -1416,6 +1416,11 @@ export function updatePrinterUIStatus() {
     if (printerLocalHostIp) {
       printerLocalHostIp.value = state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip') || '';
     }
+
+    // Otomatis deteksi HP kasir di latar belakang (Zero-Config untuk lansia)
+    setTimeout(() => {
+      autoDiscoverLocalPrinterHost(true);
+    }, 100);
   }
 
   // Update styling tombol toggle peran
@@ -1994,6 +1999,108 @@ export function savePrinterSettings(e) {
   syncSavePrinterConfig(newConfig);
   closePrinterConfigModal();
   showToast('Pengaturan printer & struk berhasil disimpan!', 'success');
+}
+
+/**
+ * Deteksi Otomatis HP Kasir Utama di Jaringan Lokal (Zero-Config, Senior-Friendly)
+ * Lansia/Kasir tidak perlu tahu atau mengetik alamat IP sama sekali!
+ */
+export async function autoDiscoverLocalPrinterHost(silent = false) {
+  if (!silent) playClick('tap');
+
+  const badge = document.getElementById('localLanStatusBadge');
+  const desc = document.getElementById('localLanStatusDesc');
+  const inputIp = document.getElementById('printerLocalHostIp');
+
+  if (badge && !silent) {
+    badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 animate-pulse';
+    badge.textContent = 'Mencari Kasir...';
+  }
+
+  // 1. Kumpulkan semua kandidat IP potensial
+  const candidates = [];
+
+  // A. IP yang tersimpan sebelumnya
+  const savedIp = state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip');
+  if (savedIp && !candidates.includes(savedIp)) candidates.push(savedIp);
+
+  // B. Hotspot Android Default Gateway (99% kasus UMKM tethering ke HP Kasir)
+  if (!candidates.includes('192.168.43.1')) candidates.push('192.168.43.1');
+
+  // C. Router Wi-Fi umum di Indonesia (IndiHome, FirstMedia, Biznet, Router Mini)
+  ['192.168.1.1', '192.168.0.1', '192.168.100.1', '192.168.8.1'].forEach(ip => {
+    if (!candidates.includes(ip)) candidates.push(ip);
+  });
+
+  // D. Jika berjalan di APK Android, deteksi subnet perangkat ini
+  if (window.AndroidBridge && typeof window.AndroidBridge.getLocalIpAddress === 'function') {
+    try {
+      const myIp = window.AndroidBridge.getLocalIpAddress();
+      if (myIp && myIp !== '127.0.0.1') {
+        const parts = myIp.split('.');
+        if (parts.length === 4) {
+          const subnet = `${parts[0]}.${parts[1]}.${parts[2]}`;
+          for (let i = 1; i <= 10; i++) {
+            const cand = `${subnet}.${i}`;
+            if (!candidates.includes(cand) && cand !== myIp) candidates.push(cand);
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  // Probe semua kandidat secara paralel dengan timeout super cepat (1200ms)
+  const probe = async (ip) => {
+    try {
+      const ctrl = new AbortController();
+      const tm = setTimeout(() => ctrl.abort(), 1200);
+      const res = await fetch(`http://${ip}:8088/ping`, { signal: ctrl.signal });
+      clearTimeout(tm);
+      if (res.ok) {
+        const data = await res.json();
+        return { ip, host: data.host || 'Kasir Utama' };
+      }
+    } catch (_) {}
+    return null;
+  };
+
+  const results = await Promise.all(candidates.map(probe));
+  const found = results.find(r => r !== null);
+
+  if (found) {
+    // Berhasil tersambung langsung!
+    localStorage.setItem('aristotle_local_host_ip', found.ip);
+    if (!state.printerConfig) state.printerConfig = {};
+    state.printerConfig.localHostIp = found.ip;
+    if (inputIp) inputIp.value = found.ip;
+
+    if (badge) {
+      badge.className = 'text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300';
+      badge.innerHTML = `🟢 Terhubung (${escapeHtml(found.host)})`;
+    }
+    if (desc) {
+      desc.className = 'text-[11px] text-emerald-900 leading-snug font-semibold';
+      desc.textContent = `Tersambung langsung ke HP Kasir [${found.host}] via Wi-Fi/Hotspot lokal. Pesanan akan tercetak seketika tanpa perlu internet!`;
+    }
+    if (!silent) {
+      showToast(`Tersambung ke HP Kasir (${found.host})!`, 'success', 3500);
+    }
+    return true;
+  } else {
+    // Tidak ada di LAN lokal, gunakan mode Cloud Relay
+    if (badge) {
+      badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200';
+      badge.textContent = '☁️ Siap via Cloud Relay';
+    }
+    if (desc) {
+      desc.className = 'text-[11px] text-stone-600 leading-snug';
+      desc.textContent = 'HP Kasir belum terdeteksi di Wi-Fi/Hotspot lokal. Pesanan tetap otomatis terkirim via koneksi Internet (Cloud).';
+    }
+    if (!silent) {
+      showToast('HP Kasir tidak terdeteksi di Wi-Fi lokal. Beralih ke Cloud Relay.', 'info', 3500);
+    }
+    return false;
+  }
 }
 
 /**

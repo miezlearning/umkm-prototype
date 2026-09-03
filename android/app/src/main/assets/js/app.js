@@ -155,7 +155,15 @@ export function closeCloudModal() {
 
 export function copyStoreShareLink() {
   const baseUrl = window.location.origin + window.location.pathname;
-  const storeUrl = `${baseUrl}?store=${encodeURIComponent(state.storeId)}`;
+  let hostIp = '';
+  if (window.AndroidBridge && typeof window.AndroidBridge.getLocalIpAddress === 'function') {
+    try {
+      const ip = window.AndroidBridge.getLocalIpAddress();
+      if (ip && ip !== '127.0.0.1') hostIp = ip;
+    } catch (_) {}
+  }
+  const hostParam = hostIp ? `&hostIp=${encodeURIComponent(hostIp)}` : '';
+  const storeUrl = `${baseUrl}?store=${encodeURIComponent(state.storeId)}${hostParam}`;
   const storeName = state.storeProfile?.name || 'Kasir UMKM';
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -637,6 +645,15 @@ export async function init() {
     pos.renderProductSkeletons(8);
     initState();
 
+    // Baca parameter hostIp jika ada di URL (misal dibuka dari link WA kasir)
+    const urlParams = new URLSearchParams(window.location.search);
+    const hostIpParam = urlParams.get('hostIp');
+    if (hostIpParam) {
+      localStorage.setItem('aristotle_local_host_ip', hostIpParam);
+      if (!state.printerConfig) state.printerConfig = {};
+      state.printerConfig.localHostIp = hostIpParam;
+    }
+
     // 2. Render UI katalog, antrean, dan keranjang (45%)
     updateLoadingProgress(45, 'Menyiapkan menu & antrean pesanan...');
     pos.renderOrderQueueTabs();
@@ -975,6 +992,7 @@ const KasirApp = {
   updatePrinterUIStatus: printer.updatePrinterUIStatus,
   testCloudRelayPrint: printer.testCloudRelayPrint,
   testLocalLanPing: printer.testLocalLanPing,
+  autoDiscoverLocalPrinterHost: printer.autoDiscoverLocalPrinterHost,
   setupRemotePrintHostListener: printer.setupRemotePrintHostListener,
   setDevicePrinterRole: printer.setDevicePrinterMode,
   getDevicePrinterMode: printer.getDevicePrinterMode,
