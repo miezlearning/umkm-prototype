@@ -1,9 +1,9 @@
 {
-  "versionCode": 25,
-  "versionName": "1.1.21",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.21/Aristotle-POS.apk",
+  "versionCode": 26,
+  "versionName": "1.1.22",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.22/Aristotle-POS.apk",
   "changelog": [
-    "Redesain header desktop mengadopsi Google Material Design 3 (M3 Tonal Filter Chip & Assist Chip)"
+    "Sinkronisasi pratinjau struk live di modal pengaturan printer agar 100% mirip dengan struk asli"
   ],
   "releaseDate": "2026-09-03"
 }

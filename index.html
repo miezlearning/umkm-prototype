@@ -1836,6 +1836,16 @@
                     <input type="checkbox" id="printerAutoKickDrawer" checked class="w-5 h-5 accent-emerald-600 cursor-pointer">
                   </label>
                 </div>
+
+                <div class="border-t border-stone-200/80 pt-2">
+                  <label class="flex items-center justify-between cursor-pointer">
+                    <div>
+                      <span class="text-xs font-black text-stone-800">Cetak Nomor Antrian Besar di Bawah</span>
+                      <p class="text-[11px] text-stone-500">Tampilkan banner nomor antrian besar di akhir struk</p>
+                    </div>
+                    <input type="checkbox" id="printerShowQueueBottom" checked onchange="KasirApp.updateLiveReceiptPreview()" class="w-5 h-5 accent-emerald-600 cursor-pointer">
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -1918,17 +1928,78 @@
             </div>
           </div>
 
-          <!-- Right Column: Realistic Paper Thermal Receipt Preview -->
+          <!-- Right Column: Realistic Paper Thermal Receipt Preview (100% Mirroring Print Area) -->
           <div class="lg:col-span-5 flex flex-col gap-3">
             <div class="bg-stone-100 p-4 rounded-2xl border border-stone-200 flex flex-col items-center sticky top-0">
-              <span class="text-[11px] font-black uppercase text-stone-600 tracking-wider mb-2.5 flex items-center gap-1.5 self-start">
-                <span class="material-symbols-rounded text-base text-stone-500">receipt_long</span>
-                Pratinjau Struk (Live)
-              </span>
+              <div class="flex items-center justify-between w-full mb-2.5">
+                <span class="text-[11px] font-black uppercase text-stone-600 tracking-wider flex items-center gap-1.5">
+                  <span class="material-symbols-rounded text-base text-stone-500">receipt_long</span>
+                  Pratinjau Struk (Live)
+                </span>
+                <span id="previewPaperBadge" class="px-2 py-0.5 rounded-md bg-stone-200 text-stone-700 font-black text-[10px]">
+                  58mm (Standar)
+                </span>
+              </div>
 
-              <!-- Realistic Paper Receipt -->
-              <div class="w-full max-w-[320px] bg-white p-3 sm:p-4 shadow-md rounded-xl border border-stone-200/80 text-stone-900 font-mono text-[10.5px] leading-snug overflow-x-auto">
-                <pre id="printerReceiptPreview" class="whitespace-pre font-mono text-[10.5px] leading-tight text-stone-900 select-all min-w-[240px]"></pre>
+              <!-- Realistic Paper Receipt Card Matching #printArea -->
+              <div id="liveReceiptPaper"
+                class="w-full max-w-[280px] bg-white p-3.5 shadow-md rounded-xl border border-dashed border-stone-300 text-stone-900 font-sans text-xs leading-normal flex flex-col gap-1.5 transition-all">
+                
+                <!-- Receipt Header -->
+                <div class="text-center pb-2 border-b border-stone-300 flex flex-col items-center">
+                  <img id="prevReceiptLogoImg" src="" alt="Logo" class="max-h-12 max-w-[130px] mx-auto object-contain filter grayscale contrast-200 mb-1 hidden">
+                  <h4 id="prevReceiptStoreName" class="font-black text-sm uppercase tracking-wide leading-tight text-stone-900">KEDAI USAHA MAMI</h4>
+                  <p class="text-[10px] text-stone-600 font-bold mt-0.5" id="prevReceiptTagline">-- SPESIAL RASA NUSANTARA --</p>
+                  <p class="text-[9.5px] text-stone-500" id="prevReceiptAddress">Samarinda, Kalimantan Timur</p>
+                  <p class="text-[9.5px] text-stone-500" id="prevReceiptPhone">Telp/WA: 081345028895</p>
+                  <div class="w-full flex items-center justify-between text-[9px] text-stone-500 mt-1.5 pt-1 border-t border-dotted border-stone-300">
+                    <span id="prevReceiptTxId">No. Kwitansi: #001</span>
+                    <span id="prevReceiptDate">03/09/2026 20:30</span>
+                  </div>
+                  <div class="w-full flex items-center justify-between text-[9.5px] text-stone-600">
+                    <span>Waktu Pesan:</span>
+                    <span id="prevReceiptOrderTime">03/09/2026 20:30</span>
+                  </div>
+                  <div class="w-full flex items-center justify-between text-[9.5px] text-stone-600">
+                    <span>Kasir:</span>
+                    <span id="prevReceiptCashier" class="font-bold text-stone-800">Mami</span>
+                  </div>
+                </div>
+
+                <!-- Receipt Item List -->
+                <div id="prevReceiptItemList" class="divide-y divide-stone-200 py-1"></div>
+
+                <!-- Receipt Totals -->
+                <div class="pt-1.5 border-t border-stone-300 flex flex-col gap-1 text-xs">
+                  <div class="flex justify-between text-stone-600 text-xs">
+                    <span>Subtotal</span>
+                    <span id="prevReceiptSubtotal">Rp 29.000</span>
+                  </div>
+                  <div class="flex justify-between font-black text-sm text-stone-900">
+                    <span>TOTAL:</span>
+                    <span id="prevReceiptTotal">Rp 29.000</span>
+                  </div>
+                  <div class="flex justify-between text-stone-600 text-xs" id="prevReceiptCashRow">
+                    <span>Cash:</span>
+                    <span id="prevReceiptCash">Rp 50.000</span>
+                  </div>
+                  <div class="flex justify-between text-emerald-700 font-black text-xs" id="prevReceiptChangeRow">
+                    <span>Kembalian:</span>
+                    <span id="prevReceiptChange">Rp 21.000</span>
+                  </div>
+                </div>
+
+                <!-- Receipt Footer -->
+                <div class="text-center pt-1.5 border-t border-dotted border-stone-300 flex flex-col gap-0.5">
+                  <p class="text-[9.5px] text-stone-600 font-bold" id="prevReceiptSocial">Follow IG: @kedai.usaha.mami</p>
+                  <p class="text-[10px] text-stone-700 font-bold" id="prevReceiptFooterNote">Terimakasih telah berkunjung.</p>
+                  <p class="text-[8.5px] text-stone-400 font-sans tracking-tight">Simpan struk ini sebagai bukti bayar • <strong class="text-stone-600">Aristotle POS</strong></p>
+                </div>
+
+                <!-- Big Bottom Queue Banner (Ala Gacoan / Selalu Teh) -->
+                <div id="prevReceiptQueueBottomBox" class="mt-1 pt-1 border-t-2 border-dashed border-stone-800 text-center pb-0.5">
+                  <span class="text-xs font-black tracking-widest text-stone-900 uppercase">NO ANTRIAN 01</span>
+                </div>
               </div>
             </div>
           </div>
@@ -2254,7 +2325,7 @@
             <span class="material-symbols-rounded text-emerald-600 text-lg">system_update</span>
             <div>
               <p class="font-bold text-stone-800">Pembaruan Aplikasi</p>
-              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.1.21 (Terkini)</p>
+              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.1.22 (Terkini)</p>
             </div>
           </div>
           <button onclick="KasirApp.checkForAppUpdates(true)"
@@ -2475,7 +2546,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-black tracking-tight" id="updateModalTitle">Pembaruan Aplikasi Tersedia!</h3>
-              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.1.21</span>
+              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.1.22</span>
             </div>
             <p id="updateModalCurrentVersion" class="text-emerald-100 text-xs mt-0.5">Versi Anda saat ini: v1.1.3</p>
           </div>

@@ -1709,10 +1709,7 @@ export function closePrinterConfigModal() {
  * Perbarui teks pratinjau struk secara realtime di dalam modal
  */
 export function updateLiveReceiptPreview() {
-  const previewEl = document.getElementById('printerReceiptPreview');
-  if (!previewEl) return;
-
-  const tempCfg = {
+  const cfg = {
     paperWidth: document.getElementById('printerPaperWidth')?.value || '58mm',
     logoBase64: state.printerConfig?.logoBase64 || '',
     showLogo: document.getElementById('printerShowLogo')?.checked !== false,
@@ -1725,15 +1722,105 @@ export function updateLiveReceiptPreview() {
     footerNote: document.getElementById('printerFooterNoteInput')?.value || 'Terimakasih telah berkunjung.',
     footerHelp: 'Powered by Aristotle POS',
     showQueueBottom: document.getElementById('printerShowQueueBottom')?.checked !== false,
-    feedLines: 2
+    feedLines: Number(document.getElementById('printerFeedLinesSelect')?.value) || 1
   };
 
   const sampleTx = getSampleTxData();
-  const receiptText = generateReceiptPlainText(sampleTx, tempCfg);
-  if (previewEl.tagName === 'TEXTAREA' || previewEl.tagName === 'INPUT') {
-    previewEl.value = receiptText;
-  } else {
-    previewEl.textContent = receiptText;
+
+  // 1. Update Realistic Paper Container Width & Badge
+  const paperContainer = document.getElementById('liveReceiptPaper');
+  const paperBadge = document.getElementById('previewPaperBadge');
+  if (paperContainer) {
+    if (cfg.paperWidth === '80mm') {
+      paperContainer.className = 'w-full max-w-[340px] bg-white p-4 shadow-md rounded-xl border border-dashed border-stone-300 text-stone-900 font-sans text-xs leading-normal flex flex-col gap-1.5 transition-all';
+      if (paperBadge) paperBadge.innerText = '80mm (Lebar)';
+    } else {
+      paperContainer.className = 'w-full max-w-[280px] bg-white p-3.5 shadow-md rounded-xl border border-dashed border-stone-300 text-stone-900 font-sans text-xs leading-normal flex flex-col gap-1.5 transition-all';
+      if (paperBadge) paperBadge.innerText = '58mm (Standar)';
+    }
+  }
+
+  // 2. Logo Toko
+  const logoImg = document.getElementById('prevReceiptLogoImg');
+  if (logoImg) {
+    if (cfg.logoBase64 && cfg.showLogo) {
+      logoImg.src = cfg.logoBase64;
+      logoImg.classList.remove('hidden');
+    } else {
+      logoImg.src = '';
+      logoImg.classList.add('hidden');
+    }
+  }
+
+  // 3. Header Informasi Toko
+  const storeNameEl = document.getElementById('prevReceiptStoreName');
+  if (storeNameEl) {
+    storeNameEl.innerText = (cfg.headerStoreName || state.storeProfile?.name || 'KEDAI USAHA MAMI').toUpperCase();
+  }
+
+  const taglineEl = document.getElementById('prevReceiptTagline');
+  if (taglineEl) {
+    taglineEl.innerText = cfg.headerTagline || '';
+    taglineEl.style.display = cfg.headerTagline ? 'block' : 'none';
+  }
+
+  const addressEl = document.getElementById('prevReceiptAddress');
+  if (addressEl) {
+    addressEl.innerText = cfg.headerAddress || state.storeProfile?.city || '';
+    addressEl.style.display = (cfg.headerAddress || state.storeProfile?.city) ? 'block' : 'none';
+  }
+
+  const phoneEl = document.getElementById('prevReceiptPhone');
+  if (phoneEl) {
+    phoneEl.innerText = cfg.headerPhone ? 'Telp/WA: ' + cfg.headerPhone : '';
+    phoneEl.style.display = cfg.headerPhone ? 'block' : 'none';
+  }
+
+  const cashierEl = document.getElementById('prevReceiptCashier');
+  if (cashierEl) {
+    cashierEl.innerText = cfg.cashierName || state.auth?.ownerName || 'Mami';
+  }
+
+  // 4. Sample Item List (Mirip 100% #printArea)
+  const itemListEl = document.getElementById('prevReceiptItemList');
+  if (itemListEl && Array.isArray(sampleTx.items)) {
+    itemListEl.innerHTML = sampleTx.items.map(it => {
+      const priceStr = formatRp(it.subtotal || (it.qty * it.price)).replace('Rp ', '');
+      return `
+        <div class="py-0.5 flex justify-between items-start text-[10.5px] leading-tight gap-1">
+          <span class="font-bold text-stone-900 break-words flex-1 text-left">${it.qty} pcs ${it.name}</span>
+          <span class="font-black text-stone-900 whitespace-nowrap text-right shrink-0">${priceStr}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // 5. Totals & Payment
+  const subtotalEl = document.getElementById('prevReceiptSubtotal');
+  if (subtotalEl) subtotalEl.innerText = formatRp(sampleTx.total);
+  const totalEl = document.getElementById('prevReceiptTotal');
+  if (totalEl) totalEl.innerText = formatRp(sampleTx.total);
+  const cashEl = document.getElementById('prevReceiptCash');
+  if (cashEl) cashEl.innerText = formatRp(sampleTx.cashGiven);
+  const changeEl = document.getElementById('prevReceiptChange');
+  if (changeEl) changeEl.innerText = formatRp(sampleTx.change);
+
+  // 6. Footer Notes & Social
+  const socialEl = document.getElementById('prevReceiptSocial');
+  if (socialEl) {
+    socialEl.innerText = cfg.footerSocial ? cfg.footerSocial : '';
+    socialEl.style.display = cfg.footerSocial ? 'block' : 'none';
+  }
+
+  const footerNoteEl = document.getElementById('prevReceiptFooterNote');
+  if (footerNoteEl) {
+    footerNoteEl.innerText = cfg.footerNote || 'Terimakasih telah berkunjung.';
+  }
+
+  // 7. Bottom Queue Banner
+  const queueBox = document.getElementById('prevReceiptQueueBottomBox');
+  if (queueBox) {
+    queueBox.style.display = cfg.showQueueBottom ? 'block' : 'none';
   }
 }
 

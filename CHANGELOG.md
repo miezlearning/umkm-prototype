@@ -6,6 +6,13 @@ Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelo
 
 ---
 
+## [v1.1.22] - 2026-09-03
+
+### 🧾 Sinkronisasi Pratinjau Struk Realtime (Fixed & Synced)
+- **Live Thermal Receipt Preview:** Merombak pratinjau struk di modal Pengaturan Printer & Struk dari teks mentah `<pre>` monospace menjadi kartu struk kertas thermal nyata yang 100% identik dengan struk transaksi asli (`#printArea`). Menampilkan logo toko riil secara instan saat diunggah, teks header toko, daftar produk contoh, subtotal, catatan kaki, hingga banner nomor antrian besar secara interaktif dan realtime sesuai ketikan pengguna.
+
+---
+
 ## [v1.1.21] - 2026-09-03
 
 ### 🎨 Pembaruan Desain Material Design 3 (UI/UX Overhaul)
