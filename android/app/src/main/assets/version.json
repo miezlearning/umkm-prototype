@@ -1,9 +1,9 @@
 {
-  "versionCode": 26,
-  "versionName": "1.1.22",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.22/Aristotle-POS.apk",
+  "versionCode": 27,
+  "versionName": "1.1.23",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.23/Aristotle-POS.apk",
   "changelog": [
-    "Sinkronisasi pratinjau struk live di modal pengaturan printer agar 100% mirip dengan struk asli"
+    "Hapus pergerakan motor kertas (LF) saat membuka laci kasir (murni pulsa elektrik RJ11)"
   ],
   "releaseDate": "2026-09-03"
 }

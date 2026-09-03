@@ -577,18 +577,12 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public boolean kickDrawer() {
-            // High energy universal cash drawer kick pulse: Pin 2, Pin 5, 25ms, 50ms, 100ms, DLE DC4, BEL & LF
+            // Murni pulsa elektrik laci kasir (Pin 2 & Pin 5), TANPA pergerakan motor kertas (NO LF)
             byte[] drawerPulse = new byte[] {
-                0x1B, 0x70, 0x00, 0x19, (byte) 0xFA, // ESC p 0 25 250 (50ms Pin 2)
-                0x1B, 0x70, 0x01, 0x19, (byte) 0xFA, // ESC p 1 25 250 (50ms Pin 5)
-                0x1B, 0x70, 0x00, 0x32, (byte) 0xFA, // ESC p 0 50 250 (100ms Pin 2)
-                0x1B, 0x70, 0x01, 0x32, (byte) 0xFA, // ESC p 1 50 250 (100ms Pin 5)
-                0x1B, 0x70, 0x00, 0x64, (byte) 0xFA, // ESC p 0 100 250 (200ms High Energy Pin 2)
-                0x1B, 0x70, 0x01, 0x64, (byte) 0xFA, // ESC p 1 100 250 (200ms High Energy Pin 5)
-                0x10, 0x14, 0x01, 0x00, 0x08,        // DLE DC4 1 0 8 (Real-time pulse Pin 2)
-                0x10, 0x14, 0x01, 0x01, 0x08,        // DLE DC4 1 1 8 (Real-time pulse Pin 5)
-                0x07,                                // BEL
-                0x0A                                 // Line feed buffer flush
+                0x1B, 0x70, 0x00, 0x1E, 0x7D,         // ESC p Pin 2 (60ms ON, 250ms OFF)
+                0x1B, 0x70, 0x01, 0x1E, 0x7D,         // ESC p Pin 5 (60ms ON, 250ms OFF)
+                0x10, 0x14, 0x01, 0x00, 0x08,         // DLE DC4 Pin 2
+                0x10, 0x14, 0x01, 0x01, 0x08          // DLE DC4 Pin 5
             };
             return sendRawBytesToPrinter(drawerPulse);
         }

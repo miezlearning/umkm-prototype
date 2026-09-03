@@ -6,6 +6,13 @@ Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelo
 
 ---
 
+## [v1.1.23] - 2026-09-03
+
+### ⚡ Eliminasi Pergerakan Kertas Saat Buka Laci Kasir (Fixed Logic)
+- **Murni Pulsa Elektrik Solenoid RJ11:** Menghapus byte `Line Feed` (`0x0A`) dan `BEL` (`0x07`) dari paket perintah buka laci kasir (`buildOpenDrawerBytes` dan `MainActivity.java`). Perintah buka laci kini murni mengirimkan pulsa solenoid `ESC p` (Pin 2 dan Pin 5) dan `DLE DC4` tanpa memutar motor stepper roller kertas printer thermal sama sekali. Kertas tidak akan bergerak atau keluar sia-sia saat membuka laci kasir.
+
+---
+
 ## [v1.1.22] - 2026-09-03
 
 ### 🧾 Sinkronisasi Pratinjau Struk Realtime (Fixed & Synced)

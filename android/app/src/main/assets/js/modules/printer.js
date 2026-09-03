@@ -371,22 +371,16 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
 }
 
 /**
- * Perintah ESC/POS komprehensif untuk membuka laci kasir (Cash Drawer Kick)
- * Mengirim multi-pulse energi tinggi (Pin 2, Pin 5, 100ms, 200ms, DLE DC4, dan BEL)
- * TANPA ESC @ (Inisialisasi) agar tidak mereset buffer solenoid printer
+ * Perintah ESC/POS murni untuk membuka laci kasir (Cash Drawer Kick)
+ * Mengirim pulsa solenoid elektrik langsung ke Pin 2 dan Pin 5 RJ11
+ * MURNI pulsa elektrik TANPA pergerakan motor kertas (TANPA Line Feed / 0x0A)
  */
 export function buildOpenDrawerBytes() {
   return new Uint8Array([
-    0x1B, 0x70, 0x00, 0x19, 0xFA,       // ESC p 0 25 250 (50ms Pin 2)
-    0x1B, 0x70, 0x01, 0x19, 0xFA,       // ESC p 1 25 250 (50ms Pin 5)
-    0x1B, 0x70, 0x00, 0x32, 0xFA,       // ESC p 0 50 250 (100ms Pin 2)
-    0x1B, 0x70, 0x01, 0x32, 0xFA,       // ESC p 1 50 250 (100ms Pin 5)
-    0x1B, 0x70, 0x00, 0x64, 0xFA,       // ESC p 0 100 250 (200ms High Energy Pin 2)
-    0x1B, 0x70, 0x01, 0x64, 0xFA,       // ESC p 1 100 250 (200ms High Energy Pin 5)
+    0x1B, 0x70, 0x00, 0x1E, 0x7D,       // ESC p Pin 2 (60ms ON, 250ms OFF)
+    0x1B, 0x70, 0x01, 0x1E, 0x7D,       // ESC p Pin 5 (60ms ON, 250ms OFF)
     0x10, 0x14, 0x01, 0x00, 0x08,       // DLE DC4 1 0 8 (Real-time pulse Pin 2)
-    0x10, 0x14, 0x01, 0x01, 0x08,       // DLE DC4 1 1 8 (Real-time pulse Pin 5)
-    0x07,                               // BEL (Buzzer / pulse)
-    0x0A                                // LF (Line feed flush buffer)
+    0x10, 0x14, 0x01, 0x01, 0x08        // DLE DC4 1 1 8 (Real-time pulse Pin 5)
   ]);
 }
 

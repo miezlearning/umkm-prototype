@@ -1,9 +1,9 @@
-# Aristotle POS v1.1.22 Release Notes
+# Aristotle POS v1.1.23 Release Notes
 
 **Tanggal Rilis:** 2026-09-03
 
 ### Catatan Pembaruan:
-- Sinkronisasi pratinjau struk live di modal pengaturan printer agar 100% mirip dengan struk asli
+- Hapus pergerakan motor kertas (LF) saat membuka laci kasir (murni pulsa elektrik RJ11)
 
 ---
 *Pembaruan ini dapat diunduh dan dipasang langsung dari dalam aplikasi (In-App Auto-Updater).*
