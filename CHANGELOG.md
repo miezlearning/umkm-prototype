@@ -6,6 +6,13 @@ Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelo
 
 ---
 
+## [v1.1.21] - 2026-09-03
+
+### 🎨 Pembaruan Desain Material Design 3 (UI/UX Overhaul)
+- **Top App Bar Google Material Design 3:** Menghilangkan elemen visual "AI slop" (badge bertumpuk dan rentetan titik pemisah) pada header desktop/tablet. Digantikan dengan hierarki brand yang bersih, **M3 Tonal Filter Chip** (`[ 🟢 Kedai Usaha Mami ▾ ]`) untuk pemilih toko/antrian, dan **M3 Assist Chip** (`[ ☁️ Cloud Relay ]`) untuk status perangkat dan printer.
+
+---
+
 ## [v1.1.20] - 2026-09-03
 
 ### 🛠️ Perbaikan Sinkronisasi Real-Time (Fixed & Optimized)

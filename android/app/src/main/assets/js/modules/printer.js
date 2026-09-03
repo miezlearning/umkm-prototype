@@ -1251,14 +1251,14 @@ export function updatePrinterUIStatus() {
 
   if (isReady) {
     // KASIR UTAMA (HOST PRINTER AKTIF)
-    const displayName = printerName ? `Printer: ${printerName}` : 'Printer Terhubung (Kasir Host)';
+    const displayName = printerName ? `Printer: ${printerName}` : 'Kasir Utama';
     if (headerBadge) {
-      headerBadge.className = 'hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-800 text-[10px] font-black cursor-pointer shadow-2xs hover:bg-emerald-100 transition';
+      headerBadge.className = 'hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/90 text-emerald-950 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
     }
-    if (headerDot) headerDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse';
+    if (headerDot) headerDot.className = 'w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse';
     if (headerIcon) {
       headerIcon.textContent = 'print';
-      headerIcon.className = 'material-symbols-rounded text-xs text-emerald-700';
+      headerIcon.className = 'material-symbols-rounded text-sm text-emerald-700';
     }
     if (headerText) headerText.textContent = displayName;
     if (mobileDot) mobileDot.className = 'absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
@@ -1283,14 +1283,14 @@ export function updatePrinterUIStatus() {
   } else {
     // HP PELAYAN (MODE CLOUD RELAY)
     if (headerBadge) {
-      headerBadge.className = 'hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-50 border border-sky-300 text-sky-800 text-[10px] font-black cursor-pointer shadow-2xs hover:bg-sky-100 transition';
+      headerBadge.className = 'hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-50 hover:bg-sky-100/80 border border-sky-200/90 text-sky-950 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
     }
-    if (headerDot) headerDot.className = 'w-1.5 h-1.5 rounded-full bg-sky-500';
+    if (headerDot) headerDot.className = 'w-2 h-2 rounded-full bg-sky-500 shrink-0';
     if (headerIcon) {
       headerIcon.textContent = 'cloud_sync';
-      headerIcon.className = 'material-symbols-rounded text-xs text-sky-700';
+      headerIcon.className = 'material-symbols-rounded text-sm text-sky-700';
     }
-    if (headerText) headerText.textContent = 'Cloud Relay (HP Pelayan)';
+    if (headerText) headerText.textContent = 'Cloud Relay';
     if (mobileDot) mobileDot.className = 'absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-sky-500';
 
     if (modalBadge) {

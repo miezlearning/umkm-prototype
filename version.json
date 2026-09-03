@@ -1,10 +1,9 @@
 {
-  "versionCode": 24,
-  "versionName": "1.1.20",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.20/Aristotle-POS.apk",
+  "versionCode": 25,
+  "versionName": "1.1.21",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.21/Aristotle-POS.apk",
   "changelog": [
-    "Sinkronisasi otomatis kartu menu kasir dari renderCart (single source of truth)",
-    "Invalidasi cache Service Worker & auto-refresh OTA"
+    "Redesain header desktop mengadopsi Google Material Design 3 (M3 Tonal Filter Chip & Assist Chip)"
   ],
   "releaseDate": "2026-09-03"
 }
