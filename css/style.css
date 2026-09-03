@@ -4,10 +4,21 @@
 @font-face {
   font-family: 'Material Symbols Rounded';
   font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('../fonts/material-symbols-rounded-core.woff2') format('woff2'),
+       url('../fonts/material-symbols-rounded.woff2') format('woff2'),
+       url('https://fonts.gstatic.com/s/materialsymbolsrounded/v369/sykg-zNym6YjUruM-QrEh7-nyTnjDwKNJ_190FjzaqkNCeE.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Material Symbols Rounded';
+  font-style: normal;
   font-weight: 100 700;
   font-display: block;
   src: url('../fonts/material-symbols-rounded.woff2') format('woff2'),
-       url('https://fonts.gstatic.com/s/materialsymbolsrounded/v369/sykg-zNym6YjUruM-QrEh7-nyTnjDwKNJ_190Fjzag.woff2') format('woff2');
+       url('../fonts/material-symbols-rounded-core.woff2') format('woff2'),
+       url('https://fonts.gstatic.com/s/materialsymbolsrounded/v369/sykg-zNym6YjUruM-QrEh7-nyTnjDwKNJ_190FjzaqkNCeE.woff2') format('woff2');
 }
 
 body {
@@ -19,7 +30,7 @@ body {
 }
 
 .material-symbols-rounded {
-  font-family: 'Material Symbols Rounded', sans-serif;
+  font-family: 'Material Symbols Rounded' !important;
   font-weight: normal;
   font-style: normal;
   font-size: 24px;
@@ -30,15 +41,17 @@ body {
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
+  font-feature-settings: 'liga' 1;
   -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
   vertical-align: middle;
 }
 
 /* Anti-FOUT: Saat fase pemuatan awal, sembunyikan teks ligature mentah sampai font aktif */
 html.fonts-loading .material-symbols-rounded {
-  visibility: hidden;
+  visibility: hidden !important;
 }
 
 .touch-target-large {

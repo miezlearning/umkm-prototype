@@ -1,10 +1,11 @@
-const CACHE_NAME = 'aristotle-pos-v36';
+const CACHE_NAME = 'aristotle-pos-v37';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icon.svg',
   './css/style.css',
+  './fonts/material-symbols-rounded-core.woff2',
   './fonts/material-symbols-rounded.woff2',
   './js/app.js',
   './js/config.js',

@@ -636,8 +636,9 @@ export async function init() {
     try {
       if (document.fonts) {
         await Promise.race([
+          document.fonts.load('24px "Material Symbols Rounded"'),
           document.fonts.ready,
-          new Promise(resolve => setTimeout(resolve, 1800))
+          new Promise(resolve => setTimeout(resolve, 2000))
         ]);
       }
     } catch (_) {}
