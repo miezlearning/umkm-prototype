@@ -4,6 +4,14 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.1.32] - 2026-09-04
+
+### ⚡ Pairing QR Instan Tanpa Reload Halaman & Otorisasi Otomatis
+- **Eliminasi Reload Halaman:** Mengganti mekanisme perpindahan URL (`window.location.href`) dengan transisi langsung di memori (`quickSelectStore`). Aplikasi tidak lagi me-reload halaman webview yang memicu layar ter-reset.
+- **Otorisasi Sesi Otomatis:** Saat memindai QR kasir, perangkat pelayan otomatis diberikan hak otorisasi sesi toko (`auth_store_session`) secara permanen, sehingga tidak terlempar kembali ke layar login atau status keluar.
+
+---
+
 ## [v1.1.31] - 2026-09-04
 
 ### 🧼 Penyederhanaan Teks & Pembersihan Emoji

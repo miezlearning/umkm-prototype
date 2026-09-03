@@ -284,6 +284,7 @@ export function quickSelectStore(storeId) {
   if (!cleanId) return;
 
   sessionStorage.removeItem('is_logged_out_state');
+  localStorage.setItem('auth_store_session_' + cleanId, '1');
   localStorage.setItem(GLOBAL_STORAGE_KEYS.ACTIVE_STORE_ID, cleanId);
   window.history.replaceState(null, '', `${window.location.pathname}?store=${encodeURIComponent(cleanId)}`);
 
@@ -909,6 +910,7 @@ const KasirApp = {
   deleteSavedStoreCard,
   handleStoreLoginSubmit,
   handleStoreRegisterSubmit,
+  quickSelectStore,
   openPinSecurityModal,
   closePinSecurityModal,
   handlePinSecuritySubmit,

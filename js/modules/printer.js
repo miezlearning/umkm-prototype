@@ -2408,23 +2408,39 @@ export function handleScannedPairingData(rawText) {
     const hostIp = url.searchParams.get('hostIp');
 
     if (!store) {
-      showToast('Kode QR tidak valid (Data Toko tidak ditemukan).', 'warning', 4000);
+      showToast('Kode QR tidak valid (Data toko tidak ditemukan).', 'warning', 3000);
       return;
     }
+
+    const cleanStore = store.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+
+    // 1. Otorisasi sesi toko ini di perangkat ini secara permanen
+    sessionStorage.removeItem('is_logged_out_state');
+    localStorage.setItem('auth_store_session_' + cleanStore, '1');
+    localStorage.setItem('aristotle_active_store_id', cleanStore);
+    localStorage.setItem('aristotle_device_role', role);
 
     if (hostIp) {
       localStorage.setItem('aristotle_local_host_ip', hostIp);
       if (!state.printerConfig) state.printerConfig = {};
       state.printerConfig.localHostIp = hostIp;
     }
-    localStorage.setItem('aristotle_device_role', role);
 
-    showToast(`Berhasil tersambung ke Toko [${store}]! Membuka...`, 'success', 3500);
-    setTimeout(() => {
-      const targetUrl = `${window.location.origin}${window.location.pathname}?store=${encodeURIComponent(store)}&role=${role}${hostIp ? `&hostIp=${encodeURIComponent(hostIp)}` : ''}`;
-      window.location.href = targetUrl;
-    }, 450);
+    // 2. Terapkan peran printer
+    setDevicePrinterMode(role);
 
+    // 3. Beralih ke toko langsung di memori tanpa reload halaman sama sekali
+    if (window.KasirApp && typeof window.KasirApp.quickSelectStore === 'function') {
+      window.KasirApp.quickSelectStore(cleanStore);
+    }
+
+    // 4. Tutup modal yang sedang terbuka
+    if (window.KasirApp && typeof window.KasirApp.closeUniversalLoginModal === 'function') {
+      window.KasirApp.closeUniversalLoginModal();
+    }
+    closePrinterConfigModal();
+
+    showToast('Terhubung ke kasir utama.', 'success', 3000);
   } catch (err) {
     console.error('Scan parse error:', err);
     showToast('Gagal memproses kode QR.', 'warning', 3000);
