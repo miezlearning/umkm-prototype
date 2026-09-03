@@ -1,9 +1,9 @@
 {
-  "versionCode": 27,
-  "versionName": "1.1.23",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.23/Aristotle-POS.apk",
+  "versionCode": 28,
+  "versionName": "1.1.24",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.24/Aristotle-POS.apk",
   "changelog": [
-    "Hapus pergerakan motor kertas (LF) saat membuka laci kasir (murni pulsa elektrik RJ11)"
+    "Tambahkan fitur swipe down to refresh (pull-to-refresh) di web dan mobile"
   ],
   "releaseDate": "2026-09-03"
 }

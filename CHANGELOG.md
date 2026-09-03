@@ -6,6 +6,13 @@ Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelo
 
 ---
 
+## [v1.1.24] - 2026-09-03
+
+### 🔄 Fitur Swipe Down to Refresh (Pull-to-Refresh)
+- **Native Touch Pull-to-Refresh:** Menambahkan gestur tarik ke bawah (*swipe down*) di bagian atas layar untuk memuat ulang data secara instan di Web, PWA, dan APK Android. Dilengkapi indikator lingkaran Material Design 3 yang berputar mulus, efek haptic vibration saat batas tarikan tercapai, dan proteksi agar tidak terpicu saat modal sedang terbuka.
+
+---
+
 ## [v1.1.23] - 2026-09-03
 
 ### ⚡ Eliminasi Pergerakan Kertas Saat Buka Laci Kasir (Fixed Logic)

@@ -769,6 +769,69 @@ export async function init() {
   setTimeout(() => {
     updater.checkForAppUpdates(false);
   }, 2500);
+
+  // Inisialisasi gestur Swipe Down to Refresh (Pull-to-Refresh)
+  initPullToRefresh();
+}
+
+/**
+ * Inisialisasi gestur Swipe Down to Refresh (Pull-to-Refresh)
+ */
+function initPullToRefresh() {
+  const indicator = document.getElementById('pullToRefreshIndicator');
+  const icon = document.getElementById('pullToRefreshIcon');
+  if (!indicator || !icon) return;
+
+  let startY = 0;
+  let isPulling = false;
+  let pullDistance = 0;
+  const THRESHOLD = 65;
+
+  window.addEventListener('touchstart', (e) => {
+    if (window.scrollY <= 0 && e.touches.length === 1) {
+      const hasOpenModal = document.querySelector('div[id$="Modal"]:not(.hidden)');
+      if (!hasOpenModal) {
+        startY = e.touches[0].clientY;
+        isPulling = true;
+        pullDistance = 0;
+      }
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!isPulling) return;
+    const diff = e.touches[0].clientY - startY;
+
+    if (diff > 0 && window.scrollY <= 0) {
+      pullDistance = Math.min(85, diff * 0.45);
+      indicator.style.transform = `translate(-50%, ${pullDistance}px) scale(${Math.min(1, 0.8 + pullDistance / 150)})`;
+      indicator.style.opacity = String(Math.min(1, pullDistance / 35));
+      icon.style.transform = `rotate(${diff * 3}deg)`;
+    } else {
+      isPulling = false;
+      indicator.style.transform = '';
+      indicator.style.opacity = '0';
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchend', () => {
+    if (!isPulling) return;
+    isPulling = false;
+
+    if (pullDistance >= THRESHOLD) {
+      indicator.style.transform = 'translate(-50%, 65px) scale(1)';
+      indicator.style.opacity = '1';
+      icon.classList.add('animate-spin');
+      if (navigator.vibrate) navigator.vibrate(25);
+      setTimeout(() => {
+        window.location.reload();
+      }, 350);
+    } else {
+      indicator.style.transform = '';
+      indicator.style.opacity = '0';
+      icon.style.transform = '';
+    }
+  }, { passive: true });
 }
 
 export async function openSuperAdminChangePin(storeId, storeName, currentPin) {
