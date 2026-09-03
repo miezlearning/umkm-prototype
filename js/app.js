@@ -920,6 +920,7 @@ const KasirApp = {
   // In-App Auto-Updater
   checkForAppUpdates: updater.checkForAppUpdates,
   startAppUpdate: updater.startAppUpdate,
+  installDownloadedUpdate: updater.installDownloadedUpdate,
   closeUpdateModal: updater.closeUpdateModal,
   onUpdateDownloadProgress: updater.onUpdateDownloadProgress,
   onUpdateDownloadError: updater.onUpdateDownloadError

@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -55,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "AristotlePOS";
     private static final int PERMISSION_REQUEST_CODE = 101;
     private static final int FILE_CHOOSER_REQUEST_CODE = 1002;
+    private static final int UNKNOWN_SOURCES_PERMISSION_REQUEST_CODE = 1003;
+    private boolean pendingInstallAfterPermission = false;
 
     private static final String PRODUCTION_URL = "https://miezlearning.github.io/umkm-prototype/";
     private static final String OFFLINE_FALLBACK_URL = "file:///android_asset/index.html";
@@ -314,6 +317,21 @@ public class MainActivity extends AppCompatActivity {
                 filePathCallback.onReceiveValue(results);
                 filePathCallback = null;
             }
+        if (requestCode == UNKNOWN_SOURCES_PERMISSION_REQUEST_CODE) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().canRequestPackageInstalls()) {
+                installExistingUpdateApk();
+            }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (pendingInstallAfterPermission) {
+            pendingInstallAfterPermission = false;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().canRequestPackageInstalls()) {
+                installExistingUpdateApk();
+            }
         }
     }
 
@@ -424,6 +442,18 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void downloadAndInstallApk(final String downloadUrl) {
             MainActivity.this.startApkDownloadAndInstall(downloadUrl);
+        }
+
+        @JavascriptInterface
+        public boolean hasDownloadedUpdateApk() {
+            File cacheDir = getExternalCacheDir() != null ? getExternalCacheDir() : getCacheDir();
+            File apkFile = new File(cacheDir, "Aristotle-POS-update.apk");
+            return apkFile.exists() && apkFile.length() > 100000;
+        }
+
+        @JavascriptInterface
+        public boolean installDownloadedApk() {
+            return MainActivity.this.installExistingUpdateApk();
         }
 
         @JavascriptInterface
@@ -719,19 +749,30 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public boolean installExistingUpdateApk() {
+        File cacheDir = getExternalCacheDir() != null ? getExternalCacheDir() : getCacheDir();
+        File apkFile = new File(cacheDir, "Aristotle-POS-update.apk");
+        if (apkFile.exists() && apkFile.length() > 100000) {
+            installDownloadedApk(apkFile);
+            return true;
+        }
+        return false;
+    }
+
     private void installDownloadedApk(File apkFile) {
         try {
-            if (!apkFile.exists()) {
-                notifyUpdateError("File APK tidak ditemukan.");
+            if (!apkFile.exists() || apkFile.length() < 100000) {
+                notifyUpdateError("File APK tidak ditemukan atau belum selesai diunduh.");
                 return;
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 if (!getPackageManager().canRequestPackageInstalls()) {
-                    Toast.makeText(this, "Izinkan Aristotle POS memasang aplikasi agar pembaruan dapat dipasang.", Toast.LENGTH_LONG).show();
+                    pendingInstallAfterPermission = true;
+                    Toast.makeText(this, "Mohon izinkan Aristotle POS memasang aplikasi agar pembaruan dapat dipasang.", Toast.LENGTH_LONG).show();
                     Intent permissionIntent = new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
                     permissionIntent.setData(Uri.parse("package:" + getPackageName()));
-                    startActivity(permissionIntent);
+                    startActivityForResult(permissionIntent, UNKNOWN_SOURCES_PERMISSION_REQUEST_CODE);
                     return;
                 }
             }
@@ -741,6 +782,15 @@ public class MainActivity extends AppCompatActivity {
             intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+            // Berikan izin URI eksplisit ke seluruh resolver package installer (AOSP / Samsung / Xiaomi / ColorOS)
+            List<ResolveInfo> resInfoList = getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+            for (ResolveInfo resolveInfo : resInfoList) {
+                String packageName = resolveInfo.activityInfo.packageName;
+                grantUriPermission(packageName, apkUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            }
+
             startActivity(intent);
         } catch (Exception e) {
             Log.e(TAG, "Install error: " + e.getMessage(), e);

@@ -96,9 +96,12 @@ export function showUpdateModal(newRelease, current) {
     `).join('');
   }
 
+  const installBtn = document.getElementById('updateInstallBtn');
+  if (installBtn) installBtn.classList.add('hidden');
   if (progressContainer) progressContainer.classList.add('hidden');
   if (progressBar) progressBar.style.width = '0%';
   if (downloadBtn) {
+    downloadBtn.classList.remove('hidden');
     downloadBtn.disabled = false;
     downloadBtn.innerHTML = `
       <span class="material-symbols-rounded text-base">cloud_download</span>
@@ -106,6 +109,28 @@ export function showUpdateModal(newRelease, current) {
     `;
   }
   if (cancelBtn) cancelBtn.disabled = false;
+
+  // Cek apakah file APK pembaruan sudah pernah selesai diunduh di cache perangkat
+  if (window.AndroidBridge && typeof window.AndroidBridge.hasDownloadedUpdateApk === 'function') {
+    try {
+      if (window.AndroidBridge.hasDownloadedUpdateApk()) {
+        if (progressContainer) progressContainer.classList.remove('hidden');
+        if (progressBar) progressBar.style.width = '100%';
+        const statusText = document.getElementById('updateProgressStatus');
+        if (statusText) {
+          statusText.innerHTML = `
+            <span class="text-emerald-700 font-bold">Paket pembaruan sudah siap di perangkat!</span>
+            <span class="block text-[10px] text-stone-500 font-normal mt-0.5">Tekan tombol hijau <strong>"Pasang Sekarang"</strong> di bawah untuk memasang.</span>
+          `;
+        }
+        if (downloadBtn) downloadBtn.classList.add('hidden');
+        if (installBtn) {
+          installBtn.classList.remove('hidden');
+          installBtn.disabled = false;
+        }
+      }
+    } catch (_) {}
+  }
 
   modal.classList.remove('hidden');
 }
@@ -119,6 +144,28 @@ export function closeUpdateModal() {
 }
 
 /**
+ * Pasang file APK pembaruan yang sudah terunduh
+ */
+export function installDownloadedUpdate() {
+  playClick('pop');
+  if (window.AndroidBridge && typeof window.AndroidBridge.installDownloadedApk === 'function') {
+    const ok = window.AndroidBridge.installDownloadedApk();
+    if (ok) {
+      showToast('Membuka jendela pemasang Android...', 'info');
+      return;
+    }
+  }
+
+  // Jika belum ada file di cache atau gagal, tawarkan unduh ulang
+  if (updateInfo && updateInfo.apkUrl) {
+    showToast('Mengunduh ulang paket pembaruan...', 'info');
+    startAppUpdate();
+  } else {
+    showToast('File paket pembaruan belum siap.', 'warning');
+  }
+}
+
+/**
  * Mulai proses pengunduhan & instalasi pembaruan
  */
 export function startAppUpdate() {
@@ -129,12 +176,15 @@ export function startAppUpdate() {
   }
 
   const downloadBtn = document.getElementById('updateDownloadBtn');
+  const installBtn = document.getElementById('updateInstallBtn');
   const cancelBtn = document.getElementById('updateCancelBtn');
   const progressContainer = document.getElementById('updateProgressContainer');
   const statusText = document.getElementById('updateProgressStatus');
 
+  if (installBtn) installBtn.classList.add('hidden');
   if (progressContainer) progressContainer.classList.remove('hidden');
   if (downloadBtn) {
+    downloadBtn.classList.remove('hidden');
     downloadBtn.disabled = true;
     downloadBtn.innerHTML = `
       <span class="material-symbols-rounded animate-spin text-base">sync</span>
@@ -187,11 +237,23 @@ export function startAppUpdate() {
 export function onUpdateDownloadProgress(percent) {
   const progressBar = document.getElementById('updateProgressBar');
   const statusText = document.getElementById('updateProgressStatus');
+  const downloadBtn = document.getElementById('updateDownloadBtn');
+  const installBtn = document.getElementById('updateInstallBtn');
+  const cancelBtn = document.getElementById('updateCancelBtn');
 
   if (progressBar) progressBar.style.width = `${percent}%`;
   if (statusText) {
     if (percent >= 100) {
-      statusText.textContent = 'Unduhan selesai! Membuka installer Android...';
+      statusText.innerHTML = `
+        <span class="text-emerald-700 font-bold">Unduhan selesai 100%!</span>
+        <span class="block text-[10px] text-stone-500 font-normal mt-0.5">Jika jendela installer tidak terbuka otomatis, tekan tombol hijau <strong>"Pasang Sekarang"</strong> di bawah.</span>
+      `;
+      if (downloadBtn) downloadBtn.classList.add('hidden');
+      if (installBtn) {
+        installBtn.classList.remove('hidden');
+        installBtn.disabled = false;
+      }
+      if (cancelBtn) cancelBtn.disabled = false;
     } else {
       statusText.textContent = `Mengunduh paket pembaruan... ${percent}%`;
     }
@@ -203,10 +265,13 @@ export function onUpdateDownloadProgress(percent) {
  */
 export function onUpdateDownloadError(msg) {
   const downloadBtn = document.getElementById('updateDownloadBtn');
+  const installBtn = document.getElementById('updateInstallBtn');
   const cancelBtn = document.getElementById('updateCancelBtn');
   const progressContainer = document.getElementById('updateProgressContainer');
 
+  if (installBtn) installBtn.classList.add('hidden');
   if (downloadBtn) {
+    downloadBtn.classList.remove('hidden');
     downloadBtn.disabled = false;
     downloadBtn.innerHTML = `
       <span class="material-symbols-rounded text-base">refresh</span>

@@ -45,6 +45,8 @@ android/local.properties
 *.jks
 *.keystore
 release-key.properties
+# Whitelist persistent debug keystore for consistent in-app update signing
+!android/app/debug.keystore
 
 # Android APK / AAB Binaries (Dibangun otomatis oleh CI/CD)
 android/**/*.apk

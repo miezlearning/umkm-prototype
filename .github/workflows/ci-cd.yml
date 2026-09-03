@@ -64,19 +64,24 @@ jobs:
       - name: Grant Execute Permission for Gradlew
         run: chmod +x android/gradlew
 
-      - name: Generate Debug Keystore for CI Build
+      - name: Verify Consistent Debug Keystore for CI Build
         run: |
-          keytool -genkeypair -v \
-            -keystore android/app/debug.keystore \
-            -storetype JKS \
-            -storepass android \
-            -keypass android \
-            -alias androiddebugkey \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -dname "CN=Android Debug,O=Android,C=US" \
-            -noprompt
+          if [ ! -f android/app/debug.keystore ]; then
+            echo "Generating fallback debug keystore..."
+            keytool -genkeypair -v \
+              -keystore android/app/debug.keystore \
+              -storetype JKS \
+              -storepass android \
+              -keypass android \
+              -alias androiddebugkey \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US" \
+              -noprompt
+          else
+            echo "Using consistent repository debug.keystore (signing key preserved)."
+          fi
 
       - name: Extract Release Version Metadata
         id: version_meta
