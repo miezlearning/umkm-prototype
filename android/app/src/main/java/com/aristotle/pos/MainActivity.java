@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.Collections;
 import android.util.Base64;
 import android.util.Log;
+import android.view.WindowManager;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
@@ -94,6 +95,8 @@ public class MainActivity extends AppCompatActivity {
 
         webView = new WebView(this);
         setContentView(webView);
+        // Pastikan layar mesin kasir tetap menyala (tidak sleep/doze) saat bertugas
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 

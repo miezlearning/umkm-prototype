@@ -1,9 +1,9 @@
 {
-  "versionCode": 38,
-  "versionName": "1.1.34",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.34/Aristotle-POS.apk",
+  "versionCode": 39,
+  "versionName": "1.1.35",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.35/Aristotle-POS.apk",
   "changelog": [
-    "Indikator visual pembeda jalur Hotspot Lokal vs Cloud Internet"
+    "Layar mesin kasir standby otomatis menyala (FLAG_KEEP_SCREEN_ON)"
   ],
   "releaseDate": "2026-09-03"
 }
