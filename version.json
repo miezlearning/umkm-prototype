@@ -1,7 +1,7 @@
 {
-  "versionCode": 9,
-  "versionName": "1.1.6",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.6/Aristotle-POS.apk",
+  "versionCode": 10,
+  "versionName": "1.1.7",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.7/Aristotle-POS.apk",
   "changelog": [
     "Indikator status printer realtime di Header dan Modal Pengaturan",
     "Perbaikan jalur Multi-Device Cloud Relay untuk Device 2 (HP Pelayan)",
