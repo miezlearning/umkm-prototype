@@ -246,11 +246,6 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
   addBytes(0x1B, 0x40);
   addBytes(0x1B, 0x74, 0x00);
 
-  // 2. Trigger Cash Drawer jika diminta
-  if (kickDrawer) {
-    const drawerBytes = buildOpenDrawerBytes();
-    for (let b of drawerBytes) commands.push(b);
-  }
 
   // 3. Sisipkan Logo Toko jika ada
   if (cfg.logoBase64 && cfg.showLogo !== false) {
@@ -356,10 +351,10 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
     addBytes(0x1B, 0x45, 0x00); // Bold OFF
   }
 
-  // 11. Trigger Cash Drawer di akhir struk jika diminta
+  // 11. Trigger Cash Drawer di akhir struk jika diminta (setelah cetak tuntas agar tegangan solenoid maksimal)
   if (kickDrawer) {
-    addBytes(0x1B, 0x70, 0x00, 0x32, 0xFA);
-    addBytes(0x1B, 0x70, 0x01, 0x32, 0xFA);
+    const drawerBytes = buildOpenDrawerBytes();
+    for (let b of drawerBytes) commands.push(b);
   }
 
   // Feed baris minimal (hanya 1 baris agar pas di pisau gerigi tanpa ruang kosong berlebih)
@@ -382,11 +377,16 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
  */
 export function buildOpenDrawerBytes() {
   return new Uint8Array([
+    0x1B, 0x70, 0x00, 0x19, 0xFA,       // ESC p 0 25 250 (50ms Pin 2)
+    0x1B, 0x70, 0x01, 0x19, 0xFA,       // ESC p 1 25 250 (50ms Pin 5)
     0x1B, 0x70, 0x00, 0x32, 0xFA,       // ESC p 0 50 250 (100ms Pin 2)
     0x1B, 0x70, 0x01, 0x32, 0xFA,       // ESC p 1 50 250 (100ms Pin 5)
     0x1B, 0x70, 0x00, 0x64, 0xFA,       // ESC p 0 100 250 (200ms High Energy Pin 2)
     0x1B, 0x70, 0x01, 0x64, 0xFA,       // ESC p 1 100 250 (200ms High Energy Pin 5)
-    0x10, 0x14, 0x01, 0x00, 0x08        // DLE DC4 1 0 8 (Real-time pulse)
+    0x10, 0x14, 0x01, 0x00, 0x08,       // DLE DC4 1 0 8 (Real-time pulse Pin 2)
+    0x10, 0x14, 0x01, 0x01, 0x08,       // DLE DC4 1 1 8 (Real-time pulse Pin 5)
+    0x07,                               // BEL (Buzzer / pulse)
+    0x0A                                // LF (Line feed flush buffer)
   ]);
 }
 

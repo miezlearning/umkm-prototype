@@ -6,6 +6,16 @@ Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelo
 
 ---
 
+## [v1.1.19] - 2026-09-03
+
+### 🛠️ Perbaikan & Peningkatan Laci Kasir (Cash Drawer)
+- **Universal Multi-Pin Solenoid Pulse:** Mengirim kombinasi pulsa energi tinggi ESC/POS Pin 2 (`ESC p 0`), Pin 5 (`ESC p 1`), real-time `DLE DC4`, dan karakter LF buffer flush untuk memastikan kompatibilitas 100% dengan berbagai printer thermal (VSC TM-58V, Epson, Xprinter, Kassen, Panda, dll).
+- **Pemisahan Pemicu Buka Laci Otomatis:** Memastikan laci kasir selalu otomatis terbuka saat pembayaran tunai selesai meskipun opsi cetak struk otomatis (`autoPrint`) dinonaktifkan.
+- **Pencegahan Buffer Reset:** Memindahkan injeksi perintah buka laci pada struk ke bagian paling akhir setelah feed kertas, mencegah pembatalan denyut solenoid akibat perintah inisialisasi logo (`ESC @`).
+- **Peningkatan Uji Coba Laci Antar-Perangkat:** Tombol "Buka Laci" pada Pengaturan Printer kini mendukung Cloud Relay jika ditekan dari HP Pelayan / Device 2.
+
+---
+
 ## [v1.1.18] - 2026-09-03
 
 ### 🚀 Fitur Baru & Peningkatan UI/UX (Added & Improved)

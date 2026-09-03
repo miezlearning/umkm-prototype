@@ -331,7 +331,7 @@ export function completeTransaction() {
   showReceipt(newTx);
   playSuccessChime();
 
-  // Auto-Print Struk Kasir / Tiket Dapur dan Auto-Buka Laci jika diaktifkan di Pengaturan
+  // 1. Auto-Print Struk Kasir / Tiket Dapur
   const printerCfg = state.printerConfig || {};
   if (printerCfg.autoPrintKitchen && printerCfg.autoPrint) {
     setTimeout(() => {
@@ -348,10 +348,16 @@ export function completeTransaction() {
     setTimeout(() => {
       printReceipt(newTx);
     }, 300);
-  } else if (printerCfg.autoKickDrawer && !isQris) {
-    setTimeout(() => {
-      kickCashDrawer();
-    }, 200);
+  }
+
+  // 2. Auto-Buka Laci Kasir jika bayar TUNAI (Independen dari autoPrint agar selalu terpicu)
+  if (printerCfg.autoKickDrawer && !isQris) {
+    // Jika tidak mencetak struk otomatis, picu buka laci langsung
+    if (!printerCfg.autoPrint) {
+      setTimeout(() => {
+        kickCashDrawer();
+      }, 300);
+    }
   }
 
   if (state.orderQueues.length > 1) {
