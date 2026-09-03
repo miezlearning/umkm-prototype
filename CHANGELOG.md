@@ -4,6 +4,15 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.1.38] - 2026-09-04
+
+### 🔄 Live Update Realtime Status Kasir Utama & Pemangkasan Total Menu Pelayan
+- **Live Update Realtime Kasir di HP Pelayan:** Saat Kasir Utama (Device 2 / siapapun yang menjadi Host) terhubung ke printer fisik/Bluetooth, status printer beserta alamat IP-nya otomatis dipublikasikan dan diterima realtime (`onSnapshot`) oleh HP Pelayan. Pelayan langsung melihat status *"Kasir Utama Terhubung (Printer: [Nama])"* dengan lampu hijau aktif.
+- **Pemangkasan Menu Hardware pada HP Pelayan:** Seluruh konfigurasi teknis hardware printer (metode printer Bluetooth/USB/RawBT, lebar kertas 58/80mm, upload logo struk, tombol simpan) otomatis disembunyikan saat dalam mode Pelayan agar menu tidak penuh sesak/boros.
+- **Sinkronisasi IP Otomatis:** HP Pelayan otomatis menerima alamat IP Kasir Utama secara realtime dari Cloud Firestore tanpa perlu input atau scan manual.
+
+---
+
 ## [v1.1.37] - 2026-09-04
 
 ### 🧼 Pembersihan UI/UX Mode Pelayan (Ponytail Simplification)

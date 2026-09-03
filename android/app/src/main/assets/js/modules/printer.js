@@ -1410,6 +1410,11 @@ export function updatePrinterUIStatus() {
     if (localHostIpContainer) localHostIpContainer.classList.add('hidden');
     if (btnTestRelay) btnTestRelay.classList.add('hidden');
 
+    const hardwareSection = document.getElementById('hostHardwareConfigSection');
+    const submitBtn = document.getElementById('printerModalSubmitBtn');
+    if (hardwareSection) hardwareSection.classList.remove('hidden');
+    if (submitBtn) submitBtn.classList.remove('hidden');
+
   } else {
     // HP PELAYAN
     if (headerBadge) {
@@ -1449,6 +1454,15 @@ export function updatePrinterUIStatus() {
     if (localOfflineInfo) localOfflineInfo.classList.add('hidden');
     if (webHostInfo) webHostInfo.classList.add('hidden');
     if (localHostIpContainer) localHostIpContainer.classList.remove('hidden');
+
+    // Sembunyikan bagian pengaturan hardware printer & simpan untuk HP Pelayan
+    const hardwareSection = document.getElementById('hostHardwareConfigSection');
+    const submitBtn = document.getElementById('printerModalSubmitBtn');
+    if (hardwareSection) hardwareSection.classList.add('hidden');
+    if (submitBtn) submitBtn.classList.add('hidden');
+
+    // Pasang listener status Kasir Utama realtime
+    setupHostPresenceListener();
   }
 
   // Update styling tombol toggle peran
@@ -2057,15 +2071,48 @@ export function setupHostPresenceListener() {
     hostPresenceUnsub = null;
   }
   const role = getDevicePrinterMode();
-  if (role !== 'client') return;
+  if (role !== 'pelayan') return;
+
   try {
     hostPresenceUnsub = listenToHostPresence((data) => {
-      if (!data || !data.ip) return;
-      console.log('Menerima IP Host Kasir dari Cloud:', data.ip);
-      localStorage.setItem('aristotle_cloud_host_ip', data.ip);
-      const badge = document.getElementById('localLanStatusBadge');
-      if (!badge || !badge.innerText.includes('🟢')) {
-        testLocalLanPing(true, data.ip);
+      if (!data) return;
+      console.log('Live host presence update received:', data);
+
+      if (data.ip) {
+        localStorage.setItem('aristotle_local_host_ip', data.ip);
+        if (!state.printerConfig) state.printerConfig = {};
+        state.printerConfig.localHostIp = data.ip;
+      }
+
+      const titleEl = document.getElementById('pelayanLiveHostTitle');
+      const descEl = document.getElementById('pelayanLiveHostDesc');
+      const dotEl = document.getElementById('pelayanLiveHostDot');
+      const badgeEl = document.getElementById('pelayanLiveHostBadge');
+      const headerText = document.getElementById('headerPrinterText');
+      const headerDot = document.getElementById('headerPrinterDot');
+
+      const isFresh = data.updatedAt && (Date.now() - data.updatedAt < 300000);
+
+      if (data.isReady && isFresh) {
+        if (titleEl) titleEl.textContent = 'Kasir Utama Terhubung';
+        if (descEl) descEl.textContent = `Printer: ${data.printerName || 'Bluetooth Standby'} • Siap cetak`;
+        if (dotEl) dotEl.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+        if (badgeEl) {
+          badgeEl.textContent = 'Aktif';
+          badgeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800';
+        }
+        if (headerText) headerText.textContent = `Kasir: ${data.printerName || 'Terhubung'}`;
+        if (headerDot) headerDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+      } else {
+        if (titleEl) titleEl.textContent = 'Menunggu Kasir Utama...';
+        if (descEl) descEl.textContent = 'Buka aplikasi di HP Kasir Utama dan pastikan terhubung ke printer.';
+        if (dotEl) dotEl.className = 'w-2.5 h-2.5 rounded-full bg-amber-500';
+        if (badgeEl) {
+          badgeEl.textContent = 'Standby';
+          badgeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800';
+        }
+        if (headerText) headerText.textContent = 'HP Pelayan';
+        if (headerDot) headerDot.className = 'w-2 h-2 rounded-full bg-amber-500';
       }
     });
   } catch (_) {}

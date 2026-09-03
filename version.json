@@ -1,9 +1,9 @@
 {
-  "versionCode": 41,
-  "versionName": "1.1.37",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.37/Aristotle-POS.apk",
+  "versionCode": 42,
+  "versionName": "1.1.38",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.38/Aristotle-POS.apk",
   "changelog": [
-    "Pembersihan total UI/UX Pelayan: eliminasi badge jaringan membingungkan"
+    "Live update status Kasir di Pelayan & eliminasi menu berlebih"
   ],
   "releaseDate": "2026-09-03"
 }

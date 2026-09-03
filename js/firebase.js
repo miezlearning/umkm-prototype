@@ -1129,19 +1129,21 @@ export async function deleteStoreFromCloud(storeId) {
 /**
  * Publikasikan info IP lokal host kasir ke Cloud Firestore
  */
-export async function syncPublishHostPresence(hostIp, hostModel = '') {
-  if (!db || !hostIp) return;
+export async function syncPublishHostPresence(hostIp, hostModel = '', isReady = true) {
+  if (!db) return;
   const storeId = getStoreId();
   if (!storeId) return;
   try {
     const docRef = doc(db, 'stores', storeId, 'config', 'host_presence');
     await setDoc(docRef, {
-      ip: hostIp,
+      ip: hostIp || '',
       port: 8088,
       model: hostModel || 'Kasir Utama',
+      printerName: hostModel || 'Printer Bluetooth Standby',
+      isReady: Boolean(isReady),
       updatedAt: Date.now()
     }, { merge: true });
-    console.log('Host presence synced to cloud:', hostIp);
+    console.log('Host presence synced to cloud:', hostIp, hostModel, isReady);
   } catch (e) {
     console.warn('Publish host presence note:', e.message);
   }
