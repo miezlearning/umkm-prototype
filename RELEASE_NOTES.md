@@ -1,4 +1,4 @@
-# Aristotle POS v1.1.3 Release Notes
+# Aristotle POS v1.1.4 Release Notes
 
 **Tanggal Rilis:** 2026-09-03
 

@@ -1,7 +1,7 @@
 {
-  "versionCode": 6,
-  "versionName": "1.1.3",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.3/Aristotle-POS.apk",
+  "versionCode": 7,
+  "versionName": "1.1.4",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.4/Aristotle-POS.apk",
   "changelog": [
     "Fitur Tiket Dapur / Kitchen Checkpoint Resmi",
     "Perbaikan cetak teks thermal printer VSC TM-58V",
