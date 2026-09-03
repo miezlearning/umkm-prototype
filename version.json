@@ -1,11 +1,11 @@
 {
-  "versionCode": 31,
-  "versionName": "1.1.27",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.27/Aristotle-POS.apk",
+  "versionCode": 32,
+  "versionName": "1.1.28",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.28/Aristotle-POS.apk",
   "changelog": [
-    "Perbaikan input IP manual agar tidak terhapus saat mengetik",
-    "Sinkronisasi host kasir otomatis via Cloud presence untuk Wi-Fi router",
-    "Kejelasan mode cetak Web Browser (Cloud) vs Android APK (LAN Offline)"
+    "Perbaikan timeout pengujian IP (Promise.race 1.2s anti-hang)",
+    "Tombol tes cetak langsung ke kasir via cloud",
+    "Penyempurnaan panduan koneksi offline vs Wi-Fi router"
   ],
   "releaseDate": "2026-09-03"
 }

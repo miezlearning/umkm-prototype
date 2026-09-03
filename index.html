@@ -1799,12 +1799,19 @@
                 </details>
               </div>
 
-              <div class="flex items-center justify-between pt-2 border-t border-emerald-200/60 text-[11px] font-bold text-emerald-950">
-                <span id="multiDevicePrinterNameDisplay">Hardware: Memeriksa...</span>
-                <button type="button" id="btnTestCloudRelay" onclick="window.KasirApp.testCloudRelayPrint()" class="hidden px-2.5 py-1 rounded-lg bg-white border border-sky-300 text-sky-800 font-black text-[10px] hover:bg-sky-100 transition shadow-2xs">
-                  Tes Kirim ke Kasir
-                </button>
-              </div>
+                <div class="pt-2 border-t border-sky-200/60 flex flex-col gap-2">
+                  <div class="flex items-center justify-between text-[11px] font-bold text-sky-950">
+                    <span id="multiDevicePrinterNameDisplay">Hardware: Standby via Cloud Relay</span>
+                  </div>
+                  <button type="button" id="btnTestCloudRelay" onclick="window.KasirApp.testCloudRelayPrint()"
+                    class="w-full py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition">
+                    <span class="material-symbols-rounded text-base">print</span>
+                    <span>🖨️ Tes Cetak ke Kasir (Cek Sekarang)</span>
+                  </button>
+                  <p class="text-[10px] text-stone-500 text-center">
+                    💡 <b>Tips Cetak Tanpa Kuota:</b> Nyalakan <b>Hotspot HP Kasir</b>, lalu sambungkan HP ini ke Hotspot tersebut agar mencetak langsung tanpa internet.
+                  </p>
+                </div>
             </div>
 
             <!-- Hardware Connection & Quick Test Card -->
@@ -2480,7 +2487,7 @@
             <span class="material-symbols-rounded text-emerald-600 text-lg">system_update</span>
             <div>
               <p class="font-bold text-stone-800">Pembaruan Aplikasi</p>
-              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.1.27 (Terkini)</p>
+              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.1.28 (Terkini)</p>
             </div>
           </div>
           <button onclick="KasirApp.checkForAppUpdates(true)"
@@ -2701,7 +2708,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-black tracking-tight" id="updateModalTitle">Pembaruan Aplikasi Tersedia!</h3>
-              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.1.27</span>
+              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.1.28</span>
             </div>
             <p id="updateModalCurrentVersion" class="text-emerald-100 text-xs mt-0.5">Versi Anda saat ini: v1.1.3</p>
           </div>

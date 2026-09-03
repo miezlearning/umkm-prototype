@@ -2109,14 +2109,17 @@ export async function autoDiscoverLocalPrinterHost(silent = false) {
     } catch (_) {}
   }
 
-  // Probe semua kandidat secara paralel dengan timeout super cepat (1500ms)
+  // Probe semua kandidat secara paralel dengan timeout guaranteed 1200ms
   const probe = async (ip) => {
     try {
       const ctrl = new AbortController();
-      const tm = setTimeout(() => ctrl.abort(), 1500);
-      const res = await fetch(`http://${ip}:8088/ping`, { signal: ctrl.signal });
+      const tm = setTimeout(() => ctrl.abort(), 1200);
+      const res = await Promise.race([
+        fetch(`http://${ip}:8088/ping`, { signal: ctrl.signal }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1200))
+      ]);
       clearTimeout(tm);
-      if (res.ok) {
+      if (res && res.ok) {
         const data = await res.json();
         return { ip, host: data.host || 'Kasir Utama' };
       }
@@ -2182,17 +2185,21 @@ export async function testLocalLanPing(silent = false, targetIp = null) {
     input.value = ip;
   }
 
-  if (badge && !silent) {
+  if (badge) {
     badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 animate-pulse';
     badge.textContent = 'Menguji IP...';
   }
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2000);
-    const res = await fetch(`http://${ip}:8088/ping`, { signal: controller.signal });
-    clearTimeout(timeout);
-    if (res.ok) {
+    const ctrl = new AbortController();
+    const tm = setTimeout(() => ctrl.abort(), 1500);
+    const res = await Promise.race([
+      fetch(`http://${ip}:8088/ping`, { signal: ctrl.signal }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500))
+    ]);
+    clearTimeout(tm);
+
+    if (res && res.ok) {
       const data = await res.json();
       localStorage.setItem('aristotle_local_host_ip', ip);
       if (!state.printerConfig) state.printerConfig = {};
@@ -2208,17 +2215,19 @@ export async function testLocalLanPing(silent = false, targetIp = null) {
       }
       if (!silent) showToast(`Berhasil terhubung ke Kasir (${data.host || ip})!`, 'success', 3500);
       return true;
+    } else {
+      throw new Error('Response not OK');
     }
   } catch (err) {
     if (badge) {
-      badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300';
-      badge.textContent = '❌ Tidak Terhubung';
+      badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200';
+      badge.textContent = '☁️ Siap via Cloud Relay';
     }
     if (desc) {
       desc.className = 'text-[11px] text-stone-600 leading-snug';
-      desc.textContent = `Tidak dapat terhubung ke ${ip}:8088. Pastikan Kasir Utama membuka aplikasi Android dan berada di Wi-Fi yang sama.`;
+      desc.textContent = `Server offline (${ip}:8088) tidak merespons (Wi-Fi router membatasi koneksi antar-HP). Jalur cetak otomatis dialihkan ke Cloud Relay.`;
     }
-    if (!silent) showToast(`Gagal terhubung ke ${ip}:8088. Pastikan HP Kasir membuka aplikasi Android.`, 'danger', 4500);
+    if (!silent) showToast(`Server offline (${ip}) tidak merespons. Jalur dialihkan ke Cloud Relay.`, 'info', 3500);
     return false;
   }
 }

@@ -4,6 +4,15 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.1.28] - 2026-09-03
+
+### ⚡ Eliminasi Status Menguji IP Menggantung & Tombol Tes Cetak Instan
+- **Anti-Hang Strict Timeout (Promise.race 1.2s):** Seluruh pengujian ping dan deteksi otomatis IP lokal kini dibungkus dengan `Promise.race` berbatas waktu ketat 1.2 detik. Status tidak akan pernah menggantung pada tulisan "Menguji IP...", dan secara otomatis langsung beralih ke Cloud Relay yang siap pakai.
+- **Tombol Tes Cetak Kasir Terbuka (`🖨️ Tes Cetak ke Kasir Sekarang`):** Menampilkan tombol tes cetak yang jelas dan langsung memicu uji cetak struk dari HP Pelayan ke HP Kasir Utama melalui Cloud Relay dalam waktu <1 detik.
+- **Panduan Praktis Wi-Fi Router vs Hotspot HP:** Menambahkan edukasi tips bahwa untuk mencetak 100% offline tanpa internet bebas blokir router (AP Isolation), cukup nyalakan Hotspot tethering langsung dari HP Kasir.
+
+---
+
 ## [v1.1.27] - 2026-09-03
 
 ### 🔧 Perbaikan Input Alamat IP & Kejelasan Mode Cetak
