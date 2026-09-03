@@ -19,8 +19,8 @@ export const GLOBAL_STORAGE_KEYS = {
   AUTH_ROLE: 'kasir_active_user_role' // 'owner' or 'cashier'
 };
 
-// Master Passphrase Tim Teknis / Super-Admin Bypass (Mencegah brute force 4 digit)
-export const MASTER_DEV_KEY = 'miez_superdev_2026';
+// Master Passphrase Tim Teknis / Super-Admin (Tersimpan dalam bentuk hash SHA-256)
+export const MASTER_DEV_HASH = 'af87f240dff7b5c392c3ed26f1343ededa4e4aa2f76e3c53e37d48a622e1376a';
 
 export const DEFAULT_PRINTER_CONFIG = {
   paperWidth: '58mm', // '58mm' atau '80mm'

@@ -315,10 +315,29 @@ export function showConfirmDialog({
   });
 }
 
+/**
+ * Hash string menggunakan algoritma SHA-256 (Web Crypto API)
+ */
+export async function hashSha256(str) {
+  if (!str && str !== 0) return '';
+  try {
+    const data = new TextEncoder().encode(String(str));
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  } catch (e) {
+    console.warn('Crypto subtle digest error:', e);
+    return String(str);
+  }
+}
+
 if (typeof window !== 'undefined') {
   window.showToast = showToast;
   window.showConfirmDialog = showConfirmDialog;
   window.playBeep = playBeep;
   window.playClick = playClick;
   window.playSuccessChime = playSuccessChime;
+  window.hashSha256 = hashSha256;
 }
+

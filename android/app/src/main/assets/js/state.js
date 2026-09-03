@@ -5,13 +5,14 @@
 import { 
   getStorageKeys, 
   GLOBAL_STORAGE_KEYS,
-  MASTER_DEV_KEY,
+  MASTER_DEV_HASH,
   DEFAULT_PRODUCTS, 
   DEFAULT_QRIS_PAYLOAD, 
   DEFAULT_STORE_PROFILE,
   DEFAULT_PRINTER_CONFIG
 } from './config.js';
 import { parseQRISMetadata } from './qris.js';
+import { hashSha256 } from './utils.js';
 
 /**
  * Dapatkan daftar toko yang tersimpan / pernah dibuka di perangkat ini
@@ -282,12 +283,23 @@ export function saveStoreAuth(authData) {
 }
 
 /**
- * Validasi PIN Toko
+ * Validasi PIN Toko (Mendukung hash SHA-256 dan backward compatibility)
  */
-export function verifyStorePin(pinInput) {
+export async function verifyStorePin(pinInput) {
   const cleanPin = String(pinInput || '').trim();
+  if (!cleanPin) return false;
+  const hash = await hashSha256(cleanPin);
+  if (hash === MASTER_DEV_HASH) return true;
+  if (state.auth?.pinHash && hash === state.auth.pinHash) return true;
+  // Kompatibilitas mundur jika masih ada data plaintext lama
   const currentPin = String(state.auth?.pin || '1234').trim();
-  return cleanPin === currentPin || cleanPin === MASTER_DEV_KEY;
+  if (cleanPin === currentPin) {
+    if (!state.auth) state.auth = {};
+    state.auth.pinHash = hash;
+    saveAuthState();
+    return true;
+  }
+  return false;
 }
 
 /**

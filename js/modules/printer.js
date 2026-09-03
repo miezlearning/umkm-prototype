@@ -1085,7 +1085,20 @@ export async function executeDirectLocalKitchenTicket(tx) {
  * Jika perangkat sekunder (Device 2) -> Relay via Cloud Firestore ke Device 1!
  */
 /**
- * Mencoba mencetak via Local Wi-Fi / Hotspot LAN HTTP Server (Offline, Zero Internet)
+ * Dapatkan token autentikasi POS lokal deterministik berbasis Store ID
+ */
+export function getLocalPosToken(storeId) {
+  const s = String(storeId || state.storeId || 'aristotle_pos').trim().toLowerCase();
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    hash ^= s.charCodeAt(i);
+    hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+  }
+  return 'pos_' + (hash >>> 0).toString(16) + '_sec';
+}
+
+/**
+ * Mencoba mencetak via Local Wi-Fi / Hotspot LAN HTTP Server (Terproteksi Token)
  * Mengembalikan true jika berhasil, false jika gagal / timeout
  */
 async function tryPrintViaLocalLan(bytes) {
@@ -1099,10 +1112,14 @@ async function tryPrintViaLocalLan(bytes) {
     let binary = '';
     for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
     const b64 = window.btoa(binary);
+    const token = getLocalPosToken(state.storeId);
 
     const res = await fetch(`http://${hostIp}:8088/print`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-POS-Token': token
+      },
       body: JSON.stringify({ base64: b64 }),
       signal: controller.signal
     });
@@ -1124,8 +1141,14 @@ async function tryKickDrawerViaLocalLan() {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 1800);
+    const token = getLocalPosToken(state.storeId);
+
     const res = await fetch(`http://${hostIp}:8088/drawer`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-POS-Token': token
+      },
       signal: controller.signal
     });
     clearTimeout(timeout);
@@ -1399,6 +1422,10 @@ export function updatePrinterUIStatus() {
       if (webHostInfo) webHostInfo.classList.add('hidden');
       const myIp = window.AndroidBridge.getLocalIpAddress();
       if (localIpBadge) localIpBadge.textContent = `${myIp}:8088`;
+      const posToken = getLocalPosToken(state.storeId);
+      if (typeof window.AndroidBridge.setLocalPosToken === 'function') {
+        window.AndroidBridge.setLocalPosToken(posToken);
+      }
       try {
         syncPublishHostPresence(myIp, printerName || 'HP Kasir');
       } catch (_) {}

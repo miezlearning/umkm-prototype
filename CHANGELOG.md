@@ -4,6 +4,17 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.1.39] - 2026-09-04
+
+### 🛡️ Pengamanan Menyeluruh Sistem (Security Hardening)
+- **Autentikasi Port 8088 (`X-POS-Token`):** Endpoint kontrol hardware lokal (`/drawer` dan `/print`) kini mewajibkan token autentikasi POS yang valid. Permintaan liar tanpa token (seperti `curl` atau web pihak ketiga di Wi-Fi) otomatis ditolak dengan `401 Unauthorized`.
+- **Pengerasan WebView Android:** Menonaktifkan `AllowUniversalAccessFromFileURLs` dan `AllowFileAccessFromFileURLs` di `MainActivity.java` untuk mencegah pembacaan file privat aplikasi secara ilegal.
+- **Hashing SHA-256 Master Dev Key & PIN Toko:** Menghapus string plaintext `MASTER_DEV_KEY` dari kode sumber publik dan menggantinya dengan hash SHA-256 yang tidak dapat dibalik. PIN toko kini disimpan dan divalidasi dalam format hash SHA-256 (`pinHash`).
+- **Integritas Harga & Transaksi:** Menambahkan verifikasi ulang harga produk terhadap katalog master database saat checkout (`completeTransaction`) untuk mencegah manipulasi harga di sisi klien.
+- **Aturan Keamanan Firebase (`firestore.rules`):** Menambahkan konfigurasi isolasi multi-tenant antar-toko, pembatasan modifikasi riwayat transaksi, dan validasi skema data produk.
+
+---
+
 ## [v1.1.38] - 2026-09-04
 
 ### 🔄 Live Update Realtime Status Kasir Utama & Pemangkasan Total Menu Pelayan

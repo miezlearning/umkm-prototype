@@ -1,9 +1,9 @@
 {
-  "versionCode": 42,
-  "versionName": "1.1.38",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.38/Aristotle-POS.apk",
+  "versionCode": 43,
+  "versionName": "1.1.39",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.39/Aristotle-POS.apk",
   "changelog": [
-    "Live update status Kasir di Pelayan & eliminasi menu berlebih"
+    "Pengamanan menyeluruh: autentikasi port 8088 token POS, SHA-256 PIN & Master Dev, integritas harga"
   ],
   "releaseDate": "2026-09-03"
 }

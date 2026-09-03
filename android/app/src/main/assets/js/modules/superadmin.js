@@ -3,9 +3,9 @@
  * Protected by Technical Passkey Gate & Session Validation
  */
 
-import { formatRp, showToast, playClick, escapeHtml, showConfirmDialog } from '../utils.js';
+import { formatRp, showToast, playClick, escapeHtml, showConfirmDialog, hashSha256 } from '../utils.js';
 import { getSavedStoresList, registerStoreOnDevice, state } from '../state.js';
-import { getStorageKeys, MASTER_DEV_KEY } from '../config.js';
+import { getStorageKeys, MASTER_DEV_HASH } from '../config.js';
 import { 
   fetchAllStoresForSuperAdmin, 
   superAdminUpdateStorePin,
@@ -58,12 +58,13 @@ export function closeSuperAdminAuthModal() {
 /**
  * Verifikasi passkey Super Admin
  */
-export function handleSuperAdminAuthSubmit(e) {
+export async function handleSuperAdminAuthSubmit(e) {
   if (e) e.preventDefault();
   const input = document.getElementById('superAdminPasskeyInput');
   const enteredKey = input ? input.value.trim() : '';
+  const hash = await hashSha256(enteredKey);
 
-  if (enteredKey === MASTER_DEV_KEY) {
+  if (hash === MASTER_DEV_HASH) {
     sessionStorage.setItem(SUPERADMIN_SESSION_KEY, '1');
     const modal = document.getElementById('superAdminAuthModal');
     if (modal) modal.classList.add('hidden');

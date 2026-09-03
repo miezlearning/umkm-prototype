@@ -23,9 +23,9 @@ import {
   orderBy
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-import { DEFAULT_PRODUCTS, getStorageKeys, MASTER_DEV_KEY } from './config.js';
+import { DEFAULT_PRODUCTS, getStorageKeys, MASTER_DEV_HASH } from './config.js';
 import { state, currentStorageKeys, updateUIStoreBranding, getSavedStoresList } from './state.js';
-import { showToast } from './utils.js';
+import { showToast, hashSha256 } from './utils.js';
 
 // Firebase Configuration (Google Firebase Web Public Project Identifier)
 export const firebaseConfig = {
@@ -583,7 +583,8 @@ export async function authenticateStoreLogin(storeId, inputPin) {
     return { success: false, exists: true, message: 'Harap masukkan PIN toko' };
   }
 
-  const isMasterDev = trimmedPin === MASTER_DEV_KEY;
+  const inputHash = await hashSha256(trimmedPin);
+  const isMasterDev = inputHash === MASTER_DEV_HASH;
 
   // 1. Cek dari Local Storage
   const localKeys = getStorageKeys(cleanId);
@@ -648,10 +649,26 @@ export async function authenticateStoreLogin(storeId, inputPin) {
     }
   }
 
-  // Cek apakah PIN cocok
-  const expectedPin = String(activeAuth?.pin || '1234').trim();
+  // Cek apakah PIN cocok (mendukung pinHash SHA-256 dan legacy pin plaintext)
+  let isPinMatch = false;
+  if (activeAuth?.pinHash) {
+    isPinMatch = inputHash === activeAuth.pinHash;
+  } else {
+    const expectedPin = String(activeAuth?.pin || '1234').trim();
+    isPinMatch = trimmedPin === expectedPin;
+    if (isPinMatch) {
+      if (!activeAuth) activeAuth = {};
+      activeAuth.pinHash = inputHash;
+      if (db) {
+        try {
+          const configRef = doc(db, 'stores', cleanId, 'data', 'config');
+          await setDoc(configRef, { auth: { pinHash: inputHash } }, { merge: true });
+        } catch (_) {}
+      }
+    }
+  }
 
-  if (trimmedPin !== expectedPin) {
+  if (!isPinMatch) {
     return {
       success: false,
       exists: true,
@@ -1075,19 +1092,20 @@ export async function fetchAllStoresForSuperAdmin() {
 export async function superAdminUpdateStorePin(storeId, newPin) {
   if (!storeId || !newPin) return false;
   const cleanPin = String(newPin).trim();
+  const pinHash = await hashSha256(cleanPin);
 
   // Update Cloud Firestore
   if (db) {
     try {
       const confRef = doc(db, 'stores', storeId, 'data', 'config');
       await setDoc(confRef, {
-        auth: { pin: cleanPin },
+        auth: { pinHash: pinHash, pin: cleanPin },
         updatedAt: new Date().toISOString()
       }, { merge: true });
 
       const regRef = doc(db, 'stores_registry', storeId);
       await setDoc(regRef, {
-        pin: cleanPin,
+        pinHash: pinHash,
         updatedAt: new Date().toISOString()
       }, { merge: true });
     } catch (e) {
@@ -1100,10 +1118,13 @@ export async function superAdminUpdateStorePin(storeId, newPin) {
     const keys = getStorageKeys(storeId);
     const authStr = localStorage.getItem(keys.AUTH);
     const authObj = authStr ? JSON.parse(authStr) : {};
+    authObj.pinHash = pinHash;
     authObj.pin = cleanPin;
     localStorage.setItem(keys.AUTH, JSON.stringify(authObj));
 
     if (state.storeId === storeId) {
+      if (!state.auth) state.auth = {};
+      state.auth.pinHash = pinHash;
       state.auth.pin = cleanPin;
     }
   } catch (e) {}

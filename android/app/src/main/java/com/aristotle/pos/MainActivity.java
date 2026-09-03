@@ -115,8 +115,8 @@ public class MainActivity extends AppCompatActivity {
         settings.setDatabaseEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
-        settings.setAllowFileAccessFromFileURLs(true);
-        settings.setAllowUniversalAccessFromFileURLs(true);
+        settings.setAllowFileAccessFromFileURLs(false);
+        settings.setAllowUniversalAccessFromFileURLs(false);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
@@ -604,6 +604,11 @@ public class MainActivity extends AppCompatActivity {
             return LOCAL_SERVER_PORT;
         }
 
+        @JavascriptInterface
+        public void setLocalPosToken(String token) {
+            MainActivity.this.setLocalPosToken(token);
+        }
+
         private boolean sendRawBytesToPrinter(byte[] data) {
             return MainActivity.this.sendRawBytesToPrinter(data);
         }
@@ -905,6 +910,11 @@ public class MainActivity extends AppCompatActivity {
     private ServerSocket localHttpServer = null;
     private static final int LOCAL_SERVER_PORT = 8088;
     private boolean isLocalServerRunning = false;
+    private volatile String expectedPosToken = "";
+
+    public void setLocalPosToken(String token) {
+        this.expectedPosToken = (token != null) ? token.trim() : "";
+    }
 
     private void startLocalHttpServer() {
         if (isLocalServerRunning) return;
@@ -952,9 +962,12 @@ public class MainActivity extends AppCompatActivity {
                 String path = parts.length > 1 ? parts[1] : "";
 
                 int contentLength = 0;
+                String clientToken = "";
                 while ((line = reader.readLine()) != null && !line.isEmpty()) {
                     if (line.toLowerCase().startsWith("content-length:")) {
                         contentLength = Integer.parseInt(line.substring(15).trim());
+                    } else if (line.toLowerCase().startsWith("x-pos-token:")) {
+                        clientToken = line.substring(12).trim();
                     }
                 }
 
@@ -963,7 +976,7 @@ public class MainActivity extends AppCompatActivity {
                     String resp = "HTTP/1.1 200 OK\r\n" +
                             "Access-Control-Allow-Origin: *\r\n" +
                             "Access-Control-Allow-Methods: POST, GET, OPTIONS\r\n" +
-                            "Access-Control-Allow-Headers: *\r\n" +
+                            "Access-Control-Allow-Headers: Content-Type, X-POS-Token\r\n" +
                             "Content-Length: 0\r\n\r\n";
                     out.write(resp.getBytes("UTF-8"));
                     out.flush();
@@ -980,6 +993,22 @@ public class MainActivity extends AppCompatActivity {
                             "Content-Length: " + b.length + "\r\n\r\n";
                     out.write(resp.getBytes("UTF-8"));
                     out.write(b);
+                    out.flush();
+                    client.close();
+                    return;
+                }
+
+                // Verifikasi Token Keamanan POS untuk aksi kontrol hardware sensitif (Print & Buka Laci)
+                boolean isAuthorized = (expectedPosToken != null && !expectedPosToken.isEmpty() && expectedPosToken.equals(clientToken));
+                if (!isAuthorized) {
+                    String err = "{\"status\":\"unauthorized\",\"message\":\"Akses ditolak: Token POS tidak valid\"}";
+                    byte[] eb = err.getBytes("UTF-8");
+                    String resp = "HTTP/1.1 401 Unauthorized\r\n" +
+                            "Content-Type: application/json\r\n" +
+                            "Access-Control-Allow-Origin: *\r\n" +
+                            "Content-Length: " + eb.length + "\r\n\r\n";
+                    out.write(resp.getBytes("UTF-8"));
+                    out.write(eb);
                     out.flush();
                     client.close();
                     return;

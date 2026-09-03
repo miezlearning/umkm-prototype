@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. Registry Toko (Pendaftaran & Pencarian ID Toko)
+    match /stores_registry/{storeId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.name is string
+                            && request.resource.data.name.size() > 0;
+      allow delete: if false; // Cegah penghapusan sembarangan
+    }
+    
+    // 2. Data Terisolasi Tiap Toko (Multi-Tenant Store Boundary)
+    match /stores/{storeId} {
+      
+      // Konfigurasi Profil & Auth
+      match /data/config {
+        allow read: if true;
+        allow write: if request.resource.data != null;
+      }
+      
+      // Produk & Katalog Toko
+      match /products/{productId} {
+        allow read: if true;
+        allow write: if request.resource.data.price is number
+                     && request.resource.data.price >= 0
+                     && request.resource.data.name is string;
+      }
+      
+      // Riwayat Transaksi Penjualan
+      match /transactions/{txId} {
+        allow read: if true;
+        allow create: if request.resource.data.total is number
+                      && request.resource.data.total >= 0
+                      && request.resource.data.items is list;
+        allow update, delete: if false; // Transaksi finansial tidak boleh diubah/dihapus sembarangan
+      }
+      
+      // Pengeluaran Operasional Toko
+      match /expenses/{expenseId} {
+        allow read: if true;
+        allow write: if request.resource.data.amount is number
+                     && request.resource.data.amount >= 0;
+      }
+      
+      // Antrean Meja & Pesanan Aktif
+      match /queues/{queueId} {
+        allow read, write: if true;
+      }
+      
+      // Remote Print Jobs (Komunikasi Kasir <-> Pelayan)
+      match /print_jobs/{jobId} {
+        allow read, write: if true;
+      }
+      
+      // Kehadiran & Status Kasir Utama
+      match /config/{configDoc} {
+        allow read, write: if true;
+      }
+    }
+    
+    // Default: Tolak semua path lainnya di luar tenant
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

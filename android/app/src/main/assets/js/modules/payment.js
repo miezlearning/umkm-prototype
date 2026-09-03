@@ -297,13 +297,31 @@ export function completeTransaction() {
     };
   });
 
+  // Validasi Integritas Harga & Transaksi: Pastikan item & harga cocok 100% dengan master katalog
+  let verifiedTotal = 0;
+  for (const item of orderItems) {
+    const masterProd = state.products.find(prod => prod.id === item.id);
+    if (!masterProd || typeof masterProd.price !== 'number' || masterProd.price < 0 || item.qty <= 0) {
+      showToast('Peringatan: Data produk tidak valid. Transaksi dibatalkan demi keamanan.', 'error', 4000);
+      return;
+    }
+    item.price = masterProd.price;
+    item.subtotal = masterProd.price * item.qty;
+    verifiedTotal += item.subtotal;
+  }
+
+  if (verifiedTotal <= 0) {
+    showToast('Total transaksi tidak valid.', 'error');
+    return;
+  }
+
   const newTx = {
     id: 'TX-' + Date.now(),
     date: new Date().toISOString(),
     orderName: queueName,
     method: isQris ? 'QRIS' : 'TUNAI',
     items: orderItems,
-    total,
+    total: verifiedTotal,
     cashGiven: finalCash,
     change: finalChange,
     contributions: (!isQris && cashContributions.length > 1) ? cashContributions : null
