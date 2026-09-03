@@ -1,9 +1,9 @@
 {
-  "versionCode": 36,
-  "versionName": "1.1.32",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.32/Aristotle-POS.apk",
+  "versionCode": 37,
+  "versionName": "1.1.33",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.33/Aristotle-POS.apk",
   "changelog": [
-    "Pairing QR instan tanpa reload halaman dan auto-otorisasi sesi toko"
+    "Pemberishan total socket IP lokal dan prioritas 100 persen cloud relay"
   ],
   "releaseDate": "2026-09-03"
 }

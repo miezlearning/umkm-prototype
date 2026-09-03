@@ -1166,43 +1166,28 @@ export async function kickCashDrawer(directOnly = false) {
  * Jika perangkat terhubung printer -> Cetak langsung (Zero Delay).
  * Jika perangkat sekunder (Device 2) -> Otomatis cetak via Kasir Utama (Device 1).
  */
-export async function printReceipt(tx, forceMethod = null) {
+export async function printReceipt(tx, shouldKickDrawer = false, forceMethod = null) {
   playClick('pop');
-  const cfg = state.printerConfig || {};
-  const shouldKickDrawer = cfg.autoKickDrawer && (tx.method === 'TUNAI');
+  if (!tx) return false;
 
-  // 1. Jika perangkat ini memiliki printer lokal yang aktif (Device 1)
+  // 1. Kasir Utama yang terhubung ke printer fisik
   if (isLocalPrinterReady()) {
     return await executeDirectLocalPrintReceipt(tx, shouldKickDrawer, forceMethod);
   }
 
-  // 2. Jalur Utama: Coba cetak langsung via Wi-Fi Lokal / Hotspot (Offline, Zero Internet!)
+  // 2. HP Pelayan -> Langsung kirim via Cloud Relay
   try {
-    const escPosBytes = await buildEscPosBytes(tx, shouldKickDrawer);
-    const localOk = await tryPrintViaLocalLan(escPosBytes);
-    if (localOk) {
-      showToast('Struk berhasil dicetak via Wi-Fi Lokal (Offline)!', 'success', 3500);
-      return true;
-    }
-  } catch (err) {
-    console.log('Gagal cetak LAN lokal, beralih ke Cloud Relay...', err);
-  }
-
-  // 3. Jalur Cadangan (Fallback): Cloud Print Relay Firebase
-  try {
-    showToast('Mengirim struk ke Printer Kasir...', 'info', 3000);
+    showToast('Mengirim struk ke printer kasir...', 'info', 2500);
     const jobId = await dispatchRemotePrintJob({
       type: 'receipt',
       tx: tx,
       forceMethod: forceMethod
     });
-    showToast('Menunggu Printer Kasir mencetak...', 'info', 3000);
-    await waitForRemotePrintJob(jobId, 15000);
-    showToast('Struk berhasil dicetak di Printer Kasir!', 'success', 3500);
+    await waitForRemotePrintJob(jobId, 12000);
+    showToast('Struk berhasil dicetak di printer kasir.', 'success', 3000);
     return true;
   } catch (err) {
-    console.warn('Cloud print relay note:', err);
-    showToast('Gagal cetak via kasir: ' + (err.message || 'Printer Kasir tidak merespons.'), 'warning', 5000);
+    showToast('Gagal cetak: ' + (err.message || 'Kasir utama belum merespons.'), 'warning', 4000);
     return false;
   }
 }
@@ -1274,10 +1259,7 @@ export function setupRemotePrintHostListener() {
   remotePrintUnsubscribe = listenToRemotePrintJobs(async (job) => {
     if (!job || job.status !== 'pending') return;
 
-    // Abaikan jika job dibuat oleh perangkat ini sendiri (hindari loop)
-    if (job.createdBy === getDeviceId()) return;
-
-    console.log('Menerima tugas cetak jarak jauh dari:', job.createdByName, job);
+    console.log('Menerima tugas cetak dari pelayan:', job.createdByName, job);
     await updateRemotePrintJobStatus(job.id, 'processing');
 
     try {
@@ -1285,13 +1267,13 @@ export function setupRemotePrintHostListener() {
         const cfg = state.printerConfig || {};
         const shouldKick = cfg.autoKickDrawer && (job.tx.method === 'TUNAI');
         await executeDirectLocalPrintReceipt(job.tx, shouldKick, job.forceMethod);
-        showToast(`Mencetak struk dari [${job.createdByName || 'HP Pelayan'}]`, 'info', 3500);
+        showToast(`Mencetak struk dari [${job.createdByName || 'Pelayan'}]`, 'info', 3000);
       } else if (job.type === 'kitchen' && job.tx) {
         await executeDirectLocalKitchenTicket(job.tx);
-        showToast(`Mencetak tiket dapur dari [${job.createdByName || 'HP Pelayan'}]`, 'info', 3500);
+        showToast(`Mencetak tiket dapur dari [${job.createdByName || 'Pelayan'}]`, 'info', 3000);
       } else if (job.type === 'drawer') {
         await executeDirectLocalKickDrawer();
-        showToast(`Membuka laci kasir atas perintah [${job.createdByName || 'HP Pelayan'}]`, 'info', 3500);
+        showToast(`Membuka laci kasir atas perintah [${job.createdByName || 'Pelayan'}]`, 'info', 3000);
       }
 
       await updateRemotePrintJobStatus(job.id, 'completed');
@@ -1426,16 +1408,6 @@ export function updatePrinterUIStatus() {
     if (localOfflineInfo) localOfflineInfo.classList.add('hidden');
     if (webHostInfo) webHostInfo.classList.add('hidden');
     if (localHostIpContainer) localHostIpContainer.classList.remove('hidden');
-
-    // PENTING: JANGAN PERNAH menimpa isi text input jika pengguna sedang mengetik di dalamnya!
-    if (printerLocalHostIp && document.activeElement !== printerLocalHostIp) {
-      const savedIp = state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip') || '';
-      if (!printerLocalHostIp.value) {
-        printerLocalHostIp.value = savedIp;
-      }
-    }
-
-    setupHostPresenceListener();
   }
 
   // Update styling tombol toggle peran

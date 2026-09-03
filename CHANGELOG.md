@@ -4,6 +4,15 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.1.33] - 2026-09-04
+
+### 🚀 Eliminasi Total Masalah "Server Lokal" & Full Cloud Relay (Ponytail Fix)
+- **Hapus Notifikasi & Polling "Server Lokal":** Menghapus seluruh rutinitas polling IP lokal port 8088 yang memicu peringatan berulang *"Server lokal tidak merespons"*.
+- **Pencetakan Multi-Device 100% Cloud Relay:** Pesanan dari HP Pelayan kini dikirim langsung ke antrean Cloud Firestore tanpa melewati socket Wi-Fi lokal router yang sering diblokir firewall/AP isolation. Kasir utama langsung mencetak setiap pesanan yang masuk.
+- **Penyederhanaan Kartu Pelayan:** Menghapus input IP dan pencarian subnet. Hanya menyisakan tombol Scan QR, status kesiapan cloud, dan tombol uji cetak.
+
+---
+
 ## [v1.1.32] - 2026-09-04
 
 ### ⚡ Pairing QR Instan Tanpa Reload Halaman & Otorisasi Otomatis
