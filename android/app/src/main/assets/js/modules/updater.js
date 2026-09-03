@@ -14,13 +14,15 @@ export function getCurrentAppVersion() {
   if (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionCode === 'function') {
     return {
       code: window.AndroidBridge.getAppVersionCode(),
-      name: window.AndroidBridge.getAppVersionName ? window.AndroidBridge.getAppVersionName() : '1.1.3',
+      name: window.AndroidBridge.getAppVersionName ? window.AndroidBridge.getAppVersionName() : '1.1.8',
       isNative: true
     };
   }
+  const badgeEl = document.getElementById('appVersionBadge');
+  const webVersionName = badgeEl ? badgeEl.textContent.replace('v', '').trim() : '1.1.8';
   return {
-    code: 5,
-    name: '1.1.3',
+    code: 999999,
+    name: webVersionName,
     isNative: false
   };
 }
@@ -49,10 +51,15 @@ export async function checkForAppUpdates(manual = false) {
     const data = await res.json();
     updateInfo = data;
 
-    // Bandingkan version code
-    const isNewer = data.versionCode > current.code;
+    // Hanya native APK yang otomatis popup bandingkan versionCode.
+    const isNewer = current.isNative
+      ? (Number(data.versionCode) > Number(current.code))
+      : (manual && data.versionName !== current.name);
 
     if (isNewer) {
+      if (!manual && sessionStorage.getItem(`update_dismissed_${data.versionCode}`)) {
+        return;
+      }
       showUpdateModal(data, current);
     } else if (manual) {
       showToast(`Aplikasi sudah menggunakan versi terbaru (v${current.name}).`, 'success');
@@ -141,6 +148,9 @@ export function showUpdateModal(newRelease, current) {
 export function closeUpdateModal() {
   const modal = document.getElementById('updateAppModal');
   if (modal) modal.classList.add('hidden');
+  if (updateInfo && updateInfo.versionCode) {
+    sessionStorage.setItem(`update_dismissed_${updateInfo.versionCode}`, '1');
+  }
 }
 
 /**

@@ -1,9 +1,9 @@
 {
-  "versionCode": 12,
-  "versionName": "1.1.8",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.8/Aristotle-POS.apk",
+  "versionCode": 13,
+  "versionName": "1.1.9",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.9/Aristotle-POS.apk",
   "changelog": [
-    "Perbaikan logika cetak tiket dapur (dukungan lengkap Bluetooth, Serial, dan template browser)"
+    "Penyempurnaan auto-updater (pembersihan cache instalasi lama dan pencegahan notifikasi update berulang)"
   ],
   "releaseDate": "2026-09-03"
 }

@@ -293,6 +293,23 @@ public class MainActivity extends AppCompatActivity {
 
         checkAndRequestPermissions();
 
+        // Bersihkan file update lama jika versi saat ini sudah sama atau lebih baru
+        try {
+            File cacheDir = getExternalCacheDir() != null ? getExternalCacheDir() : getCacheDir();
+            File apkFile = new File(cacheDir, "Aristotle-POS-update.apk");
+            if (apkFile.exists()) {
+                PackageInfo archiveInfo = getPackageManager().getPackageArchiveInfo(apkFile.getAbsolutePath(), 0);
+                if (archiveInfo != null) {
+                    int cachedCode = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) ? (int) archiveInfo.getLongVersionCode() : archiveInfo.versionCode;
+                    PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                    int currentCode = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) ? (int) pInfo.getLongVersionCode() : pInfo.versionCode;
+                    if (cachedCode <= currentCode) {
+                        apkFile.delete();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
         // Muat URL Cloud untuk update instan tanpa perlu install ulang APK.
         // Jika offline, otomatis fallback ke aset internal!
         webView.loadUrl(PRODUCTION_URL);
@@ -451,7 +468,23 @@ public class MainActivity extends AppCompatActivity {
         public boolean hasDownloadedUpdateApk() {
             File cacheDir = getExternalCacheDir() != null ? getExternalCacheDir() : getCacheDir();
             File apkFile = new File(cacheDir, "Aristotle-POS-update.apk");
-            return apkFile.exists() && apkFile.length() > 100000;
+            if (!apkFile.exists() || apkFile.length() < 100000) return false;
+
+            try {
+                PackageInfo archiveInfo = getPackageManager().getPackageArchiveInfo(apkFile.getAbsolutePath(), 0);
+                if (archiveInfo != null) {
+                    int cachedCode = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) ? (int) archiveInfo.getLongVersionCode() : archiveInfo.versionCode;
+                    int currentCode = getAppVersionCode();
+                    if (cachedCode <= currentCode) {
+                        apkFile.delete();
+                        return false;
+                    }
+                    return true;
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "Error checking archive info: " + e.getMessage());
+            }
+            return false;
         }
 
         @JavascriptInterface
