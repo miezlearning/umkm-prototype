@@ -1,9 +1,9 @@
 {
-  "versionCode": 17,
-  "versionName": "1.1.13",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.13/Aristotle-POS.apk",
+  "versionCode": 18,
+  "versionName": "1.1.14",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.14/Aristotle-POS.apk",
   "changelog": [
-    "Perbaikan fatal ReferenceError cleanAscii pada pipeline cetak struk & tiket dapur serta optimasi tes buka laci langsung"
+    "Multi-device printer sync: tombol toggle peran perangkat (Kasir Utama vs HP Pelayan/Web), auto-listener background real-time, dan Cloud Print Relay"
   ],
   "releaseDate": "2026-09-03"
 }

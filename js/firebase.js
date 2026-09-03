@@ -60,9 +60,14 @@ let listenersUnsubscribe = [];
 
 // Callback for UI updates on remote changes
 let onRemoteUpdateCallback = null;
+let onRemotePrintJobListener = null;
 
 export function setRemoteUpdateCallback(cb) {
   onRemoteUpdateCallback = cb;
+}
+
+export function registerRemotePrintListener(fn) {
+  onRemotePrintJobListener = fn;
 }
 
 /**
@@ -311,6 +316,9 @@ export function setupRealtimeListeners() {
 
   // 6. AUTO ATTACH REMOTE PRINT HOST LISTENER
   try {
+    if (typeof onRemotePrintJobListener === 'function') {
+      onRemotePrintJobListener();
+    }
     if (typeof window.KasirApp?.setupRemotePrintHostListener === 'function') {
       window.KasirApp.setupRemotePrintHostListener();
     }

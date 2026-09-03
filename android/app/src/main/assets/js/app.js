@@ -884,6 +884,8 @@ const KasirApp = {
   updatePrinterUIStatus: printer.updatePrinterUIStatus,
   testCloudRelayPrint: printer.testCloudRelayPrint,
   setupRemotePrintHostListener: printer.setupRemotePrintHostListener,
+  setDevicePrinterRole: printer.setDevicePrinterMode,
+  getDevicePrinterMode: printer.getDevicePrinterMode,
 
   // Admin & Backup & QRIS & Menu
   renderAdminTable: admin.renderAdminTable,

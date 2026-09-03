@@ -11,7 +11,8 @@ import {
   listenToRemotePrintJobs,
   updateRemotePrintJobStatus,
   waitForRemotePrintJob,
-  getDeviceId
+  getDeviceId,
+  registerRemotePrintListener
 } from '../firebase.js';
 
 // State koneksi hardware di runtime
@@ -777,9 +778,41 @@ export function resetPrinterStatusBadge() {
 }
 
 /**
+ * Dapatkan peran printer perangkat saat ini ('host' atau 'pelayan')
+ */
+export function getDevicePrinterMode() {
+  const saved = localStorage.getItem('aristotle_printer_mode');
+  if (saved === 'host' || saved === 'pelayan') {
+    return saved;
+  }
+  // Otomatisasi:
+  if (window.AndroidBridge && typeof window.AndroidBridge.getPairedDevices === 'function') {
+    try {
+      const paired = JSON.parse(window.AndroidBridge.getPairedDevices() || '[]');
+      if (paired && paired.length > 0) return 'host';
+    } catch (_) {}
+  }
+  return 'pelayan';
+}
+
+/**
+ * Atur peran printer perangkat ('host' atau 'pelayan')
+ */
+export function setDevicePrinterMode(mode) {
+  localStorage.setItem('aristotle_printer_mode', mode);
+  updatePrinterUIStatus();
+  setupRemotePrintHostListener();
+  showToast(mode === 'host' ? 'Disetel sebagai Kasir Utama (Host Printer)' : 'Disetel sebagai HP Pelayan / Web (Cloud Relay)', 'info', 3000);
+}
+
+/**
  * Cek apakah perangkat saat ini terhubung langsung ke printer fisik
  */
 export function isLocalPrinterReady() {
+  const role = getDevicePrinterMode();
+  if (role === 'pelayan') {
+    return false;
+  }
   if (window.AndroidBridge && typeof window.AndroidBridge.printBluetooth === 'function') {
     return true;
   }
@@ -1143,22 +1176,20 @@ export function setupRemotePrintHostListener() {
     remotePrintUnsubscribe = null;
   }
 
+  const role = getDevicePrinterMode();
+  if (role !== 'host') {
+    console.log('Perangkat ini disetel sebagai Pelayan, host listener dinonaktifkan.');
+    return;
+  }
+
+  console.log('Mengaktifkan Remote Print Host Listener untuk toko:', state.storeId);
   remotePrintUnsubscribe = listenToRemotePrintJobs(async (job) => {
     if (!job || job.status !== 'pending') return;
-
-    // Periksa apakah perangkat ini dapat mencetak (Host Kasir)
-    const canPrint = isLocalPrinterReady();
-    if (!canPrint) {
-      console.log('Tugas cetak diterima, namun perangkat ini sedang bukan Host Printer (isLocalPrinterReady = false).');
-      return;
-    }
 
     // Abaikan jika job dibuat oleh perangkat ini sendiri (hindari loop)
     if (job.createdBy === getDeviceId()) return;
 
     console.log('Menerima tugas cetak jarak jauh dari:', job.createdByName, job);
-
-    // Kunci status menjadi processing agar tidak dieksekusi dobel
     await updateRemotePrintJobStatus(job.id, 'processing');
 
     try {
@@ -1181,6 +1212,35 @@ export function setupRemotePrintHostListener() {
       await updateRemotePrintJobStatus(job.id, 'failed', { error: err.message || 'Gagal cetak' });
     }
   });
+}
+
+// Otomatis kaitkan listener saat modul dimuat & Firebase siap
+try {
+  registerRemotePrintListener(() => setupRemotePrintHostListener());
+} catch (_) {}
+
+/**
+ * Uji coba cetak via Cloud Relay dari HP Pelayan / Web ke Kasir Utama
+ */
+export async function testCloudRelayPrint() {
+  playClick('tap');
+  try {
+    showToast('Mengirim sinyal tes ke Kasir Utama via Cloud...', 'info', 3000);
+    const sampleTx = getSampleTxData();
+    const jobId = await dispatchRemotePrintJob({
+      type: 'receipt',
+      tx: sampleTx,
+      test: true
+    });
+    showToast('Menunggu Kasir Utama mencetak...', 'info', 4000);
+    await waitForRemotePrintJob(jobId, 15000);
+    showToast('Berhasil! Kasir Utama telah mencetak struk tes.', 'success', 4000);
+    return true;
+  } catch (err) {
+    console.error('Test cloud relay error:', err);
+    showToast('Gagal tes cloud: ' + (err.message || 'Printer Kasir tidak merespons.'), 'warning', 5000);
+    return false;
+  }
 }
 
 /**
@@ -1273,6 +1333,20 @@ export function updatePrinterUIStatus() {
     }
     if (rolePrinterName) rolePrinterName.textContent = 'Jalur: Cloud Firestore Relay (Zero Config)';
     if (btnTestRelay) btnTestRelay.classList.remove('hidden');
+  }
+
+  // Update styling tombol toggle peran
+  const currentRole = getDevicePrinterMode();
+  const btnHost = document.getElementById('btnRoleHost');
+  const btnPelayan = document.getElementById('btnRolePelayan');
+  if (btnHost && btnPelayan) {
+    if (currentRole === 'host') {
+      btnHost.className = 'flex-1 py-1.5 px-2 rounded-lg font-black text-xs flex items-center justify-center gap-1 bg-emerald-700 text-white shadow-xs transition';
+      btnPelayan.className = 'flex-1 py-1.5 px-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1 text-stone-600 hover:bg-stone-100 transition';
+    } else {
+      btnHost.className = 'flex-1 py-1.5 px-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1 text-stone-600 hover:bg-stone-100 transition';
+      btnPelayan.className = 'flex-1 py-1.5 px-2 rounded-lg font-black text-xs flex items-center justify-center gap-1 bg-sky-600 text-white shadow-xs transition';
+    }
   }
 }
 
@@ -1552,8 +1626,14 @@ export async function testPrintReceipt() {
   playClick('tap');
   try {
     const sampleTx = getSampleTxData();
-    showToast('Menguji cetak struk kasir...', 'info', 2000);
-    await executeDirectLocalPrintReceipt(sampleTx, false);
+    const role = getDevicePrinterMode();
+    if (role === 'pelayan') {
+      showToast('Mengirim tes struk ke Kasir Utama...', 'info', 2000);
+      await printReceipt(sampleTx);
+    } else {
+      showToast('Menguji cetak struk kasir...', 'info', 2000);
+      await executeDirectLocalPrintReceipt(sampleTx, false);
+    }
   } catch (err) {
     console.error('Test receipt error:', err);
     showToast('Gagal tes struk: ' + (err.message || 'Kesalahan sistem'), 'error');
@@ -1567,8 +1647,14 @@ export async function testPrintKitchenTicket() {
   playClick('tap');
   try {
     const sampleTx = getSampleTxData();
-    showToast('Menguji cetak tiket dapur...', 'info', 2000);
-    await executeDirectLocalKitchenTicket(sampleTx);
+    const role = getDevicePrinterMode();
+    if (role === 'pelayan') {
+      showToast('Mengirim tes tiket ke Kasir Utama...', 'info', 2000);
+      await printKitchenTicket(sampleTx);
+    } else {
+      showToast('Menguji cetak tiket dapur...', 'info', 2000);
+      await executeDirectLocalKitchenTicket(sampleTx);
+    }
   } catch (err) {
     console.error('Test kitchen ticket error:', err);
     showToast('Gagal tes tiket dapur: ' + (err.message || 'Kesalahan sistem'), 'error');
