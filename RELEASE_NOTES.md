@@ -1,9 +1,9 @@
-# Aristotle POS v1.1.33 Release Notes
+# Aristotle POS v1.1.34 Release Notes
 
 **Tanggal Rilis:** 2026-09-03
 
 ### Catatan Pembaruan:
-- Pemberishan total socket IP lokal dan prioritas 100 persen cloud relay
+- Indikator visual pembeda jalur Hotspot Lokal vs Cloud Internet
 
 ---
 *Pembaruan ini dapat diunduh dan dipasang langsung dari dalam aplikasi (In-App Auto-Updater).*

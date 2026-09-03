@@ -1,9 +1,9 @@
 {
-  "versionCode": 37,
-  "versionName": "1.1.33",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.33/Aristotle-POS.apk",
+  "versionCode": 38,
+  "versionName": "1.1.34",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.34/Aristotle-POS.apk",
   "changelog": [
-    "Pemberishan total socket IP lokal dan prioritas 100 persen cloud relay"
+    "Indikator visual pembeda jalur Hotspot Lokal vs Cloud Internet"
   ],
   "releaseDate": "2026-09-03"
 }

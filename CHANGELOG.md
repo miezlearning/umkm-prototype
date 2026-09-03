@@ -4,6 +4,16 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.1.34] - 2026-09-04
+
+### 🏷️ Pembeda Visual Status Hotspot Lokal vs Cloud Internet
+- **Deteksi Otomatis Media Koneksi:** Sistem mengenali secara otomatis apakah perangkat sedang terhubung ke Hotspot HP Kasir (`192.168.43.x`) atau Wi-Fi/Internet reguler.
+- **Indikator Visual Jelas:**
+  - **Hotspot Kasir (Lokal):** Label kuning kecokelatan *"Hotspot (Offline)"* dan keterangan *"Tersambung langsung ke hotspot kasir (192.168.43.1). Pesanan dicetak tanpa kuota internet."*
+  - **Cloud Realtime (Internet):** Label biru *"Online Cloud"* dan keterangan *"Tersambung ke kasir via cloud. Pesanan otomatis dicetak di kasir utama."*
+
+---
+
 ## [v1.1.33] - 2026-09-04
 
 ### 🚀 Eliminasi Total Masalah "Server Lokal" & Full Cloud Relay (Ponytail Fix)
