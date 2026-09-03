@@ -1,9 +1,9 @@
 {
-  "versionCode": 20,
-  "versionName": "1.1.16",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.16/Aristotle-POS.apk",
+  "versionCode": 21,
+  "versionName": "1.1.17",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.17/Aristotle-POS.apk",
   "changelog": [
-    "Penyelesaian kendala loading terhenti di 20%: pembersihan query string modul, penjaminan watchdog splash screen, dan optimalisasi cache"
+    "Perbaikan fatal SyntaxError duplicate export testCloudRelayPrint & perpanjangan watchdog agar rendering produk tuntas"
   ],
   "releaseDate": "2026-09-03"
 }

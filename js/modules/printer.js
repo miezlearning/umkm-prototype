@@ -1220,30 +1220,6 @@ try {
 } catch (_) {}
 
 /**
- * Uji coba cetak via Cloud Relay dari HP Pelayan / Web ke Kasir Utama
- */
-export async function testCloudRelayPrint() {
-  playClick('tap');
-  try {
-    showToast('Mengirim sinyal tes ke Kasir Utama via Cloud...', 'info', 3000);
-    const sampleTx = getSampleTxData();
-    const jobId = await dispatchRemotePrintJob({
-      type: 'receipt',
-      tx: sampleTx,
-      test: true
-    });
-    showToast('Menunggu Kasir Utama mencetak...', 'info', 4000);
-    await waitForRemotePrintJob(jobId, 15000);
-    showToast('Berhasil! Kasir Utama telah mencetak struk tes.', 'success', 4000);
-    return true;
-  } catch (err) {
-    console.error('Test cloud relay error:', err);
-    showToast('Gagal tes cloud: ' + (err.message || 'Printer Kasir tidak merespons.'), 'warning', 5000);
-    return false;
-  }
-}
-
-/**
  * Update realtime UI indikator status printer di Header & Modal
  */
 export function updatePrinterUIStatus() {
