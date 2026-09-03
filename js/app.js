@@ -85,6 +85,7 @@ export function switchView(viewName) {
     if (viewPos) viewPos.classList.remove('hidden');
     if (btnPosM) btnPosM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
     if (btnPosD) btnPosD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
+    pos.renderOrderQueueTabs();
     pos.renderProducts();
     pos.renderCart();
     if (state.storeId) {
@@ -670,6 +671,15 @@ export async function init() {
         if (viewPos && !viewPos.classList.contains('hidden')) {
           pos.renderOrderQueueTabs();
           pos.renderCart();
+          pos.renderProducts();
+
+          // Jika modal bayar sedang terbuka di perangkat ini tapi pesanan sudah dibayar/dikosongkan di perangkat lain:
+          const payModal = document.getElementById('paymentModal');
+          const currentCart = state.orderQueues.find(q => q.id === state.activeQueueId)?.cart || {};
+          if (payModal && !payModal.classList.contains('hidden') && Object.keys(currentCart).length === 0) {
+            payment.closePaymentModal();
+            showToast('Pesanan ini telah diselesaikan atau dikosongkan dari perangkat lain.', 'info');
+          }
         }
       }
     });

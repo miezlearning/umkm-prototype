@@ -6,6 +6,19 @@ Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelo
 
 ---
 
+## [v1.1.18] - 2026-09-03
+
+### 🚀 Fitur Baru & Peningkatan UI/UX (Added & Improved)
+- **Redesain Header Bar Mobile Ramah Layar Sempit:** Identitas toko di layar ponsel (< 640px) diubah menjadi tombol ikon brand/avatar toko yang bersih dengan indikator real-time sinkronisasi cloud hijau berdenyut, mengeliminasi teks bertumpuk/mepet dengan tombol printer dan aksi lainnya.
+- **Pop-up Profil Toko Komprehensif:** Seluruh detail toko, status sinkronisasi, link bagi kasir ke HP lain via WhatsApp, konfigurasi PIN owner, versi aplikasi, dan tombol logout dapat diakses secara instan saat tombol ikon toko diklik.
+
+### 🛠️ Perbaikan Bug (Fixed)
+- **Sinkronisasi Pesanan Multi-Device Realtime:** Memperbaiki bug pada callback `queues` di mana `pos.renderProducts()` sebelumnya terlewat, sehingga kartu produk di Device 2 kini otomatis memperbarui badge kuantitas dan highlight hijau seketika saat pesanan diubah di Device 1.
+- **Pencegahan Pembayaran Ganda:** Otomatis menutup modal pembayaran di perangkat lain dengan notifikasi ramah jika pesanan telah diselesaikan atau dikosongkan secara remote.
+- **Konsistensi Navigasi:** Memastikan tab antrian pesanan dirender ulang saat berpindah ke tampilan kasir.
+
+---
+
 ## [v1.1.5] - 2026-09-03
 
 ### 🚀 Fitur Baru (Added)

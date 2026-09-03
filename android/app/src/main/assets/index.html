@@ -122,13 +122,25 @@
 
   <!-- TOP APP BAR (Crisp Clean White & High-Contrast Forest Emerald - Ultra Readable & Senior Friendly) -->
   <header
-    class="bg-white text-stone-900 shadow-sm sticky top-0 z-30 px-3 py-2.5 sm:px-6 sm:py-3 border-b border-stone-200">
-    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
+    class="bg-white text-stone-900 shadow-sm sticky top-0 z-30 px-3 py-2 sm:px-6 sm:py-3 border-b border-stone-200">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
 
-      <!-- Brand Logo & Title -->
-      <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
-        <div
-          class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white border border-stone-200 shadow-xs flex items-center justify-center shrink-0 overflow-hidden p-0.5">
+      <!-- 1. MOBILE ONLY: Clean & Professional Store Profile Icon Button -->
+      <div class="sm:hidden flex items-center shrink-0">
+        <button id="mobileStoreProfileBtn" type="button" onclick="openCloudModal()"
+          class="relative w-10 h-10 rounded-2xl bg-white border border-stone-200/90 shadow-2xs hover:border-emerald-400 hover:bg-emerald-50/50 flex items-center justify-center transition active:scale-90 touch-target-large p-1 cursor-pointer"
+          title="Klik untuk Info Toko / Hubungkan Perangkat">
+          <img src="icon-192.png" alt="Aristotle POS" class="w-full h-full object-contain">
+          <!-- Real-time Pulse Dot -->
+          <span id="mobileStoreSyncDot" class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white shadow-xs animate-pulse"></span>
+        </button>
+      </div>
+
+      <!-- 2. DESKTOP & TABLET: Full Store Brand & Title -->
+      <div class="hidden sm:flex items-center gap-2.5 sm:gap-3 min-w-0">
+        <div onclick="openCloudModal()"
+          class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white border border-stone-200 shadow-xs flex items-center justify-center shrink-0 overflow-hidden p-0.5 cursor-pointer hover:border-emerald-400 transition"
+          title="Klik untuk Info Toko / Hubungkan Perangkat">
           <img src="icon-192.png" alt="Aristotle POS" class="w-full h-full object-contain">
         </div>
         <div class="min-w-0">
@@ -144,12 +156,12 @@
             <button type="button" onclick="KasirApp.checkForAppUpdates(true)"
               class="px-1.5 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-black border border-emerald-200/80 transition flex items-center gap-0.5 shadow-2xs"
               title="Klik untuk memeriksa pembaruan aplikasi">
-              <span id="appVersionBadge">v1.1.17</span>
+              <span id="appVersionBadge">v1.1.18</span>
               <span class="material-symbols-rounded text-[11px] text-emerald-600">sync</span>
             </button>
             <span class="text-stone-300 text-[10px]">•</span>
             <div id="headerPrinterStatusBadge" onclick="window.KasirApp.openPrinterConfigModal()"
-              class="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-stone-100 border border-stone-200 text-stone-600 text-[10px] font-black cursor-pointer shadow-2xs hover:bg-stone-200 transition"
+              class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-stone-100 border border-stone-200 text-stone-600 text-[10px] font-black cursor-pointer shadow-2xs hover:bg-stone-200 transition"
               title="Klik untuk membuka pengaturan printer">
               <span id="headerPrinterDot" class="w-1.5 h-1.5 rounded-full bg-stone-400"></span>
               <span id="headerPrinterIcon" class="material-symbols-rounded text-xs text-stone-500">print</span>
@@ -194,24 +206,24 @@
         </div>
       </div>
 
-      <!-- Quick Action Buttons on Mobile Header -->
-      <div class="lg:hidden flex items-center gap-1.5">
+      <!-- Quick Action Buttons on Mobile Header (Anti-Wrap & Clean Gap) -->
+      <div class="lg:hidden flex items-center gap-1.5 shrink-0">
         <button id="mobileHeaderPrinterBtn" onclick="window.KasirApp.openPrinterConfigModal()"
-          class="w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-700 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large relative"
+          class="w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-700 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large relative shrink-0"
           title="Status Printer & Multi-Device">
           <span id="mobileHeaderPrinterDot" class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-stone-400"></span>
           <span class="material-symbols-rounded text-lg text-stone-600">print</span>
         </button>
         <a href="https://wa.me/6281345028895" target="_blank" title="Bantuan WhatsApp: 081345028895"
-          class="w-9 h-9 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large">
+          class="w-9 h-9 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large shrink-0">
           <span class="material-symbols-rounded text-lg">chat</span>
         </a>
         <button onclick="KasirApp.openGuideTour(0)" title="Bantuan Panduan Kasir" aria-label="Bantuan Panduan"
-          class="w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-600 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large">
+          class="w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-600 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large shrink-0">
           <span class="material-symbols-rounded text-lg text-stone-500">help</span>
         </button>
         <button id="mobileHeaderCartBtn" onclick="toggleMobileCartDrawer()"
-          class="relative px-3 py-1.5 rounded-xl bg-stone-100 text-stone-600 border border-stone-200 flex items-center gap-1.5 touch-target-large active:scale-95 transition">
+          class="relative px-3 py-1.5 rounded-xl bg-stone-100 text-stone-600 border border-stone-200 flex items-center gap-1.5 touch-target-large active:scale-95 transition shrink-0">
           <span class="material-symbols-rounded text-lg text-stone-600">shopping_cart</span>
           <span id="mobileHeaderCartTotal" class="text-xs font-bold">Rp 0</span>
         </button>
@@ -2161,15 +2173,15 @@
       <!-- Clean Header -->
       <div class="p-5 pb-3 flex items-start justify-between border-b border-stone-100">
         <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0">
-            <span class="material-symbols-rounded text-2xl">devices</span>
+          <div class="w-11 h-11 rounded-2xl bg-white border border-stone-200 shadow-2xs flex items-center justify-center shrink-0 overflow-hidden p-1">
+            <img src="icon-192.png" alt="Aristotle POS" class="w-full h-full object-contain">
           </div>
           <div>
-            <h3 class="text-base sm:text-lg font-black text-stone-900 leading-tight">Hubungkan Perangkat</h3>
-            <p class="text-xs text-stone-500 font-medium mt-0.5">Buka kasir di HP & tablet lain bersamaan</p>
+            <h3 class="text-base sm:text-lg font-black text-stone-900 leading-tight">Profil Toko & Multi-Device</h3>
+            <p class="text-xs text-stone-500 font-medium mt-0.5">Kelola sesi kasir, sinkronisasi & versi aplikasi</p>
           </div>
         </div>
-        <button onclick="closeCloudModal()" class="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition">
+        <button onclick="closeCloudModal()" class="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition" title="Tutup">
           <span class="material-symbols-rounded text-2xl">close</span>
         </button>
       </div>
@@ -2185,9 +2197,12 @@
               <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Online & Terhubung
             </span>
           </div>
-          <h4 id="cloudStoreNameDisplay" class="font-black text-stone-900 text-lg leading-tight">Kedai Usaha Mami</h4>
+          <div class="flex items-center justify-between gap-2">
+            <h4 id="cloudStoreNameDisplay" class="font-black text-stone-900 text-lg leading-tight truncate">Kedai Usaha Mami</h4>
+            <span id="cloudStoreIdShort" class="px-2 py-0.5 rounded-md bg-stone-200/80 text-stone-600 font-extrabold text-[10px] shrink-0">kedai_usaha_mami</span>
+          </div>
           <p class="text-xs text-stone-600 leading-relaxed">
-            Data pesanan, menu, dan laporan otomatis tersambung tanpa perlu input manual.
+            Data pesanan, menu, dan laporan otomatis tersambung real-time antar perangkat kasir.
           </p>
         </div>
 
@@ -2234,7 +2249,7 @@
             <span class="material-symbols-rounded text-emerald-600 text-lg">system_update</span>
             <div>
               <p class="font-bold text-stone-800">Pembaruan Aplikasi</p>
-              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.1.17 (Terkini)</p>
+              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.1.18 (Terkini)</p>
             </div>
           </div>
           <button onclick="KasirApp.checkForAppUpdates(true)"
@@ -2455,7 +2470,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-black tracking-tight" id="updateModalTitle">Pembaruan Aplikasi Tersedia!</h3>
-              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.1.17</span>
+              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.1.18</span>
             </div>
             <p id="updateModalCurrentVersion" class="text-emerald-100 text-xs mt-0.5">Versi Anda saat ini: v1.1.3</p>
           </div>

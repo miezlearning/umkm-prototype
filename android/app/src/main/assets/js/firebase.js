@@ -111,6 +111,10 @@ export function updateSyncStatusUI(status, message) {
   if (dotEl) {
     dotEl.className = `w-2 h-2 rounded-full ${current.dot} ${current.pulse ? 'animate-pulse' : ''}`;
   }
+  const mobileDotEl = document.getElementById('mobileStoreSyncDot');
+  if (mobileDotEl) {
+    mobileDotEl.className = `absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white shadow-xs ${current.dot} ${current.pulse ? 'animate-pulse' : ''}`;
+  }
   if (textEl) {
     textEl.innerText = current.text;
   }

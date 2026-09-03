@@ -7,12 +7,12 @@ import { playClick } from '../utils.js';
 
 const TOUR_STEPS = [
   {
-    selector: '#appHeaderStoreTitle',
+    selector: '#mobileStoreProfileBtn, #appHeaderStoreTitle',
     fallbackSelector: 'header .cursor-pointer',
     icon: 'storefront',
     iconColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-    title: 'Nama Toko & Koneksi HP',
-    desc: 'Klik nama toko ini untuk melihat status koneksi Cloud, membagikan link kasir ke HP/tablet karyawan, atau keluar (logout).',
+    title: 'Info Toko & Koneksi HP',
+    desc: 'Klik ikon atau nama toko ini untuk melihat status koneksi Cloud, membagikan link kasir ke HP/tablet karyawan, atau keluar (logout).',
     view: 'pos'
   },
   {
