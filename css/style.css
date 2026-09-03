@@ -127,9 +127,10 @@ html.fonts-loading .material-symbols-rounded {
     top: 0 !important;
     width: 58mm !important;
     max-width: 58mm !important;
+    height: auto !important;
     min-height: auto !important;
     margin: 0 !important;
-    padding: 2mm 3mm !important;
+    padding: 1.5mm 2.5mm 1mm 2.5mm !important;
     box-sizing: border-box !important;
     background: #ffffff !important;
     color: #000000 !important;
@@ -138,6 +139,11 @@ html.fonts-loading .material-symbols-rounded {
     box-shadow: none !important;
     z-index: 999999 !important;
     display: block !important;
+  }
+
+  #receiptQueueBottomBox {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
   }
 
   #printArea h4 {

@@ -39,7 +39,7 @@ export const DEFAULT_PRINTER_CONFIG = {
   footerNote: 'Terimakasih telah berkunjung.',
   footerHelp: 'Powered by Aristotle POS',
   showQueueBottom: true, // Tampilkan NO ANTRIAN besar di bagian paling bawah
-  feedLines: 3
+  feedLines: 1
 };
 
 /**

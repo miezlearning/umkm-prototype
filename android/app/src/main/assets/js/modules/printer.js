@@ -181,19 +181,19 @@ export function generateReceiptPlainText(tx, customConfig = null) {
 
   // 5. Info Sosmed & Ucapan Terima Kasih (Center)
   if (cfg.footerSocial) {
-    lines.push('');
     lines.push(padCenter(cfg.footerSocial));
   }
-  lines.push('');
   lines.push(padCenter(cfg.footerNote || 'Terimakasih telah berkunjung.'));
 
   // 6. NO ANTRIAN (WAJIB ADA - Sesuai Permintaan & Foto)
-  lines.push(divider);
-  lines.push(padCenter(`NO ANTRIAN ${rawOrder.toUpperCase()}`));
-  lines.push(divider);
+  if (cfg.showQueueBottom !== false) {
+    lines.push(divider);
+    lines.push(padCenter(`NO ANTRIAN ${rawOrder.toUpperCase()}`));
+    lines.push(divider);
+  }
 
-  // Feed baris kosong di akhir agar tidak terpotong pisau printer
-  const feeds = cfg.feedLines || 3;
+  // Feed baris kosong di akhir (hanya 1 baris agar tidak boros kertas)
+  const feeds = Math.max(0, Math.min(2, Number(cfg.feedLines !== undefined ? cfg.feedLines : 1)));
   for (let i = 0; i < feeds; i++) {
     lines.push('');
   }
@@ -321,28 +321,33 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
   // 9. Info Sosmed & Ucapan Terima Kasih (Align Center)
   addBytes(0x1B, 0x61, 0x01); // Align Center
   if (social) {
-    addText('\n' + social + '\n');
+    addText(social + '\n');
   }
-  addText('\n' + note + '\n');
+  if (note) {
+    addText(note + '\n');
+  }
 
   // 10. NO ANTRIAN BESAR (Double Width & Double Height + Bold - Persis Foto)
-  addBytes(0x1B, 0x61, 0x00); // Align Left
-  addText(divider);
-  addBytes(0x1B, 0x61, 0x01); // Align Center
-  addBytes(0x1B, 0x45, 0x01); // Bold ON
-  addBytes(0x1D, 0x21, 0x11); // Double Width & Height ON
-  addText(`NO ANTRIAN ${rawOrder.toUpperCase()}\n`);
-  addBytes(0x1D, 0x21, 0x00); // Normal Size
-  addBytes(0x1B, 0x45, 0x00); // Bold OFF
+  if (cfg.showQueueBottom !== false) {
+    addBytes(0x1B, 0x61, 0x00); // Align Left
+    addText(divider);
+    addBytes(0x1B, 0x61, 0x01); // Align Center
+    addBytes(0x1B, 0x45, 0x01); // Bold ON
+    addBytes(0x1D, 0x21, 0x11); // Double Width & Height ON
+    addText(`NO ANTRIAN ${rawOrder.toUpperCase()}\n`);
+    addBytes(0x1D, 0x21, 0x00); // Normal Size
+    addBytes(0x1B, 0x45, 0x00); // Bold OFF
+  }
+
   // 11. Trigger Cash Drawer di akhir struk jika diminta
   if (kickDrawer) {
     addBytes(0x1B, 0x70, 0x00, 0x32, 0xFA);
     addBytes(0x1B, 0x70, 0x01, 0x32, 0xFA);
   }
 
-  // Feed 5 baris agar seluruh struk keluar sempurna melewati pisau pemotong
-  addBytes(0x1B, 0x64, 0x05);
-  addText('\n\n');
+  // Feed baris minimal (hanya 1 baris agar pas di pisau gerigi tanpa ruang kosong berlebih)
+  const feedCount = Math.max(1, Math.min(3, Number(cfg.feedLines !== undefined ? cfg.feedLines : 1)));
+  addBytes(0x1B, 0x64, feedCount);
 
   // Perintah Cut hanya untuk printer 80mm yang memiliki pemotong otomatis
   const paperWidth = cfg.paperWidth || '58mm';
@@ -466,9 +471,9 @@ export function buildKitchenTicketEscPosBytes(tx) {
   addText('[  ] SELESAI DIMASAK --> SERAHKAN\n');
   addText(doubleDivider);
 
-  // 8. Feed 5 baris agar struk keluar tuntas melewati pisau gerigi
-  addBytes(0x1B, 0x64, 0x05);
-  addText('\n\n');
+  // 8. Feed baris minimal tanpa ruang kosong berlebih
+  const kitchenFeeds = Math.max(1, Math.min(3, Number(cfg.feedLines !== undefined ? cfg.feedLines : 1)));
+  addBytes(0x1B, 0x64, kitchenFeeds);
 
   return new Uint8Array(commands);
 }
@@ -1530,9 +1535,11 @@ export function openPrinterConfigModal() {
   const socialInput = document.getElementById('printerSocialInput');
   const footerNoteInput = document.getElementById('printerFooterNoteInput');
   const showQueueBottomCheckbox = document.getElementById('printerShowQueueBottom');
+  const feedLinesSelect = document.getElementById('printerFeedLinesSelect');
 
   if (paperWidthSelect) paperWidthSelect.value = cfg.paperWidth || '58mm';
   if (printMethodSelect) printMethodSelect.value = cfg.printMethod || 'browser';
+  if (feedLinesSelect) feedLinesSelect.value = String(cfg.feedLines !== undefined ? cfg.feedLines : 1);
   if (autoPrintCheckbox) autoPrintCheckbox.checked = !!cfg.autoPrint;
   if (autoPrintKitchenCheckbox) autoPrintKitchenCheckbox.checked = !!cfg.autoPrintKitchen;
   if (autoKickCheckbox) autoKickCheckbox.checked = cfg.autoKickDrawer !== false;
@@ -1625,6 +1632,7 @@ export function savePrinterSettings(e) {
   const footerSocial = document.getElementById('printerSocialInput')?.value.trim() || '';
   const footerNote = document.getElementById('printerFooterNoteInput')?.value.trim() || 'Terimakasih telah berkunjung.';
   const showQueueBottom = document.getElementById('printerShowQueueBottom')?.checked !== false;
+  const feedLines = Number(document.getElementById('printerFeedLinesSelect')?.value) || 1;
 
   const newConfig = {
     paperWidth,
@@ -1643,7 +1651,7 @@ export function savePrinterSettings(e) {
     footerNote,
     footerHelp: 'Powered by Aristotle POS',
     showQueueBottom,
-    feedLines: 3
+    feedLines
   };
 
   savePrinterConfig(newConfig);

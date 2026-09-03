@@ -1,12 +1,10 @@
 {
-  "versionCode": 10,
+  "versionCode": 11,
   "versionName": "1.1.7",
   "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.7/Aristotle-POS.apk",
   "changelog": [
-    "Indikator status printer realtime di Header dan Modal Pengaturan",
-    "Perbaikan jalur Multi-Device Cloud Relay untuk Device 2 (HP Pelayan)",
-    "Kartu status peran otomatis (Host Kasir Utama vs Mode Pelayan)",
-    "Tombol Tes Cetak Cloud Relay antar perangkat"
+    "Optimalisasi kerapatan struk thermal 58mm (menghilangkan ruang kosong berlebih di bagian bawah)",
+    "Pilihan pengaturan Jarak Kosong Bawah / Feed Lines (1 baris hemat & rapat)"
   ],
   "releaseDate": "2026-09-03"
 }

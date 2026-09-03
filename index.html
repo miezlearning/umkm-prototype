@@ -1587,14 +1587,14 @@
           </div>
         </div>
 
-        <div class="text-center pt-2 border-t border-dotted border-stone-300 flex flex-col gap-0.5">
+        <div class="text-center pt-1.5 border-t border-dotted border-stone-300 flex flex-col gap-0.5">
           <p class="text-[9.5px] text-stone-600 font-bold" id="receiptSocial">Follow IG: @kedai.usaha.mami</p>
           <p class="text-[10px] text-stone-700 font-bold" id="receiptFooterNote">Terimakasih telah berkunjung.</p>
           <p class="text-[8.5px] text-stone-400 font-sans tracking-tight">Simpan struk ini sebagai bukti bayar • <strong class="text-stone-600">Aristotle POS</strong></p>
         </div>
 
         <!-- Big Bottom Queue Banner (Ala Gacoan / Selalu Teh) -->
-        <div id="receiptQueueBottomBox" class="mt-1 pt-1.5 border-t-2 border-dashed border-stone-800 text-center">
+        <div id="receiptQueueBottomBox" class="mt-1 pt-1 border-t-2 border-dashed border-stone-800 text-center pb-0.5">
           <span class="text-xs font-black tracking-widest text-stone-900 uppercase" id="receiptQueueBottomText">NO ANTRIAN 01</span>
         </div>
       </div>
@@ -1756,6 +1756,16 @@
                   class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none transition shadow-sm">
                   <option value="58mm">58mm (Standar)</option>
                   <option value="80mm">80mm (Lebar)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-stone-800 font-black mb-1.5 text-xs">Jarak Kosong Bawah (Kerapatan Kertas):</label>
+                <select id="printerFeedLinesSelect" onchange="KasirApp.updateLiveReceiptPreview()"
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none transition shadow-sm">
+                  <option value="1">1 Baris (Paling Hemat & Rapat - Rekomendasi)</option>
+                  <option value="2">2 Baris (Standar)</option>
+                  <option value="3">3 Baris (Agak Berjarak)</option>
                 </select>
               </div>
 
