@@ -1,10 +1,11 @@
-const CACHE_NAME = 'aristotle-pos-v35';
+const CACHE_NAME = 'aristotle-pos-v36';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icon.svg',
   './css/style.css',
+  './fonts/material-symbols-rounded.woff2',
   './js/app.js',
   './js/config.js',
   './js/state.js',
@@ -20,7 +21,7 @@ const PRECACHE_ASSETS = [
   './js/modules/printer.js',
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap',
-  'https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24..48,400..700,0..1,-50..200',
+  'https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24..48,400..700,0..1,-50..200&display=block',
   'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js',
   'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js'
 ];
@@ -48,13 +49,15 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
 
-  // Hanya proses request GET http/https (abaikan firestore, googleapis, extension, dll)
+  // Hanya proses request GET http/https (abaikan firestore & auth realtime API)
   if (
     event.request.method !== 'GET' ||
     !url.startsWith('http') ||
     url.includes('firestore.googleapis.com') ||
-    url.includes('firebase') ||
-    url.includes('googleapis.com')
+    url.includes('identitytoolkit.googleapis.com') ||
+    url.includes('securetoken.googleapis.com') ||
+    url.includes('firebaseinstallations.googleapis.com') ||
+    url.includes('firebaseio.com')
   ) {
     return;
   }

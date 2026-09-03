@@ -1,12 +1,12 @@
-# Aristotle POS v1.1.4 Release Notes
+# Aristotle POS v1.1.5 Release Notes
 
 **Tanggal Rilis:** 2026-09-03
 
 ### Catatan Pembaruan:
-- Fitur Tiket Dapur / Kitchen Checkpoint Resmi
-- Perbaikan cetak teks thermal printer VSC TM-58V
-- Pembaruan langsung dari dalam aplikasi (In-App Auto-Updater)
-- CI/CD Otomatis: Deteksi versi dinamis & auto-publish release GitHub
+- Real Asset Loading Pipeline: Splash screen memproses pemuatan aset riil (0-100%) dan verifikasi document.fonts.ready
+- Self-Hosted Font Material Symbols: Font lokal woff2 disimpan di aplikasi, 100% offline-ready & anti-FOUT (ikon tidak lagi berkedip jadi label teks mentah)
+- Multi-Device Cloud Print & Cash Drawer Relay: Device 2 (HP Pelayan/Owner) otomatis dapat mencetak struk, tiket dapur, dan membuka laci kasir via Device 1 yang terhubung ke printer fisik
+- Sinkronisasi Antrean Cetak Realtime Firestore antar-perangkat toko UMKM
 
 ---
 *Pembaruan ini dapat diunduh dan dipasang langsung dari dalam aplikasi (In-App Auto-Updater).*

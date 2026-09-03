@@ -5,7 +5,14 @@
 
 import { state, savePrinterConfig } from '../state.js';
 import { formatRp, formatDateShort, showToast, playClick } from '../utils.js';
-import { syncSavePrinterConfig } from '../firebase.js';
+import { 
+  syncSavePrinterConfig,
+  dispatchRemotePrintJob,
+  listenToRemotePrintJobs,
+  updateRemotePrintJobStatus,
+  waitForRemotePrintJob,
+  getDeviceId
+} from '../firebase.js';
 
 // State koneksi hardware di runtime
 let bluetoothDevice = null;
@@ -740,16 +747,30 @@ export function resetPrinterStatusBadge() {
 }
 
 /**
- * Eksekusi Buka Laci Kasir (Cash Drawer Kick)
- * Murni mengirim sinyal pulse ke solenoid laci tanpa pernah memunculkan dialog cetak
+ * Cek apakah perangkat saat ini terhubung langsung ke printer fisik
  */
-export async function kickCashDrawer() {
-  playClick('cash');
-  const modalMethod = document.getElementById('printerMethodSelect')?.value;
-  const cfg = state.printerConfig || {};
-  const method = (modalMethod && !document.getElementById('printerConfigModal')?.classList.contains('hidden') ? modalMethod : cfg.printMethod) || 'browser';
+export function isLocalPrinterReady() {
+  if (window.AndroidBridge && typeof window.AndroidBridge.isPrinterReady === 'function') {
+    try {
+      return !!window.AndroidBridge.isPrinterReady();
+    } catch (e) {
+      return false;
+    }
+  }
+  if (bluetoothCharacteristic && bluetoothDevice && bluetoothDevice.gatt && bluetoothDevice.gatt.connected) {
+    return true;
+  }
+  if (serialWriter && serialPort && serialPort.writable) {
+    return true;
+  }
+  return false;
+}
 
-  // 0. Jalur Utama APK Native (Bypass total semua dialog & RawBT)
+/**
+ * Eksekusi Langsung Buka Laci Kasir secara lokal (hardware direct)
+ */
+export async function executeDirectLocalKickDrawer() {
+  // 0. Jalur Utama APK Native
   if (window.AndroidBridge && typeof window.AndroidBridge.kickDrawer === 'function') {
     try {
       const ok = window.AndroidBridge.kickDrawer();
@@ -762,7 +783,11 @@ export async function kickCashDrawer() {
     }
   }
 
-  // 1. Mode RawBT (Bluetooth SPP di Android / HP)
+  const modalMethod = document.getElementById('printerMethodSelect')?.value;
+  const cfg = state.printerConfig || {};
+  const method = (modalMethod && !document.getElementById('printerConfigModal')?.classList.contains('hidden') ? modalMethod : cfg.printMethod) || 'browser';
+
+  // 1. Mode RawBT
   if (method === 'rawbt') {
     try {
       const bytes = buildOpenDrawerBytes();
@@ -776,16 +801,15 @@ export async function kickCashDrawer() {
       document.body.appendChild(link);
       link.click();
       setTimeout(() => { try { link.remove(); } catch (_) {} }, 500);
-      showToast('Sinyal buka laci terkirim ke printer (RawBT)!', 'success');
+      showToast('Sinyal buka laci terkirim (RawBT)!', 'success');
       return true;
     } catch (e) {
       console.warn('RawBT kick error:', e);
-      showToast('Gagal mengirim sinyal ke RawBT.', 'warning');
       return false;
     }
   }
 
-  // 2. Mode USB Serial (Laptop / OTG)
+  // 2. Mode USB Serial
   if (method === 'serial') {
     try {
       const bytes = buildOpenDrawerBytes();
@@ -794,7 +818,6 @@ export async function kickCashDrawer() {
       return true;
     } catch (e) {
       console.warn('Serial kick error:', e);
-      showToast('Port USB Serial belum terhubung. Silakan hubungkan dulu di Pengaturan.', 'warning');
       return false;
     }
   }
@@ -809,34 +832,25 @@ export async function kickCashDrawer() {
         return true;
       } catch (e) {
         console.warn('Bluetooth kick error:', e);
-        showToast('Gagal kirim sinyal buka laci via Bluetooth.', 'warning');
         return false;
       }
-    } else {
-      showToast('Printer Bluetooth belum terhubung.', 'warning');
-      return false;
     }
   }
 
-  // 4. Jika mode cetak adalah Dialog Cetak Browser (Tidak support sinyal elektrik laci)
-  showToast('Fitur buka laci otomatis membutuhkan metode RawBT atau USB Serial.', 'info');
   return false;
 }
 
 /**
- * Cetak Transaksi Utama (Mendukung Android APK Native, Browser Print, RawBT Android, Serial USB, dan Web Bluetooth)
+ * Eksekusi Langsung Cetak Struk Utama secara lokal (hardware direct)
  */
-export async function printReceipt(tx, forceMethod = null) {
-  playClick('pop');
+export async function executeDirectLocalPrintReceipt(tx, shouldKickDrawer, forceMethod = null) {
   const modalMethod = document.getElementById('printerMethodSelect')?.value;
   const cfg = state.printerConfig || {};
   const method = forceMethod || (modalMethod && !document.getElementById('printerConfigModal')?.classList.contains('hidden') ? modalMethod : cfg.printMethod) || 'browser';
-  const shouldKickDrawer = cfg.autoKickDrawer && (tx.method === 'TUNAI');
 
-  // Pastikan UI printArea terupdate dengan teks & tata letak 58mm terkini
   renderPrintableReceiptArea(tx, cfg);
 
-  // 0. Jalur Utama APK Native (Bebas Dialog, Bebas RawBT, Bebas Watermark)
+  // 0. Jalur Utama APK Native (Bebas Dialog, Bebas RawBT, Zero Delay)
   if (window.AndroidBridge && typeof window.AndroidBridge.printBluetooth === 'function') {
     try {
       const bytes = await buildEscPosBytes(tx, shouldKickDrawer);
@@ -849,19 +863,16 @@ export async function printReceipt(tx, forceMethod = null) {
         return true;
       }
     } catch (e) {
-      console.warn('Native Android Bluetooth print error, beralih ke fallback:', e);
+      console.warn('Native Android Bluetooth print error:', e);
     }
   }
 
   if (method === 'rawbt') {
     try {
-      showToast('Mengirim struk ke RawBT Android (Bluetooth SPP)...', 'info');
       const bytes = await buildEscPosBytes(tx, shouldKickDrawer);
       let binary = '';
       for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
       const b64 = window.btoa(binary);
-      
-      // Format resmi RawBT: intent:base64,... (Bukan data:application/octet-stream)
       const intentUri = `intent:base64,${b64}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
       const link = document.createElement('a');
       link.href = intentUri;
@@ -869,111 +880,45 @@ export async function printReceipt(tx, forceMethod = null) {
       document.body.appendChild(link);
       link.click();
       setTimeout(() => { try { link.remove(); } catch (_) {} }, 500);
-
       showToast('Struk terkirim ke RawBT!', 'success');
       return true;
     } catch (e) {
-      console.warn('RawBT print error, beralih ke dialog sistem:', e);
+      console.warn('RawBT print error:', e);
       window.print();
+      return true;
     }
   } else if (method === 'bluetooth') {
     try {
-      showToast('Mengirim struk ke printer Bluetooth...', 'info');
       const bytes = await buildEscPosBytes(tx, shouldKickDrawer);
       await sendBluetoothData(bytes);
       showToast('Struk berhasil dicetak (Bluetooth)!', 'success');
       return true;
     } catch (e) {
-      console.warn('Bluetooth print gagal, beralih ke dialog browser:', e);
-      showToast('Bluetooth gagal, membuka dialog cetak...', 'warning');
+      console.warn('Bluetooth print gagal:', e);
       window.print();
+      return true;
     }
   } else if (method === 'serial') {
     try {
-      showToast('Mengirim struk ke printer USB Serial...', 'info');
       const bytes = await buildEscPosBytes(tx, shouldKickDrawer);
       await sendSerialData(bytes);
       showToast('Struk berhasil dicetak (USB Serial)!', 'success');
       return true;
     } catch (e) {
-      console.warn('Serial print gagal, beralih ke dialog browser:', e);
-      showToast('USB Serial gagal, membuka dialog cetak...', 'warning');
+      console.warn('Serial print gagal:', e);
       window.print();
+      return true;
     }
   } else {
-    // Standard Universal Browser / Android Print Spooler
     window.print();
+    return true;
   }
 }
 
 /**
- * Render elemen HTML #kitchenPrintArea untuk fallback cetak browser
+ * Eksekusi Langsung Cetak Tiket Dapur secara lokal (hardware direct)
  */
-export function renderPrintableKitchenArea(tx) {
-  const container = document.getElementById('kitchenPrintArea');
-  if (!container || !tx) return;
-
-  const d = tx.date ? new Date(tx.date) : new Date();
-  const pad = (n) => String(n).padStart(2, '0');
-  const txTime = `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}.${pad(d.getMinutes())}.${pad(d.getSeconds())}`;
-  const rawOrder = String(tx.orderName || '01').replace(/^NO ANTRIAN:?\s*/i, '');
-
-  let totalQty = 0;
-  let itemsHtml = '';
-  if (Array.isArray(tx.items)) {
-    tx.items.forEach(item => {
-      const qty = item.qty || 1;
-      totalQty += qty;
-      itemsHtml += `
-        <div class="flex justify-between items-start py-1 border-b border-dashed border-stone-300 text-xs">
-          <div class="font-bold flex items-center gap-1.5">
-            <span class="inline-block w-3.5 h-3.5 border border-black rounded-sm"></span>
-            <span>${item.name || 'Item'}</span>
-          </div>
-          <span class="font-black text-sm">x${qty}</span>
-        </div>
-      `;
-      if (item.note) {
-        itemsHtml += `<div class="text-[9.5px] text-stone-600 pl-5 italic">* ${item.note}</div>`;
-      }
-    });
-  }
-
-  container.innerHTML = `
-    <div class="p-2 border-b-2 border-black text-center">
-      <h3 class="font-black text-xs tracking-wider uppercase">*** TIKET DAPUR / BAR ***</h3>
-      <div class="my-1.5 py-1 border-y border-black font-black text-base tracking-wide uppercase">${rawOrder}</div>
-      <div class="text-[9px] text-stone-600">Waktu: ${txTime} • #${tx.id ? tx.id.replace('TX-', '') : '001'}</div>
-    </div>
-    <div class="py-1">
-      <div class="flex justify-between text-[9.5px] font-black text-stone-500 border-b border-stone-300 pb-0.5 mb-1">
-        <span>STATUS / MENU</span>
-        <span>PORSI</span>
-      </div>
-      ${itemsHtml}
-    </div>
-    <div class="pt-1.5 border-t border-black flex justify-between font-black text-xs">
-      <span>Total: ${tx.items ? tx.items.length : 0} Item</span>
-      <span>${totalQty} Porsi</span>
-    </div>
-    <div class="mt-2 pt-1 border-t-2 border-dashed border-black text-center text-[10px] font-black">
-      [  ] SELESAI DIMASAK & SERAHKAN
-    </div>
-  `;
-}
-
-/**
- * Cetak Tiket Dapur / Kitchen Checkpoint
- * Mendukung Android APK Native Bluetooth, Serial USB, RawBT, dan Browser Print
- */
-export async function printKitchenTicket(tx) {
-  playClick('pop');
-  if (!tx) {
-    showToast('Tidak ada data transaksi untuk dicetak.', 'warning');
-    return false;
-  }
-
-  // 0. Jalur Utama APK Native (Bebas Dialog, Bebas RawBT, Zero Delay)
+export async function executeDirectLocalKitchenTicket(tx) {
   if (window.AndroidBridge && typeof window.AndroidBridge.printBluetooth === 'function') {
     try {
       const bytes = buildKitchenTicketEscPosBytes(tx);
@@ -1024,7 +969,6 @@ export async function printKitchenTicket(tx) {
     }
   }
 
-  // Fallback Browser Print dengan kelas khusus .printing-kitchen
   renderPrintableKitchenArea(tx);
   document.body.classList.add('printing-kitchen');
   showToast('Mencetak tiket dapur via browser...', 'info');
@@ -1033,6 +977,178 @@ export async function printKitchenTicket(tx) {
     document.body.classList.remove('printing-kitchen');
   }, 1000);
   return true;
+}
+
+/**
+ * Eksekusi Buka Laci Kasir (Cash Drawer Kick)
+ * Jika perangkat terhubung printer -> Buka langsung.
+ * Jika perangkat sekunder (Device 2) -> Relay via Cloud Firestore ke Device 1!
+ */
+export async function kickCashDrawer() {
+  playClick('cash');
+
+  // 1. Jika terhubung langsung ke printer lokal fisik (Device 1)
+  if (isLocalPrinterReady()) {
+    return await executeDirectLocalKickDrawer();
+  }
+
+  // 2. Jika di Android native APK, coba kickDrawer langsung
+  if (window.AndroidBridge && typeof window.AndroidBridge.kickDrawer === 'function') {
+    try {
+      const ok = window.AndroidBridge.kickDrawer();
+      if (ok) {
+        showToast('Laci kasir terbuka!', 'success');
+        return true;
+      }
+    } catch (e) {}
+  }
+
+  // 3. Jika TIDAK terhubung langsung (Device 2 / HP Pelayan), gunakan Cloud Drawer Relay!
+  try {
+    showToast('Mengirim sinyal buka laci ke Printer Kasir...', 'info');
+    const jobId = await dispatchRemotePrintJob({ type: 'drawer' });
+    await waitForRemotePrintJob(jobId, 8000);
+    showToast('Laci kasir dibuka oleh Printer Kasir!', 'success');
+    return true;
+  } catch (err) {
+    console.warn('Remote drawer kick note:', err);
+    // Fallback jika cloud offline atau tidak ada host
+    const ok = await executeDirectLocalKickDrawer();
+    if (!ok) {
+      showToast('Fitur buka laci membutuhkan printer kasir fisik yang terhubung.', 'info');
+    }
+    return ok;
+  }
+}
+
+/**
+ * Cetak Transaksi Utama (Mendukung Multi-Device Cloud Print Relay)
+ * Jika perangkat terhubung printer -> Cetak langsung (Zero Delay).
+ * Jika perangkat sekunder (Device 2) -> Otomatis cetak via Kasir Utama (Device 1).
+ */
+export async function printReceipt(tx, forceMethod = null) {
+  playClick('pop');
+  const cfg = state.printerConfig || {};
+  const shouldKickDrawer = cfg.autoKickDrawer && (tx.method === 'TUNAI');
+
+  // 1. Jika perangkat ini memiliki printer lokal yang aktif (Device 1)
+  if (isLocalPrinterReady()) {
+    return await executeDirectLocalPrintReceipt(tx, shouldKickDrawer, forceMethod);
+  }
+
+  // 2. Jika di Android native APK, coba cetak Bluetooth lokal terlebih dahulu
+  if (window.AndroidBridge && typeof window.AndroidBridge.printBluetooth === 'function') {
+    try {
+      const ok = await executeDirectLocalPrintReceipt(tx, shouldKickDrawer, forceMethod);
+      if (ok) return true;
+    } catch (e) {}
+  }
+
+  // 3. Jika TIDAK terhubung printer lokal (Device 2 / HP Pelayan), alihkan ke Cloud Print Relay!
+  try {
+    showToast('Mengirim struk ke Printer Kasir...', 'info');
+    const jobId = await dispatchRemotePrintJob({
+      type: 'receipt',
+      tx: tx,
+      forceMethod: forceMethod
+    });
+    showToast('Menunggu Printer Kasir mencetak...', 'info');
+    await waitForRemotePrintJob(jobId, 12000);
+    showToast('Struk berhasil dicetak di Printer Kasir!', 'success');
+    return true;
+  } catch (err) {
+    console.warn('Cloud print relay fallback:', err);
+    showToast('Printer Kasir tidak merespons, beralih ke cetak browser...', 'warning');
+    return await executeDirectLocalPrintReceipt(tx, shouldKickDrawer, forceMethod);
+  }
+}
+
+/**
+ * Cetak Tiket Dapur / Kitchen Checkpoint (Mendukung Multi-Device Cloud Relay)
+ */
+export async function printKitchenTicket(tx) {
+  playClick('pop');
+  if (!tx) {
+    showToast('Tidak ada data transaksi untuk dicetak.', 'warning');
+    return false;
+  }
+
+  // 1. Jika perangkat ini terhubung ke printer lokal
+  if (isLocalPrinterReady()) {
+    return await executeDirectLocalKitchenTicket(tx);
+  }
+
+  // 2. Jika di Android native APK
+  if (window.AndroidBridge && typeof window.AndroidBridge.printBluetooth === 'function') {
+    try {
+      const ok = await executeDirectLocalKitchenTicket(tx);
+      if (ok) return true;
+    } catch (e) {}
+  }
+
+  // 3. Jika TIDAK terhubung printer lokal (Device 2), alihkan ke Cloud Print Relay!
+  try {
+    showToast('Mengirim tiket dapur ke Printer Kasir...', 'info');
+    const jobId = await dispatchRemotePrintJob({
+      type: 'kitchen',
+      tx: tx
+    });
+    await waitForRemotePrintJob(jobId, 12000);
+    showToast('Tiket dapur berhasil dicetak di Printer Kasir!', 'success');
+    return true;
+  } catch (err) {
+    console.warn('Cloud kitchen print relay fallback:', err);
+    return await executeDirectLocalKitchenTicket(tx);
+  }
+}
+
+// ================= CLOUD REMOTE PRINT LISTENER (DAEMON HOST) =================
+let remotePrintUnsubscribe = null;
+
+/**
+ * Aktifkan listener di background untuk memproses tugas cetak dari perangkat lain di toko
+ */
+export function setupRemotePrintHostListener() {
+  if (remotePrintUnsubscribe) {
+    try { remotePrintUnsubscribe(); } catch (_) {}
+    remotePrintUnsubscribe = null;
+  }
+
+  remotePrintUnsubscribe = listenToRemotePrintJobs(async (job) => {
+    if (!job || job.status !== 'pending') return;
+
+    // Periksa apakah perangkat ini terhubung ke printer fisik
+    const canPrint = isLocalPrinterReady() || (window.AndroidBridge && typeof window.AndroidBridge.printBluetooth === 'function');
+    if (!canPrint) return;
+
+    // Abaikan jika job dibuat oleh perangkat ini sendiri (hindari loop)
+    if (job.createdBy === getDeviceId()) return;
+
+    console.log('Menerima tugas cetak jarak jauh dari:', job.createdByName, job);
+
+    // Kunci status menjadi processing agar tidak dieksekusi dobel
+    await updateRemotePrintJobStatus(job.id, 'processing');
+
+    try {
+      if (job.type === 'receipt' && job.tx) {
+        const cfg = state.printerConfig || {};
+        const shouldKick = cfg.autoKickDrawer && (job.tx.method === 'TUNAI');
+        await executeDirectLocalPrintReceipt(job.tx, shouldKick, job.forceMethod);
+        showToast(`Mencetak struk dari [${job.createdByName || 'HP Pelayan'}]`, 'info', 3000);
+      } else if (job.type === 'kitchen' && job.tx) {
+        await executeDirectLocalKitchenTicket(job.tx);
+        showToast(`Mencetak tiket dapur dari [${job.createdByName || 'HP Pelayan'}]`, 'info', 3000);
+      } else if (job.type === 'drawer') {
+        await executeDirectLocalKickDrawer();
+        showToast(`Membuka laci kasir atas perintah [${job.createdByName || 'HP Pelayan'}]`, 'info', 3000);
+      }
+
+      await updateRemotePrintJobStatus(job.id, 'completed');
+    } catch (err) {
+      console.error('Eksekusi remote print job gagal:', err);
+      await updateRemotePrintJobStatus(job.id, 'failed', { error: err.message || 'Gagal cetak' });
+    }
+  });
 }
 
 /**

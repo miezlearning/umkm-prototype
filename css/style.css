@@ -1,5 +1,15 @@
 /* Kasir Mami - Custom Design System & Utilities */
 
+/* Google Material Symbols Rounded - Local Self-Hosted with CDN Fallback */
+@font-face {
+  font-family: 'Material Symbols Rounded';
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: block;
+  src: url('../fonts/material-symbols-rounded.woff2') format('woff2'),
+       url('https://fonts.gstatic.com/s/materialsymbolsrounded/v369/sykg-zNym6YjUruM-QrEh7-nyTnjDwKNJ_190Fjzag.woff2') format('woff2');
+}
+
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 16px;
@@ -9,8 +19,26 @@ body {
 }
 
 .material-symbols-rounded {
+  font-family: 'Material Symbols Rounded', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
   font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
   vertical-align: middle;
+}
+
+/* Anti-FOUT: Saat fase pemuatan awal, sembunyikan teks ligature mentah sampai font aktif */
+html.fonts-loading .material-symbols-rounded {
+  visibility: hidden;
 }
 
 .touch-target-large {

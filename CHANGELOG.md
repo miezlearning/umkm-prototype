@@ -6,6 +6,30 @@ Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelo
 
 ---
 
+## [v1.1.5] - 2026-09-03
+
+### 🚀 Fitur Baru (Added)
+- **Multi-Device Cloud Print & Cash Drawer Relay:** Perangkat sekunder (Device 2 / HP Pelayan / Owner) otomatis dapat mencetak struk, tiket dapur, dan membuka laci kasir melalui perangkat utama (Device 1) yang sedang terhubung ke printer thermal fisik.
+- **Antrean Tugas Cetak Realtime Firestore (`print_jobs`):** Komunikasi sub-detik antar-perangkat toko UMKM dengan auto-cleanup tugas lama tanpa perlu konfigurasi IP/jaringan manual (Zero Configuration).
+- **Self-Hosted Material Symbols Font:** Font icon `Material Symbols Rounded` (.woff2) disimpan lokal di repo dan bundle aset APK Android, memberikan waktu muat 0ms dan 100% tahan offline.
+- **Pipeline Splash Screen Riil (Real Asset Readiness):** Splash screen kini memproses tahapan aset sebenarnya (0% - 100%) dan menunggu `document.fonts.ready` sebelum ditutup.
+- **Proteksi CSS Anti-FOUT:** Mencegah kedipan teks mentah (*Flash of Unstyled Text*) seperti tulisan `point_of_sale` atau `inventory_2` sebelum font aktif.
+
+### 🛠️ Perbaikan Bug (Fixed)
+- **Blind Hardcoded Timer Dihapus:** Mengganti timer buta `setTimeout` di splash screen dengan pengawas jaringan dinamis (*safety watchdog*).
+- **Service Worker Font Caching:** Memperbaiki aturan filter `sw.js` agar font Google / lokal dapat tersimpan di Cache Storage PWA.
+
+---
+
+## [v1.1.4] - 2026-09-03
+
+### 🚀 Fitur Baru (Added)
+- **Fitur Tiket Dapur / Kitchen Checkpoint Resmi:** Format cetak khusus dapur dan bar pemisahan pos pesanan.
+- **Pembaruan Langsung dari Dalam Aplikasi (In-App Auto-Updater):** Notifikasi dan pengunduh file APK langsung dari modal info toko.
+- **Perbaikan Mode Teks Printer VSC TM-58V:** Normalisasi ASCII dan mitigasi string encoding thermal printer.
+
+---
+
 ## [v1.1.0] - 2026-09-02
 
 ### 🚀 Fitur Baru (Added)

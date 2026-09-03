@@ -599,33 +599,55 @@ function registerSW() {
 }
 
 // ================= APP INITIALIZATION =================
+function updateLoadingProgress(pct, statusText) {
+  if (typeof window.updateSplashProgress === 'function') {
+    window.updateSplashProgress(pct, statusText);
+  }
+}
+
 function dismissSplashScreen() {
   const splash = document.getElementById('appSplashScreen');
   if (splash) {
+    document.documentElement.classList.remove('fonts-loading');
     setTimeout(() => {
       splash.classList.add('opacity-0', 'pointer-events-none');
       setTimeout(() => {
         splash.style.display = 'none';
       }, 450);
-    }, 400);
+    }, 250);
   }
 }
 
-export function init() {
+export async function init() {
   try {
-    // 1. Initial skeleton preview if DOM not populated
+    // 1. Initial skeleton & state loading (20%)
+    updateLoadingProgress(20, 'Menyiapkan basis data & konfigurasi...');
     pos.renderProductSkeletons(8);
-
-    // 2. Instant load from local storage
     initState();
+
+    // 2. Render UI katalog, antrean, dan keranjang (45%)
+    updateLoadingProgress(45, 'Menyiapkan menu & antrean pesanan...');
     pos.renderOrderQueueTabs();
     pos.renderProducts();
     pos.renderCart();
 
-    // 3. Setup Service Worker for offline PWA
+    // 3. Real Asset Readiness Check (70%) - Tunggu font ikon sistem selesai dimuat
+    updateLoadingProgress(70, 'Memuat font aset & ikon sistem...');
+    try {
+      if (document.fonts) {
+        await Promise.race([
+          document.fonts.ready,
+          new Promise(resolve => setTimeout(resolve, 1800))
+        ]);
+      }
+    } catch (_) {}
+    document.documentElement.classList.remove('fonts-loading');
+
+    // 4. Setup Service Worker for offline PWA & Multi-Device sync (90%)
+    updateLoadingProgress(90, 'Menghubungkan layanan sinkronisasi...');
     registerSW();
 
-    // 4. Setup Firebase Realtime Cloud Sync (Smart Smooth Live Update)
+    // Setup Firebase Realtime Cloud Sync (Smart Smooth Live Update)
     setRemoteUpdateCallback((type) => {
       const viewPos = document.getElementById('viewPos');
       const viewAdmin = document.getElementById('viewAdmin');
@@ -652,10 +674,22 @@ export function init() {
     });
 
     initFirebaseSync();
+
+    // 5. Setup Remote Print Host Listener (Device 1 otomatis mengeksekusi print dari Device 2)
+    try {
+      printer.setupRemotePrintHostListener();
+    } catch (e) {
+      console.warn('Remote print listener init note:', e);
+    }
+
+    // 6. Selesai (100%)
+    updateLoadingProgress(100, 'Sistem kasir siap digunakan!');
+    await new Promise(r => setTimeout(r, 200));
+
   } catch (err) {
     console.warn('Init non-critical error:', err);
   } finally {
-    // 5. Dismiss Splash Screen smoothly (Guaranteed)
+    // 7. Dismiss Splash Screen smoothly (Guaranteed)
     dismissSplashScreen();
   }
 
@@ -829,6 +863,7 @@ const KasirApp = {
   printReceipt: printer.printReceipt,
   printKitchenTicket: printer.printKitchenTicket,
   kickCashDrawer: printer.kickCashDrawer,
+  isLocalPrinterReady: printer.isLocalPrinterReady,
   testPrintReceipt: printer.testPrintReceipt,
   testPrintKitchenTicket: printer.testPrintKitchenTicket,
   connectBluetoothPrinter: printer.connectBluetoothPrinter,

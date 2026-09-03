@@ -16,7 +16,11 @@ import {
   deleteDoc, 
   getDocs, 
   onSnapshot, 
-  writeBatch
+  writeBatch,
+  query,
+  where,
+  limit,
+  orderBy
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 import { DEFAULT_PRODUCTS, getStorageKeys, MASTER_DEV_KEY } from './config.js';
@@ -362,6 +366,177 @@ export async function syncSaveStoreAuth(authData) {
     }, { merge: true });
   } catch (e) {
     console.error('Failed to sync store auth to cloud:', e);
+  }
+}
+
+// ================= MULTI-DEVICE CLOUD PRINT & DRAWER RELAY =================
+
+/**
+ * Mendapatkan ID unik perangkat kasir (persistent di localStorage)
+ */
+export function getDeviceId() {
+  let id = localStorage.getItem('aristotle_device_id');
+  if (!id) {
+    id = 'dev_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now().toString(36);
+    localStorage.setItem('aristotle_device_id', id);
+  }
+  return id;
+}
+
+/**
+ * Mendapatkan label nama perangkat
+ */
+export function getDeviceName() {
+  const customName = localStorage.getItem('aristotle_device_name');
+  if (customName) return customName;
+  if (window.AndroidBridge) return 'POS Android Kasir';
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  return isMobile ? 'HP Pelayan' : 'Web Kasir';
+}
+
+/**
+ * Kirim tugas cetak / buka laci ke antrean Cloud Firestore (Multi-Device Relay)
+ */
+export async function dispatchRemotePrintJob(jobData) {
+  if (!db) throw new Error('Database Firebase belum aktif.');
+  const currentStoreId = getStoreId();
+  if (!currentStoreId) throw new Error('Belum masuk toko.');
+
+  const jobId = 'job_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+  const docRef = doc(db, 'stores', currentStoreId, 'print_jobs', jobId);
+
+  const payload = {
+    id: jobId,
+    ...jobData,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+    createdBy: getDeviceId(),
+    createdByName: getDeviceName()
+  };
+
+  await setDoc(docRef, payload);
+  return jobId;
+}
+
+/**
+ * Pasang listener tugas cetak untuk host yang terhubung ke printer fisik
+ */
+export function listenToRemotePrintJobs(onJobReceived) {
+  if (!db) return () => {};
+  const currentStoreId = getStoreId();
+  if (!currentStoreId) return () => {};
+
+  const jobsCol = collection(db, 'stores', currentStoreId, 'print_jobs');
+  const q = query(jobsCol, where('status', '==', 'pending'), limit(8));
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === 'added' || change.type === 'modified') {
+        const job = change.doc.data();
+        if (job && job.status === 'pending') {
+          onJobReceived(job);
+        }
+      }
+    });
+  }, (err) => {
+    console.warn('listenToRemotePrintJobs error:', err);
+  });
+
+  return unsubscribe;
+}
+
+/**
+ * Update status tugas cetak di Cloud (processing / completed / failed)
+ */
+export async function updateRemotePrintJobStatus(jobId, status, extra = {}) {
+  if (!db) return;
+  const currentStoreId = getStoreId();
+  if (!currentStoreId) return;
+
+  try {
+    const docRef = doc(db, 'stores', currentStoreId, 'print_jobs', jobId);
+    await setDoc(docRef, {
+      status,
+      completedBy: getDeviceId(),
+      completedByName: getDeviceName(),
+      updatedAt: new Date().toISOString(),
+      ...extra
+    }, { merge: true });
+
+    // Auto cleanup berkala untuk menjaga database Firestore tetap ringan
+    if (status === 'completed' && Math.random() < 0.25) {
+      cleanupOldPrintJobs(currentStoreId).catch(() => {});
+    }
+  } catch (e) {
+    console.warn('updateRemotePrintJobStatus error:', e);
+  }
+}
+
+/**
+ * Menunggu konfirmasi bahwa tugas cetak telah diselesaikan oleh printer host
+ */
+export function waitForRemotePrintJob(jobId, timeoutMs = 12000) {
+  return new Promise((resolve, reject) => {
+    if (!db) return reject(new Error('Koneksi Cloud Firebase belum terhubung.'));
+    const currentStoreId = getStoreId();
+    if (!currentStoreId) return reject(new Error('Belum masuk toko.'));
+
+    const docRef = doc(db, 'stores', currentStoreId, 'print_jobs', jobId);
+    let timer = null;
+
+    const unsub = onSnapshot(docRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.status === 'completed') {
+          clearTimeout(timer);
+          unsub();
+          resolve(data);
+        } else if (data.status === 'failed') {
+          clearTimeout(timer);
+          unsub();
+          reject(new Error(data.error || 'Gagal dicetak di printer kasir utama.'));
+        }
+      }
+    }, (err) => {
+      clearTimeout(timer);
+      unsub();
+      reject(err);
+    });
+
+    timer = setTimeout(() => {
+      unsub();
+      reject(new Error('Waktu tunggu habis. Pastikan perangkat kasir utama (Device 1) yang terhubung ke printer dalam kondisi aktif dan terhubung ke internet.'));
+    }, timeoutMs);
+  });
+}
+
+/**
+ * Bersihkan tugas cetak yang sudah selesai atau usang (> 15 menit)
+ */
+async function cleanupOldPrintJobs(storeId) {
+  if (!db || !storeId) return;
+  try {
+    const jobsCol = collection(db, 'stores', storeId, 'print_jobs');
+    const snap = await getDocs(jobsCol);
+    const now = Date.now();
+    const batch = writeBatch(db);
+    let count = 0;
+
+    snap.forEach((d) => {
+      const data = d.data();
+      const created = data.createdAt ? new Date(data.createdAt).getTime() : 0;
+      if (data.status === 'completed' || (now - created > 15 * 60 * 1000)) {
+        batch.delete(d.ref);
+        count++;
+      }
+    });
+
+    if (count > 0) {
+      await batch.commit();
+      console.log(`Pembersihan: ${count} tugas cetak lama dihapus.`);
+    }
+  } catch (err) {
+    console.warn('cleanupOldPrintJobs note:', err);
   }
 }
 

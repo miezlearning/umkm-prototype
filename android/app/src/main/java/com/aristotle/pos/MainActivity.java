@@ -457,6 +457,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @JavascriptInterface
+        public boolean isPrinterReady() {
+            synchronized (socketLock) {
+                return activeSocket != null && activeSocket.isConnected() && activeOutputStream != null;
+            }
+        }
+
+        @JavascriptInterface
         public boolean printBluetooth(String base64Data) {
             if (base64Data == null || base64Data.isEmpty()) return false;
             byte[] bytes = Base64.decode(base64Data, Base64.DEFAULT);
