@@ -381,67 +381,67 @@ export function updateMetricsAndList() {
       const initial = (store.name || store.id || 'T').charAt(0).toUpperCase();
 
       return `
-        <div class="bg-white rounded-2xl border ${isCurrent ? 'border-stone-900' : 'border-stone-200'} p-3.5 sm:p-4 flex flex-col gap-3">
+        <div class="bg-white rounded-2xl border ${isCurrent ? 'border-stone-900 ring-1 ring-stone-900/10 shadow-sm' : 'border-stone-200 shadow-xs'} p-3.5 sm:p-4 flex flex-col gap-3 transition">
           
           <div class="flex items-start justify-between gap-2">
             <div class="flex items-center gap-2.5 min-w-0 flex-1">
-              <div class="w-10 h-10 rounded-xl ${isCurrent ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-700'} flex items-center justify-center font-extrabold text-sm shrink-0">
+              <div class="w-10 h-10 rounded-xl ${isCurrent ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-800'} flex items-center justify-center font-black text-sm shrink-0 shadow-xs">
                 ${escapeHtml(initial)}
               </div>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5">
-                  <h4 class="font-bold text-stone-900 text-sm truncate">${escapeHtml(store.name || store.id)}</h4>
+                  <h4 class="font-extrabold text-stone-900 text-sm truncate">${escapeHtml(store.name || store.id)}</h4>
                   ${isCurrent ? '<span class="px-1.5 py-0.5 rounded bg-stone-900 text-white text-[10px] font-bold shrink-0">Aktif</span>' : ''}
                 </div>
-                <p class="text-[11px] text-stone-500 truncate mt-0.5"><span class="font-mono">${escapeHtml(store.id)}</span> • ${escapeHtml(store.ownerName || 'Owner')}</p>
+                <p class="text-[11px] text-stone-500 truncate mt-0.5"><span class="font-mono text-stone-600">${escapeHtml(store.id)}</span> • ${escapeHtml(store.ownerName || 'Owner')}</p>
               </div>
             </div>
             <button type="button" onclick="window.KasirApp.openSuperAdminChangePin('${escapeHtml(store.id)}', '${escapeHtml(store.name || store.id)}', '${escapeHtml(store.pin || '123456')}')"
-              class="px-2 py-1 rounded-lg bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 text-xs flex items-center gap-1 shrink-0 transition"
-              title="Ubah PIN">
+              class="h-7 px-2 rounded-lg bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 text-xs flex items-center gap-1 shrink-0 transition active:scale-95"
+              title="Ubah PIN (6 Digit)">
               <span class="material-symbols-rounded text-sm text-stone-400">key</span>
               <span class="font-mono font-bold">${escapeHtml(store.pin || '123456')}</span>
             </button>
           </div>
 
-          <div class="grid grid-cols-3 bg-stone-50 rounded-xl border border-stone-100 text-center divide-x divide-stone-200/70">
-            <div class="py-2.5 px-1">
-              <p class="text-[10px] font-medium text-stone-500">Omzet</p>
-              <p class="font-bold text-stone-900 text-[13px] tabular-nums mt-0.5 truncate">${formatRp(store.todayRevenue || 0)}</p>
+          <div class="grid grid-cols-3 bg-stone-50/80 rounded-xl border border-stone-200/60 text-center divide-x divide-stone-200/70">
+            <div class="py-2 px-1">
+              <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Omzet</p>
+              <p class="font-black text-stone-900 text-xs sm:text-[13px] tabular-nums mt-0.5 truncate">${formatRp(store.todayRevenue || 0)}</p>
             </div>
-            <div class="py-2.5 px-1">
-              <p class="text-[10px] font-medium text-stone-500">Struk</p>
-              <p class="font-bold text-stone-900 text-[13px] tabular-nums mt-0.5">${store.todayTxCount || 0}</p>
+            <div class="py-2 px-1">
+              <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Struk</p>
+              <p class="font-black text-stone-900 text-xs sm:text-[13px] tabular-nums mt-0.5">${store.todayTxCount || 0}</p>
             </div>
-            <div class="py-2.5 px-1">
-              <p class="text-[10px] font-medium text-stone-500">Menu</p>
-              <p class="font-bold text-stone-900 text-[13px] tabular-nums mt-0.5">${store.productCount || 0}</p>
+            <div class="py-2 px-1">
+              <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Menu</p>
+              <p class="font-black text-stone-900 text-xs sm:text-[13px] tabular-nums mt-0.5">${store.productCount || 0}</p>
             </div>
           </div>
 
-          <div class="flex items-center gap-1.5 pt-1 border-t border-stone-100">
+          <div class="flex items-center gap-1.5 pt-1.5 border-t border-stone-100">
             ${store.phone ? `
               <a href="${waLink}" target="_blank"
-                class="h-8 px-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-medium flex items-center gap-1 transition"
-                title="Hubungi WhatsApp">
-                <span class="material-symbols-rounded text-sm text-stone-400">chat</span>
+                class="h-8 w-8 sm:w-auto sm:px-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-medium flex items-center justify-center gap-1 transition active:scale-95 shrink-0"
+                title="Hubungi WhatsApp (${escapeHtml(store.phone)})">
+                <span class="material-symbols-rounded text-sm text-emerald-600">chat</span>
                 <span class="font-mono text-[11px] hidden sm:inline truncate max-w-[90px]">${escapeHtml(store.phone)}</span>
               </a>
             ` : ''}
             <button type="button" onclick="window.KasirApp.openSuperAdminEditStoreModal('${escapeHtml(store.id)}')"
-              class="h-8 px-2.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-bold flex items-center gap-1 transition"
+              class="h-8 px-2.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-bold flex items-center gap-1 transition active:scale-95"
               title="Edit Profil Toko">
               <span class="material-symbols-rounded text-sm text-stone-500">edit</span>
               <span>Edit</span>
             </button>
             <button type="button" onclick="window.KasirApp.openSuperAdminDeleteStoreModal('${escapeHtml(store.id)}')"
-              class="h-8 w-8 rounded-lg border border-stone-200 hover:bg-red-50 hover:border-red-200 text-stone-400 hover:text-red-600 text-xs flex items-center justify-center transition"
+              class="h-8 w-8 rounded-lg border border-stone-200 hover:bg-red-50 hover:border-red-200 text-stone-400 hover:text-red-600 text-xs flex items-center justify-center transition active:scale-95 shrink-0"
               title="Hapus Toko">
               <span class="material-symbols-rounded text-sm">delete</span>
             </button>
-            <div class="flex-1"></div>
+            <div class="flex-1 min-w-0"></div>
             <button type="button" onclick="window.KasirApp.impersonateStore('${escapeHtml(store.id)}')"
-              class="h-8 px-3 rounded-lg ${isCurrent ? 'bg-stone-100 text-stone-500 font-medium' : 'bg-stone-900 hover:bg-stone-800 text-white font-bold'} text-xs flex items-center gap-1 transition active:scale-95 shrink-0">
+              class="h-8 px-3 rounded-lg ${isCurrent ? 'bg-stone-100 text-stone-500 font-medium' : 'bg-stone-900 hover:bg-stone-800 text-white font-bold shadow-xs'} text-xs flex items-center gap-1 transition active:scale-95 shrink-0">
               <span class="material-symbols-rounded text-sm">${isCurrent ? 'check_circle' : 'login'}</span>
               <span>${isCurrent ? 'Dibuka' : 'Buka'}</span>
             </button>

@@ -1,11 +1,12 @@
-# Aristotle POS v1.2.19 Release Notes
+# Aristotle POS v1.2.20 Release Notes
 
 **Tanggal Rilis:** 2026-09-04
 
 ### Catatan Pembaruan:
-- Redesign total tata letak & metrik portal Super Admin standar eksekutif SaaS
-- Migrasi standar PIN keamanan toko ke 6 digit (123456) dengan kompatibilitas mundur
-- Fitur CRUD lengkap mitra UMKM (Tambah, Pantau, Edit Profil, Hapus Toko dengan Safety Guard)
+- Optimalisasi responsivitas mobile Xiaomi 14T pada Super Admin
+- Redesign 2-baris header anti-overlap: navigasi sistem terpisah dari pencarian & tombol tambah mitra
+- Penyusunan ulang kartu ringkasan KPI 2x2 lebih ringkas dan hemat ruang vertikal
+- Penyeragaman tombol aksi profil mitra (WhatsApp, Edit, Hapus, Buka Kasir)
 
 ---
 *Pembaruan ini dapat diunduh dan dipasang langsung dari dalam aplikasi (In-App Auto-Updater).*

@@ -1,11 +1,12 @@
 {
-  "versionCode": 67,
-  "versionName": "1.2.19",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.19/Aristotle-POS.apk",
+  "versionCode": 68,
+  "versionName": "1.2.20",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.20/Aristotle-POS.apk",
   "changelog": [
-    "Redesign total tata letak & metrik portal Super Admin standar eksekutif SaaS",
-    "Migrasi standar PIN keamanan toko ke 6 digit (123456) dengan kompatibilitas mundur",
-    "Fitur CRUD lengkap mitra UMKM (Tambah, Pantau, Edit Profil, Hapus Toko dengan Safety Guard)"
+    "Optimalisasi responsivitas mobile Xiaomi 14T pada Super Admin",
+    "Redesign 2-baris header anti-overlap: navigasi sistem terpisah dari pencarian & tombol tambah mitra",
+    "Penyusunan ulang kartu ringkasan KPI 2x2 lebih ringkas dan hemat ruang vertikal",
+    "Penyeragaman tombol aksi profil mitra (WhatsApp, Edit, Hapus, Buka Kasir)"
   ],
   "releaseDate": "2026-09-04"
 }
