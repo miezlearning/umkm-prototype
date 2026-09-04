@@ -4,6 +4,17 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.2.15] - 2026-09-04
+
+### 🧾 Kustomisasi Tampilan Struk & Optimasi Tata Letak Thermal
+- **Pengaturan Spasi Antar Section:** Ditambahkan kontrol pilihan spasi vertikal struk (Sangat Rapat / ESC 3 24 untuk hemat kertas, Standar Seimbang / ESC 2, dan Longgar / ESC 3 34) yang tersinkronisasi di direct ESC/POS, layout browser, dan preview.
+- **Penghematan Karakter (`pcs` -> `x`):** Mengganti format kuantitas item dari `2 pcs` menjadi `2x` untuk menghemat karakter sehingga teks menu tidak cepat terpotong / turun baris pada printer thermal 58mm (32 kolom) maupun 80mm.
+- **Pilihan Gaya Garis Pembatas:** Mendukung kustomisasi pembatas struk dengan model putus-putus (`-`), titik-titik (`.`), ganda (`=`), bintang (`*`), atau garis bawah solid (`_`).
+- **Pilihan Format Rincian Harga:** Pengguna dapat memilih mode ringkas 1 baris (`compact`) atau mode rincian 2 baris (`detailed`) yang menampilkan harga satuan `@ ...` per porsi.
+- **Live Preview Interaktif:** Pratinjau struk di jendela pengaturan otomatis bereaksi secara instan ketika konfigurasi spasi atau gaya diubah.
+
+---
+
 ## [v1.2.14] - 2026-09-04
 
 ### 🖨️ Kestabilan Sinkronisasi Wi-Fi & Buka Laci Kasir (Cash Drawer) Otomatis

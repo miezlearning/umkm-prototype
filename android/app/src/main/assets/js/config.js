@@ -40,7 +40,10 @@ export const DEFAULT_PRINTER_CONFIG = {
   footerNote: 'Semoga Sehat & Sukses Selalu.',
   footerHelp: 'Powered by Aristotle POS',
   showQueueBottom: true, // Tampilkan NO ANTRIAN besar di bagian paling bawah
-  feedLines: 1
+  feedLines: 1,
+  sectionSpacing: 1, // Jarak antar bagian (0 = Rapat, 1 = Normal, 2 = Longgar)
+  dividerStyle: 'dashed', // 'dashed', 'dotted', 'double', 'solid', 'star'
+  itemPriceStyle: 'compact' // 'compact' atau 'detailed'
 };
 
 /**

@@ -111,10 +111,33 @@ function cleanAscii(text) {
     .trim();
 }
 
+/**
+ * Helper untuk membuat garis pembatas berdasarkan style dan lebar kertas
+ */
+export function getDividerString(style, width = 32) {
+  const w = width || 32;
+  switch (style) {
+    case 'dotted':
+      return '.'.repeat(w);
+    case 'double':
+      return '='.repeat(w);
+    case 'star':
+      return '*'.repeat(w);
+    case 'solid':
+      return '_'.repeat(w);
+    case 'dashed':
+    default:
+      return '-'.repeat(w);
+  }
+}
+
 export function generateReceiptPlainText(tx, customConfig = null) {
   const cfg = customConfig || state.printerConfig || {};
   const width = cfg.paperWidth === '80mm' ? 48 : 32;
-  const divider = '-'.repeat(width);
+  const sectionSpacing = cfg.sectionSpacing !== undefined ? Number(cfg.sectionSpacing) : 1;
+  const dividerStyle = cfg.dividerStyle || 'dashed';
+  const itemStyle = cfg.itemPriceStyle || 'compact';
+  const divider = getDividerString(dividerStyle, width);
 
   const padCenter = (text) => {
     const str = cleanAscii(text);
@@ -153,24 +176,36 @@ export function generateReceiptPlainText(tx, customConfig = null) {
   if (address) lines.push(padCenter(address));
   if (phone) lines.push(padCenter(phone));
   lines.push(padCenter(`No. Kwitansi   #${tx.id ? tx.id.replace('TX-', '') : '001'}`));
-  lines.push('');
+  if (sectionSpacing > 0) {
+    for (let s = 0; s < sectionSpacing; s++) lines.push('');
+  }
 
   // 2. Waktu Pesan & Kasir
   lines.push(padBetween('Waktu Pesan', txDate));
   lines.push(padBetween('Kasir', cleanAscii(cashier)));
   lines.push(divider);
 
-  // 3. Daftar Item (1 pcs Nama Item   Harga)
+  // 3. Daftar Item (Contoh: 2x Kopi Susu   30.000)
   if (Array.isArray(tx.items)) {
     tx.items.forEach(item => {
       const priceStr = formatRp(item.subtotal || (item.qty * item.price)).replace('Rp ', '');
       const itemName = cleanAscii(item.name || 'Item');
-      const prefix = `${item.qty} pcs `;
-      if ((prefix.length + itemName.length + priceStr.length + 1) <= width) {
-        lines.push(padBetween(`${prefix}${itemName}`, priceStr));
+      const prefix = `${item.qty}x `;
+
+      if (itemStyle === 'detailed' && item.qty > 1) {
+        lines.push(`${prefix}${itemName}`);
+        const unitPriceStr = `@ ${formatRp(item.price).replace('Rp ', '')}`;
+        lines.push(padBetween(`   ${unitPriceStr}`, priceStr));
       } else {
-        lines.push(cleanAscii(`${prefix}${itemName}`));
-        lines.push(' '.repeat(Math.max(0, width - priceStr.length)) + priceStr);
+        if ((prefix.length + itemName.length + priceStr.length + 1) <= width) {
+          lines.push(padBetween(`${prefix}${itemName}`, priceStr));
+        } else {
+          lines.push(cleanAscii(`${prefix}${itemName}`));
+          lines.push(' '.repeat(Math.max(0, width - priceStr.length)) + priceStr);
+        }
+      }
+      if (item.note) {
+        lines.push(`  * ${cleanAscii(item.note)}`);
       }
     });
   }
@@ -185,7 +220,9 @@ export function generateReceiptPlainText(tx, customConfig = null) {
     lines.push(padBetween(discLabel, `-${formatRp(tx.discount.amount)}`));
   }
   lines.push(padBetween('TOTAL', formatRp(tx.total)));
-  lines.push('');
+  if (sectionSpacing > 0) {
+    for (let s = 0; s < sectionSpacing; s++) lines.push('');
+  }
 
   if (method === 'TUNAI') {
     lines.push(padBetween('Cash', formatRp(tx.cashGiven || tx.total)));
@@ -198,6 +235,9 @@ export function generateReceiptPlainText(tx, customConfig = null) {
   }
 
   // 5. Info Sosmed & Ucapan Terima Kasih (Center)
+  if (sectionSpacing > 0) {
+    for (let s = 0; s < sectionSpacing; s++) lines.push('');
+  }
   if (cfg.footerSocial) {
     lines.push(padCenter(cfg.footerSocial));
   }
@@ -290,7 +330,21 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
   const txDate = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}.${pad(d.getMinutes())}.${pad(d.getSeconds())}`;
   const rawOrder = String(tx.orderName || '01').replace(/^NO ANTRIAN:?\s*/i, '');
   const method = tx.method || 'TUNAI';
-  const divider = '--------------------------------\n';
+
+  const width = cfg.paperWidth === '80mm' ? 48 : 32;
+  const divider = getDividerString(cfg.dividerStyle || 'dashed', width) + '\n';
+  const sectionSpacing = cfg.sectionSpacing !== undefined ? Number(cfg.sectionSpacing) : 1;
+  const gap = '\n'.repeat(sectionSpacing);
+  const itemStyle = cfg.itemPriceStyle || 'compact';
+
+  // Sesuaikan kerapatan baris (Line Pitch) native printer ESC/POS
+  if (sectionSpacing === 0) {
+    addBytes(0x1B, 0x33, 24); // ESC 3 24: Kerapatan sangat rapat (hemat kertas)
+  } else if (sectionSpacing === 2) {
+    addBytes(0x1B, 0x33, 34); // ESC 3 34: Kerapatan longgar & lapang
+  } else {
+    addBytes(0x1B, 0x32);     // ESC 2: Standar 1/6 inch
+  }
 
   // 4. Header Toko (Align Center)
   addBytes(0x1B, 0x61, 0x01); // Align Center
@@ -301,25 +355,33 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
   if (tagline) addText(tagline + '\n');
   if (address) addText(address + '\n');
   if (phone) addText(phone + '\n');
-  addText(`No. Kwitansi   #${tx.id ? tx.id.replace('TX-', '') : '001'}\n\n`);
+  addText(`No. Kwitansi   #${tx.id ? tx.id.replace('TX-', '') : '001'}\n`);
+  if (sectionSpacing > 0) addText(gap);
 
   // 5. Waktu & Kasir (Align Left)
   addBytes(0x1B, 0x61, 0x00); // Align Left
-  addText(padBetween('Waktu Pesan', txDate) + '\n');
-  addText(padBetween('Kasir', cashier) + '\n');
+  addText(padBetween('Waktu Pesan', txDate, width) + '\n');
+  addText(padBetween('Kasir', cashier, width) + '\n');
   addText(divider);
 
-  // 6. Daftar Item
+  // 6. Daftar Item (Contoh: 2x Kopi Susu   30.000)
   if (Array.isArray(tx.items)) {
     tx.items.forEach(item => {
       const priceStr = formatRp(item.subtotal || (item.qty * item.price)).replace('Rp ', '');
       const itemName = cleanAscii(item.name || 'Item');
-      const prefix = `${item.qty} pcs `;
-      if ((prefix.length + itemName.length + priceStr.length + 1) <= 32) {
-        addText(padBetween(`${prefix}${itemName}`, priceStr, 32) + '\n');
-      } else {
+      const prefix = `${item.qty}x `;
+
+      if (itemStyle === 'detailed' && item.qty > 1) {
         addText(`${prefix}${itemName}\n`);
-        addText(' '.repeat(Math.max(0, 32 - priceStr.length)) + priceStr + '\n');
+        const unitPriceStr = `@ ${formatRp(item.price).replace('Rp ', '')}`;
+        addText(padBetween(`   ${unitPriceStr}`, priceStr, width) + '\n');
+      } else {
+        if ((prefix.length + itemName.length + priceStr.length + 1) <= width) {
+          addText(padBetween(`${prefix}${itemName}`, priceStr, width) + '\n');
+        } else {
+          addText(`${prefix}${itemName}\n`);
+          addText(' '.repeat(Math.max(0, width - priceStr.length)) + priceStr + '\n');
+        }
       }
       if (item.note) {
         addText(`  * ${cleanAscii(item.note)}\n`);
@@ -331,28 +393,29 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
 
   // 7. Subtotal & TOTAL (Bold)
   const rawSubtotal = tx.subtotal || tx.total;
-  addText(padBetween('Subtotal', formatRp(rawSubtotal)) + '\n');
+  addText(padBetween('Subtotal', formatRp(rawSubtotal), width) + '\n');
   if (tx.discount && tx.discount.amount > 0) {
     const discLabel = tx.discount.type === 'percent' ? `Diskon (${tx.discount.value}%)` : 'Diskon';
-    addText(padBetween(discLabel, `-${formatRp(tx.discount.amount)}`) + '\n');
+    addText(padBetween(discLabel, `-${formatRp(tx.discount.amount)}`, width) + '\n');
   }
   addBytes(0x1B, 0x45, 0x01); // Bold ON
-  addText(padBetween('TOTAL', formatRp(tx.total)) + '\n');
+  addText(padBetween('TOTAL', formatRp(tx.total), width) + '\n');
   addBytes(0x1B, 0x45, 0x00); // Bold OFF
-  addText('\n');
+  if (sectionSpacing > 0) addText(gap);
 
   // 8. Cash / QRIS & Kembalian
   if (method === 'TUNAI') {
-    addText(padBetween('Cash', formatRp(tx.cashGiven || tx.total)) + '\n');
+    addText(padBetween('Cash', formatRp(tx.cashGiven || tx.total), width) + '\n');
     const change = (tx.cashGiven || tx.total) - tx.total;
     if (change > 0) {
-      addText(padBetween('Kembalian', formatRp(change)) + '\n');
+      addText(padBetween('Kembalian', formatRp(change), width) + '\n');
     }
   } else {
-    addText(padBetween('Metode', 'QRIS (LUNAS)') + '\n');
+    addText(padBetween('Metode', 'QRIS (LUNAS)', width) + '\n');
   }
 
   // 9. Info Sosmed & Ucapan Terima Kasih (Align Center)
+  if (sectionSpacing > 0) addText(gap);
   addBytes(0x1B, 0x61, 0x01); // Align Center
   if (social) {
     addText(social + '\n');
@@ -1718,16 +1781,35 @@ export function renderPrintableReceiptArea(tx, cfg = null) {
   if (orderTimeEl) orderTimeEl.innerText = txDate;
   if (cashierEl) cashierEl.innerText = config.cashierName || state.auth?.ownerName || 'Kasir';
 
+  const itemStyle = config.itemPriceStyle || 'compact';
+  const sectionSpacing = config.sectionSpacing !== undefined ? Number(config.sectionSpacing) : 1;
+
+  const printArea = document.getElementById('printArea');
+  if (printArea) {
+    printArea.classList.remove('gap-1', 'gap-1.5', 'gap-2', 'gap-3', 'leading-tight', 'leading-normal', 'leading-relaxed');
+    if (sectionSpacing === 0) {
+      printArea.classList.add('gap-1', 'leading-tight');
+    } else if (sectionSpacing === 2) {
+      printArea.classList.add('gap-3', 'leading-relaxed');
+    } else {
+      printArea.classList.add('gap-1.5', 'leading-normal');
+    }
+  }
+
   if (itemListEl && Array.isArray(tx.items)) {
     itemListEl.innerHTML = tx.items.map(item => {
       const priceStr = formatRp(item.subtotal || (item.qty * item.price)).replace('Rp ', '');
+      const unitPriceStr = formatRp(item.price).replace('Rp ', '');
+      const hasDetail = itemStyle === 'detailed' && item.qty > 1;
+
       return `
         <div class="py-0.5 flex flex-col text-[10.5px] leading-tight">
           <div class="flex justify-between items-start gap-1">
-            <span class="font-bold text-stone-900 break-words flex-1 text-left">${item.qty} pcs ${escapeHtml(item.name)}</span>
+            <span class="font-bold text-stone-900 break-words flex-1 text-left">${item.qty}x ${escapeHtml(item.name)}</span>
             <span class="font-black text-stone-900 whitespace-nowrap text-right shrink-0">${priceStr}</span>
           </div>
-          ${item.note ? `<span class="text-[9px] text-stone-600 italic pl-2">* ${escapeHtml(item.note)}</span>` : ''}
+          ${hasDetail ? `<div class="text-[9.5px] text-stone-500 pl-3">@ ${unitPriceStr}</div>` : ''}
+          ${item.note ? `<span class="text-[9px] text-stone-600 italic pl-3">* ${escapeHtml(item.note)}</span>` : ''}
         </div>
       `;
     }).join('');
@@ -1986,10 +2068,16 @@ export function openPrinterConfigModal() {
   const footerNoteInput = document.getElementById('printerFooterNoteInput');
   const showQueueBottomCheckbox = document.getElementById('printerShowQueueBottom');
   const feedLinesSelect = document.getElementById('printerFeedLinesSelect');
+  const sectionSpacingSelect = document.getElementById('printerSectionSpacingSelect');
+  const dividerStyleSelect = document.getElementById('printerDividerStyleSelect');
+  const itemPriceStyleSelect = document.getElementById('printerItemPriceStyleSelect');
 
   if (paperWidthSelect) paperWidthSelect.value = cfg.paperWidth || '58mm';
   if (printMethodSelect) printMethodSelect.value = cfg.printMethod || 'browser';
   if (feedLinesSelect) feedLinesSelect.value = String(cfg.feedLines !== undefined ? cfg.feedLines : 1);
+  if (sectionSpacingSelect) sectionSpacingSelect.value = String(cfg.sectionSpacing !== undefined ? cfg.sectionSpacing : 1);
+  if (dividerStyleSelect) dividerStyleSelect.value = cfg.dividerStyle || 'dashed';
+  if (itemPriceStyleSelect) itemPriceStyleSelect.value = cfg.itemPriceStyle || 'compact';
   if (autoPrintCheckbox) autoPrintCheckbox.checked = !!cfg.autoPrint;
   if (autoPrintKitchenCheckbox) autoPrintKitchenCheckbox.checked = !!cfg.autoPrintKitchen;
   if (autoKickCheckbox) autoKickCheckbox.checked = cfg.autoKickDrawer !== false;
@@ -2109,15 +2197,38 @@ export function updateLiveReceiptPreview() {
     cashierEl.innerText = cfg.cashierName || state.auth?.ownerName || 'Kasir';
   }
 
+  const modalSectionSpacing = document.getElementById('printerSectionSpacingSelect')?.value;
+  const sectionSpacing = modalSectionSpacing !== undefined ? Number(modalSectionSpacing) : (cfg.sectionSpacing !== undefined ? Number(cfg.sectionSpacing) : 1);
+  const modalItemStyle = document.getElementById('printerItemPriceStyleSelect')?.value;
+  const itemStyle = modalItemStyle || cfg.itemPriceStyle || 'compact';
+
+  const livePaper = document.getElementById('liveReceiptPaper');
+  if (livePaper) {
+    livePaper.classList.remove('gap-1', 'gap-1.5', 'gap-2', 'gap-3', 'leading-tight', 'leading-normal', 'leading-relaxed');
+    if (sectionSpacing === 0) {
+      livePaper.classList.add('gap-1', 'leading-tight');
+    } else if (sectionSpacing === 2) {
+      livePaper.classList.add('gap-3', 'leading-relaxed');
+    } else {
+      livePaper.classList.add('gap-1.5', 'leading-normal');
+    }
+  }
+
   // 4. Sample Item List (Mirip 100% #printArea)
   const itemListEl = document.getElementById('prevReceiptItemList');
   if (itemListEl && Array.isArray(sampleTx.items)) {
     itemListEl.innerHTML = sampleTx.items.map(it => {
       const priceStr = formatRp(it.subtotal || (it.qty * it.price)).replace('Rp ', '');
+      const unitPriceStr = formatRp(it.price).replace('Rp ', '');
+      const hasDetail = itemStyle === 'detailed' && it.qty > 1;
+
       return `
-        <div class="py-0.5 flex justify-between items-start text-[10.5px] leading-tight gap-1">
-          <span class="font-bold text-stone-900 break-words flex-1 text-left">${it.qty} pcs ${it.name}</span>
-          <span class="font-black text-stone-900 whitespace-nowrap text-right shrink-0">${priceStr}</span>
+        <div class="py-0.5 flex flex-col text-[10.5px] leading-tight">
+          <div class="flex justify-between items-start gap-1">
+            <span class="font-bold text-stone-900 break-words flex-1 text-left">${it.qty}x ${it.name}</span>
+            <span class="font-black text-stone-900 whitespace-nowrap text-right shrink-0">${priceStr}</span>
+          </div>
+          ${hasDetail ? `<div class="text-[9.5px] text-stone-500 pl-3">@ ${unitPriceStr}</div>` : ''}
         </div>
       `;
     }).join('');
@@ -2175,6 +2286,9 @@ export function savePrinterSettings(e) {
   const footerNote = document.getElementById('printerFooterNoteInput')?.value.trim() || 'Terimakasih telah berkunjung.';
   const showQueueBottom = document.getElementById('printerShowQueueBottom')?.checked !== false;
   const feedLines = Number(document.getElementById('printerFeedLinesSelect')?.value) || 1;
+  const sectionSpacing = Number(document.getElementById('printerSectionSpacingSelect')?.value ?? 1);
+  const dividerStyle = document.getElementById('printerDividerStyleSelect')?.value || 'dashed';
+  const itemPriceStyle = document.getElementById('printerItemPriceStyleSelect')?.value || 'compact';
 
   const newConfig = {
     paperWidth,
@@ -2194,6 +2308,9 @@ export function savePrinterSettings(e) {
     footerHelp: 'Powered by Aristotle POS',
     showQueueBottom,
     feedLines,
+    sectionSpacing,
+    dividerStyle,
+    itemPriceStyle,
     localHostIp: document.getElementById('printerLocalHostIp')?.value.trim() || ''
   };
 

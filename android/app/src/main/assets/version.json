@@ -1,10 +1,12 @@
 {
-  "versionCode": 61,
-  "versionName": "1.2.14",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.14/Aristotle-POS.apk",
+  "versionCode": 62,
+  "versionName": "1.2.15",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.15/Aristotle-POS.apk",
   "changelog": [
-    "Perbaikan deteksi IP Wi-Fi lokal & kestabilan sinkronisasi pairing multi-perangkat",
-    "Perbaikan pembukaan otomatis laci kasir (Cash Drawer) pada tes struk, tes dapur, dan transaksi tunai"
+    "Kustomisasi spasi antar section pada struk thermal (sangat rapat, standar, longgar)",
+    "Penggantian satuan pcs menjadi x untuk menghemat karakter pada kertas 58mm",
+    "Pilihan variasi garis pembatas struk (putus-putus, titik, ganda, bintang, solid)",
+    "Format rincian harga satuan item (ringkas 1 baris atau rinci 2 baris)"
   ],
   "releaseDate": "2026-09-04"
 }
