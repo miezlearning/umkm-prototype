@@ -4,6 +4,18 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.2.16] - 2026-09-04
+
+### 📱 Penutupan Backdrop Modal & Navigasi Tombol Back Android Sesuai Standar Industri
+- **Penutupan Modal Cepat via Area Blur / Backdrop:** Pengguna kini dapat menutup modal/popup apapun (pembayaran, catatan item, kupon diskon, pengaturan printer, laporan, edit produk, drawer keranjang, dll) dengan menyentuh atau mengklik area blur/gelap di luar kotak dialog, tidak lagi terbatas hanya pada tombol "X".
+- **Intersepsi Tombol Back Android:** Mengganti perilaku bawaan tombol Back fisik/gesture di Android (`MainActivity.java`). Saat tombol Back ditekan:
+  1. Jika ada modal / popup / drawer yang sedang aktif: modal teratas akan ditutup secara halus tanpa menutup aplikasi.
+  2. Jika sedang di sub-menu (Kelola Menu / Laporan Keuangan): aplikasi akan mengembalikan pengguna ke layar utama Kasir.
+  3. Jika sudah berada di Kasir utama: sistem menampilkan pesan *"Tekan sekali lagi untuk keluar dari aplikasi"* (Double-back debounce 2 detik) agar kasir tidak keluar tanpa sengaja saat melayani pelanggan.
+- **Penyelarasan Navigasi Browser (PWA/Chrome):** Menambahkan proteksi `popstate` agar gestur navigasi kembali di browser Google Chrome mobile tidak menyebabkan halaman web berpindah atau tertutup tiba-tiba.
+
+---
+
 ## [v1.2.15] - 2026-09-04
 
 ### 🧾 Kustomisasi Tampilan Struk & Optimasi Tata Letak Thermal

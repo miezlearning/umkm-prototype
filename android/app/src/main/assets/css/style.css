@@ -364,3 +364,18 @@ html.fonts-loading .material-symbols-rounded {
   animation: tourBouncePointer 1.4s infinite ease-in-out;
 }
 
+/* ==================== MODAL BACKDROP INTERACTIVITY & UX ==================== */
+/* Menjadikan backdrop interaktif dengan cursor pointer saat di-hover di luar kotak dialog */
+div[id$="Modal"]:not(.hidden),
+#mobileCartDrawer:not(.hidden) {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Pastikan kartu dialog dan konten di dalam modal tetap menggunakan kursor normal (default) */
+div[id$="Modal"]:not(.hidden) > div,
+#mobileCartDrawer:not(.hidden) > div {
+  cursor: default;
+}
+
+

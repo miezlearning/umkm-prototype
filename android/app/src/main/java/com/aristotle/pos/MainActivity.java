@@ -464,13 +464,44 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private long lastBackPressTime = 0;
+    private Toast exitToast = null;
+
     @Override
     public void onBackPressed() {
-        if (webView.canGoBack()) {
-            webView.goBack();
-        } else {
-            super.onBackPressed();
+        if (webView != null) {
+            // Tanyakan ke frontend JavaScript apakah ada modal terbuka atau sub-view yang perlu dikembalikan
+            webView.evaluateJavascript(
+                "(function() { return (typeof window.handleAppBackPress === 'function') ? window.handleAppBackPress() : false; })();",
+                value -> {
+                    boolean handledByJs = "true".equalsIgnoreCase(value) || "\"true\"".equalsIgnoreCase(value);
+                    if (!handledByJs) {
+                        runOnUiThread(() -> {
+                            if (webView.canGoBack()) {
+                                webView.goBack();
+                                return;
+                            }
+                            long currentTime = System.currentTimeMillis();
+                            if (currentTime - lastBackPressTime < 2000) {
+                                if (exitToast != null) {
+                                    exitToast.cancel();
+                                }
+                                MainActivity.super.onBackPressed();
+                            } else {
+                                lastBackPressTime = currentTime;
+                                if (exitToast != null) {
+                                    exitToast.cancel();
+                                }
+                                exitToast = Toast.makeText(MainActivity.this, "Tekan sekali lagi untuk keluar dari aplikasi", Toast.LENGTH_SHORT);
+                                exitToast.show();
+                            }
+                        });
+                    }
+                }
+            );
+            return;
         }
+        super.onBackPressed();
     }
 
     /**

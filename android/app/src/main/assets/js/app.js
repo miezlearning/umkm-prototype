@@ -931,6 +931,9 @@ export async function init() {
 
   // Inisialisasi gestur Swipe Down to Refresh (Pull-to-Refresh)
   initPullToRefresh();
+
+  // Inisialisasi Dismiss Modal saat Area Blur / Backdrop Diklik & Back Button Handler
+  initModalBackdropDismiss();
 }
 
 /**
@@ -1101,6 +1104,155 @@ export function closeReleaseNotesModal() {
   playClick('pop');
   const modal = document.getElementById('releaseNotesModal');
   if (modal) modal.classList.add('hidden');
+}
+
+// ================= MODAL BACKDROP DISMISS & ANDROID BACK BUTTON HANDLER =================
+
+/**
+ * Peta fungsi penutup resmi untuk masing-masing modal aplikasi
+ */
+const MODAL_CLOSE_DISPATCHER = {
+  'paymentModal': () => payment.closePaymentModal(),
+  'discountSelectionModal': () => payment.closeDiscountModal(),
+  'receiptModal': () => payment.closeReceiptModal(),
+  'itemNoteModal': () => pos.closeItemNoteModal(),
+  'renameQueueModal': () => pos.closeRenameQueueModal(),
+  'mobileCartDrawer': () => pos.toggleMobileCartDrawer(false),
+  'startShiftModal': () => shift.closeStartShiftModal(),
+  'closeShiftModal': () => shift.closeCloseShiftModal(),
+  'productModal': () => admin.closeProductModal(),
+  'bulkImportModal': () => admin.closeBulkImportModal(),
+  'qrisConfigModal': () => admin.closeQrisModal(),
+  'expenseModal': () => report.closeExpenseModal(),
+  'printerConfigModal': () => printer.closePrinterConfigModal(),
+  'bluetoothTroubleshootModal': () => printer.closeBluetoothTroubleshootModal(),
+  'hostQrPairingModal': () => printer.closeHostQrPairingModal(),
+  'qrPairingScannerModal': () => printer.closeQrPairingScannerModal(),
+  'cloudModal': () => closeCloudModal(),
+  'releaseNotesModal': () => closeReleaseNotesModal(),
+  'updateAppModal': () => updater.closeUpdateModal(),
+  'pinSecurityModal': () => closePinSecurityModal(),
+  'superAdminAuthModal': () => superadmin.closeSuperAdminAuthModal(),
+  'superAdminChangePinModal': () => superadmin.closeSuperAdminChangePinModal(),
+  'universalLoginModal': () => closeUniversalLoginModal(),
+  'customConfirmModal': () => {
+    const cancelBtn = document.getElementById('customConfirmCancelBtn');
+    if (cancelBtn) cancelBtn.click();
+    else document.getElementById('customConfirmModal')?.classList.add('hidden');
+  }
+};
+
+/**
+ * Tutup elemen modal dengan aman dan jalankan pembersihan resminya
+ */
+export function dismissModalElement(modal) {
+  if (!modal || modal.classList.contains('hidden')) return false;
+
+  // 1. Jangan tutup modal login jika belum ada toko yang aktif
+  if (modal.id === 'universalLoginModal' && !state.storeId) {
+    return false;
+  }
+
+  playClick('pop');
+
+  // 2. Jalankan fungsi penutup resmi dari dispatcher jika ada
+  if (modal.id && typeof MODAL_CLOSE_DISPATCHER[modal.id] === 'function') {
+    try {
+      MODAL_CLOSE_DISPATCHER[modal.id]();
+      return true;
+    } catch (e) {
+      console.warn('Dispatcher close error:', e);
+    }
+  }
+
+  // 3. Fallback: Cari tombol close dengan onclick
+  const closeBtn = modal.querySelector('button[onclick*="close"], button[onclick*="Close"], button[onclick*="toggleMobileCartDrawer"]');
+  if (closeBtn) {
+    closeBtn.click();
+    return true;
+  }
+
+  // 4. Fallback: Sembunyikan langsung
+  modal.classList.add('hidden');
+  return true;
+}
+
+/**
+ * Handler Tombol Back Android & Web Browser Navigation (Standar Industri UX)
+ * 1. Menutup modal paling atas jika ada modal yang sedang terbuka.
+ * 2. Mengembalikan ke tab Kasir Utama jika sedang di sub-menu (Menu / Laporan).
+ * 3. Mengembalikan false jika sudah di Kasir Utama agar Android memicu "Tekan sekali lagi untuk keluar".
+ */
+export function handleAppBackPress() {
+  // A. Periksa apakah ada modal yang sedang aktif
+  const openModals = Array.from(document.querySelectorAll('div[id$="Modal"]:not(.hidden), #mobileCartDrawer:not(.hidden)'));
+
+  if (openModals.length > 0) {
+    // Ambil modal paling atas (terakhir di render)
+    const topModal = openModals[openModals.length - 1];
+    
+    // Jangan tutup login modal jika belum ada toko yang login
+    if (topModal.id === 'universalLoginModal' && !state.storeId) {
+      return false;
+    }
+
+    return dismissModalElement(topModal);
+  }
+
+  // B. Jika tidak ada modal yang terbuka, periksa apakah berada di tab selain Kasir Utama (pos)
+  const viewPos = document.getElementById('viewPos');
+  const isPosVisible = viewPos && !viewPos.classList.contains('hidden');
+  if (!isPosVisible) {
+    switchView('pos');
+    return true;
+  }
+
+  // C. Berada di Kasir Utama tanpa modal aktif:
+  // Kembalikan false agar native Android MainActivity menampilkan toast debounce "Tekan sekali lagi untuk keluar"
+  return false;
+}
+
+/**
+ * Inisialisasi Event Listener untuk Dismiss Modal saat Area Blur / Backdrop Diklik
+ */
+function initModalBackdropDismiss() {
+  document.addEventListener('click', (e) => {
+    const target = e.target;
+    if (!target || !(target instanceof HTMLElement)) return;
+
+    // Cek jika target yang diklik adalah kontainer backdrop modal (fixed inset-0 dengan overlay gelap/blur)
+    const isBackdropContainer = target.classList.contains('fixed') && 
+                                target.classList.contains('inset-0') && 
+                                !target.classList.contains('hidden') &&
+                                (target.id.endsWith('Modal') || target.id === 'mobileCartDrawer');
+
+    if (isBackdropContainer) {
+      // Modal yang ditandai non-dismissable lewat atribut data-static-backdrop tidak dapat ditutup
+      if (target.getAttribute('data-static-backdrop') === 'true') return;
+
+      dismissModalElement(target);
+    }
+  });
+
+  // Handler Browser History popstate (Khusus PWA / Mobile Web di Chrome Android)
+  window.addEventListener('popstate', () => {
+    const handled = handleAppBackPress();
+    if (handled) {
+      // Jaga riwayat history agar tidak keluar dari halaman web
+      try {
+        window.history.pushState({ appActive: true }, '');
+      } catch (_) {}
+    }
+  });
+
+  try {
+    window.history.replaceState({ appActive: true }, '');
+  } catch (_) {}
+}
+
+// Expose handleAppBackPress ke global window seketika
+if (typeof window !== 'undefined') {
+  window.handleAppBackPress = handleAppBackPress;
 }
 
 // ================= EXPORT GLOBAL NAMESPACE FOR HTML HANDLERS =================
@@ -1309,7 +1461,11 @@ const KasirApp = {
   updateM3NavRailUI: updateM3NavRailUI,
   handleBrandLogoClick: handleBrandLogoClick,
   toggleFullscreen: toggleFullscreen,
-  initHeaderClock: initHeaderClock
+  initHeaderClock: initHeaderClock,
+
+  // Android Back & Backdrop Dismiss UX
+  handleAppBackPress: handleAppBackPress,
+  dismissModalElement: dismissModalElement
 };
 
 // Expose to window for inline onclick HTML handlers
