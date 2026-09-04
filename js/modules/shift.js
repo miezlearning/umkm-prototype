@@ -52,16 +52,21 @@ export function updateShiftHeaderUI() {
   const desktopText = document.getElementById('headerShiftText');
 
   const mobileDot = document.getElementById('mobileHeaderShiftDot');
+  const railShiftDot = document.getElementById('railShiftDot');
 
   const active = state.activeShift;
 
   if (active && active.status === 'open') {
     if (desktopBadge) {
-      desktopBadge.className = 'hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-950 text-xs font-bold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
+      desktopBadge.className = 'hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-950 text-xs font-bold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
       desktopBadge.title = `Shift Aktif: ${active.cashierName} (Mulai: ${formatDateTime(active.startTime)}). Klik untuk Tutup Shift / Laporan Z.`;
     }
     if (desktopDot) {
       desktopDot.className = 'w-2 h-2 rounded-full bg-emerald-500 shrink-0 shadow-xs animate-pulse';
+    }
+    if (railShiftDot) {
+      railShiftDot.classList.remove('hidden');
+      railShiftDot.className = 'absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white animate-pulse';
     }
     if (desktopText) {
       desktopText.innerText = `Shift: ${active.cashierName}`;
@@ -72,11 +77,14 @@ export function updateShiftHeaderUI() {
     }
   } else {
     if (desktopBadge) {
-      desktopBadge.className = 'hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-stone-100 hover:bg-stone-200/80 border border-stone-200/80 text-stone-700 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
+      desktopBadge.className = 'hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-stone-100 hover:bg-stone-200/80 border border-stone-200/80 text-stone-700 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
       desktopBadge.title = 'Shift belum dibuka. Klik untuk Mulai Shift Kasir.';
     }
     if (desktopDot) {
       desktopDot.className = 'w-2 h-2 rounded-full bg-stone-400 shrink-0';
+    }
+    if (railShiftDot) {
+      railShiftDot.classList.add('hidden');
     }
     if (desktopText) {
       desktopText.innerText = 'Buka Shift';

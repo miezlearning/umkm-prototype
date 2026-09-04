@@ -1,9 +1,9 @@
 {
-  "versionCode": 51,
-  "versionName": "1.2.4",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.4/Aristotle-POS.apk",
+  "versionCode": 52,
+  "versionName": "1.2.5",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.5/Aristotle-POS.apk",
   "changelog": [
-    "Peningkatan responsivitas tablet & mobile: Workstation POS 2-kolom di tablet, header adaptif anti-tabrakan, dan eliminasi double-header Super Admin"
+    "Implementasi Google Material Design 3 (M3) Adaptive Navigation Rail untuk Tablet & Desktop, pembersihan header, dan integrasi hardware shortcuts"
   ],
   "releaseDate": "2026-09-04"
 }

@@ -124,6 +124,42 @@ export function switchView(viewName) {
     window.history.replaceState(null, '', `${window.location.pathname}?view=superadmin`);
     superadmin.renderSuperAdminDashboard();
   }
+
+  // Update M3 Navigation Rail active destination
+  updateM3NavRailUI(viewName);
+}
+
+/**
+ * Update active destination indicator on M3 Navigation Rail
+ */
+export function updateM3NavRailUI(viewName) {
+  const pillPos = document.getElementById('railPillPos');
+  const labelPos = document.getElementById('railLabelPos');
+  const pillReport = document.getElementById('railPillReport');
+  const labelReport = document.getElementById('railLabelReport');
+  const pillAdmin = document.getElementById('railPillAdmin');
+  const labelAdmin = document.getElementById('railLabelAdmin');
+
+  if (!pillPos) return;
+
+  // Reset all rail destinations to unselected
+  [pillPos, pillReport, pillAdmin].forEach(p => {
+    if (p) p.className = 'w-12 h-8 rounded-full text-stone-600 group-hover:bg-stone-100 flex items-center justify-center transition';
+  });
+  [labelPos, labelReport, labelAdmin].forEach(l => {
+    if (l) l.className = 'text-[10px] font-bold text-stone-500 group-hover:text-stone-900 tracking-tight mt-1';
+  });
+
+  if (viewName === 'pos') {
+    if (pillPos) pillPos.className = 'w-12 h-8 rounded-full bg-emerald-700 text-white flex items-center justify-center transition shadow-xs';
+    if (labelPos) labelPos.className = 'text-[10px] font-black text-emerald-800 tracking-tight mt-1';
+  } else if (viewName === 'report') {
+    if (pillReport) pillReport.className = 'w-12 h-8 rounded-full bg-emerald-700 text-white flex items-center justify-center transition shadow-xs';
+    if (labelReport) labelReport.className = 'text-[10px] font-black text-emerald-800 tracking-tight mt-1';
+  } else if (viewName === 'admin') {
+    if (pillAdmin) pillAdmin.className = 'w-12 h-8 rounded-full bg-emerald-700 text-white flex items-center justify-center transition shadow-xs';
+    if (labelAdmin) labelAdmin.className = 'text-[10px] font-black text-emerald-800 tracking-tight mt-1';
+  }
 }
 
 // ================= CLOUD SYNC & MULTI-STORE MODAL =================
@@ -1187,7 +1223,10 @@ const KasirApp = {
   installDownloadedUpdate: updater.installDownloadedUpdate,
   closeUpdateModal: updater.closeUpdateModal,
   onUpdateDownloadProgress: updater.onUpdateDownloadProgress,
-  onUpdateDownloadError: updater.onUpdateDownloadError
+  onUpdateDownloadError: updater.onUpdateDownloadError,
+
+  // M3 Navigation Rail
+  updateM3NavRailUI: updateM3NavRailUI
 };
 
 // Expose to window for inline onclick HTML handlers

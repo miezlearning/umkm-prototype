@@ -1367,6 +1367,7 @@ export function updatePrinterUIStatus() {
   const headerIcon = document.getElementById('headerPrinterIcon');
   const headerText = document.getElementById('headerPrinterText');
   const mobileDot = document.getElementById('mobileHeaderPrinterDot');
+  const railDot = document.getElementById('railPrinterDot');
 
   // Modal elements
   const modalBadge = document.getElementById('printerConnectionBadge');
@@ -1384,10 +1385,11 @@ export function updatePrinterUIStatus() {
     const displayName = isHotspot ? 'Kasir (Hotspot)' : (printerName ? `Printer: ${printerName}` : 'Kasir Utama');
     if (headerBadge) {
       headerBadge.className = isHotspot 
-        ? 'hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100/80 border border-amber-300 text-amber-950 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0'
-        : 'hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/90 text-emerald-950 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
+        ? 'hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100/80 border border-amber-300 text-amber-950 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0'
+        : 'hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/90 text-emerald-950 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
     }
     if (headerDot) headerDot.className = isHotspot ? 'w-2 h-2 rounded-full bg-amber-500 shrink-0' : 'w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse';
+    if (railDot) railDot.className = isHotspot ? 'absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-amber-500 border border-white' : 'absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white animate-pulse';
     if (headerIcon) {
       headerIcon.textContent = isHotspot ? 'wifi_tethering' : 'print';
       headerIcon.className = isHotspot ? 'material-symbols-rounded text-sm text-amber-700' : 'material-symbols-rounded text-sm text-emerald-700';
@@ -1455,9 +1457,10 @@ export function updatePrinterUIStatus() {
   } else {
     // HP PELAYAN
     if (headerBadge) {
-      headerBadge.className = 'hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-50 hover:bg-sky-100/80 border border-sky-200/90 text-sky-950 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
+      headerBadge.className = 'hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-50 hover:bg-sky-100/80 border border-sky-200/90 text-sky-950 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
     }
     if (headerDot) headerDot.className = 'w-2 h-2 rounded-full bg-sky-500 shrink-0';
+    if (railDot) railDot.className = 'absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-sky-500 border border-white';
     if (headerIcon) {
       headerIcon.textContent = 'smartphone';
       headerIcon.className = 'material-symbols-rounded text-sm text-sky-700';
