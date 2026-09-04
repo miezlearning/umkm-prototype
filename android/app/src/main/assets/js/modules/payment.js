@@ -167,8 +167,33 @@ export function renderDynamicQrisCode() {
 
   if (qrisTotalEl) qrisTotalEl.innerText = formatRp(finalTotal);
 
+  if (!state.qrisPayload || !state.qrisPayload.trim()) {
+    if (merchantNameEl) merchantNameEl.innerText = state.storeProfile?.name || 'Toko Baru';
+    if (nmidEl) nmidEl.innerText = 'NMID: Belum diatur';
+    if (acquirerEl) acquirerEl.innerText = 'QRIS Belum Dipasang';
+    if (badgeEl) {
+      badgeEl.innerText = 'Belum Ada QRIS';
+      badgeEl.className = 'px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black';
+    }
+    if (qrisContainer) {
+      qrisContainer.innerHTML = `
+        <div class="flex flex-col items-center justify-center p-5 text-center text-stone-500">
+          <span class="material-symbols-rounded text-4xl text-amber-500 mb-2">qr_code_scanner</span>
+          <p class="text-xs font-bold text-stone-800">QRIS Toko Belum Dipasang</p>
+          <p class="text-[11px] text-stone-500 mt-1 mb-3 max-w-[200px] leading-snug">
+            Pasang kode QRIS toko Anda agar pembeli bisa scan pembayaran secara otomatis.
+          </p>
+          <button type="button" onclick="KasirApp.openQrisModal()" class="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition shadow-xs">
+            + Pasang QRIS Toko
+          </button>
+        </div>
+      `;
+    }
+    return;
+  }
+
   const meta = parseQRISMetadata(state.qrisPayload);
-  if (merchantNameEl) merchantNameEl.innerText = state.storeProfile?.name || meta.merchantName || 'Kedai Usaha Mami';
+  if (merchantNameEl) merchantNameEl.innerText = state.storeProfile?.name || meta.merchantName || 'Toko Saya';
   if (nmidEl) nmidEl.innerText = meta.nmid ? `NMID: ${meta.nmid}` : (state.storeProfile?.nmid ? `NMID: ${state.storeProfile.nmid}` : '');
   if (acquirerEl) acquirerEl.innerText = meta.acquirer || state.storeProfile?.acquirer || 'QRIS GPN';
 

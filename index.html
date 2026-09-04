@@ -166,7 +166,7 @@
           title="Klik untuk Profil Toko / Ganti Toko / Multi-Device">
           <span id="desktopStoreSyncDot" class="w-2 h-2 rounded-full bg-emerald-500 shrink-0 shadow-2xs animate-pulse"></span>
           <span id="appHeaderStoreTitle" class="text-xs sm:text-sm font-bold tracking-tight text-stone-900 group-hover:text-emerald-800 transition truncate max-w-[150px] md:max-w-[200px]">
-            Kedai Usaha Mami
+            Toko Saya
           </span>
           <span class="material-symbols-rounded text-lg text-stone-500 group-hover:text-stone-900 transition -ml-0.5 shrink-0">arrow_drop_down</span>
         </button>
@@ -719,8 +719,8 @@
 
                 <!-- Store Name & Amount -->
                 <div class="mt-2 text-center w-full pt-2 border-t border-stone-100 flex flex-col gap-0.5">
-                  <p id="qrisMerchantName" class="text-xs sm:text-sm font-black text-stone-900 truncate">Kedai Usaha Mami</p>
-                  <p id="qrisNmidDisplay" class="text-[10px] text-stone-500 font-mono font-bold">NMID: ID1025450522335</p>
+                  <p id="qrisMerchantName" class="text-xs sm:text-sm font-black text-stone-900 truncate">Toko Saya</p>
+                  <p id="qrisNmidDisplay" class="text-[10px] text-stone-500 font-mono font-bold">NMID: -</p>
                   <p id="qrisDynamicTotal" class="text-xl sm:text-2xl font-black text-emerald-800 mt-0.5">Rp 0</p>
                 </div>
               </div>
@@ -868,7 +868,7 @@
         <!-- Nama Kasir -->
         <div class="flex flex-col gap-1">
           <label class="text-xs font-bold text-stone-700">Nama Kasir Bertugas:</label>
-          <input type="text" id="startShiftCashierName" placeholder="Contoh: Mami / Rina"
+          <input type="text" id="startShiftCashierName" placeholder="Contoh: Kasir 1 / Budi"
             class="w-full px-3 py-2.5 rounded-xl border-2 border-stone-200 focus:border-emerald-500 text-stone-900 font-bold text-sm focus:outline-none transition">
         </div>
 
@@ -933,7 +933,7 @@
         <div class="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-3 flex items-center justify-between">
           <div class="flex flex-col">
             <span class="text-[11px] font-bold text-emerald-900">Kasir Aktif:</span>
-            <span id="closeShiftCashier" class="font-black text-sm text-stone-900">Mami</span>
+            <span id="closeShiftCashier" class="font-black text-sm text-stone-900">Kasir</span>
           </div>
           <div class="text-right flex flex-col">
             <span class="text-[11px] font-bold text-emerald-900">Total Omset Shift:</span>
@@ -991,7 +991,7 @@
         <!-- Catatan Penutupan -->
         <div class="flex flex-col gap-1">
           <label class="text-xs font-bold text-stone-700">Catatan Tutup Shift (Opsional):</label>
-          <input type="text" id="closeShiftNotes" placeholder="Contoh: Laci rapi, uang setor diserahkan ke Mami"
+          <input type="text" id="closeShiftNotes" placeholder="Contoh: Laci rapi, uang kas aman"
             class="w-full px-3 py-2 rounded-xl border border-stone-200 text-stone-800 text-xs font-medium focus:outline-none focus:border-emerald-500">
         </div>
 
@@ -1884,10 +1884,10 @@
         class="bg-stone-50 p-3.5 rounded-2xl border border-dashed border-stone-300 text-left text-xs font-sans flex flex-col gap-1.5">
         <div class="text-center pb-1.5 border-b border-stone-300">
           <img id="receiptLogoImg" src="" alt="Logo" class="max-h-12 max-w-[130px] mx-auto object-contain filter grayscale contrast-200 mb-1 hidden">
-          <h4 id="receiptStoreName" class="font-black text-sm uppercase tracking-wide">KEDAI USAHA MAMI</h4>
-          <p class="text-[10px] text-stone-600 font-bold" id="receiptTagline">-- SPESIAL RASA NUSANTARA --</p>
-          <p class="text-[9.5px] text-stone-500" id="receiptAddress">Samarinda, Kalimantan Timur</p>
-          <p class="text-[9.5px] text-stone-500" id="receiptPhone">Telp/WA: 081345028895</p>
+          <h4 id="receiptStoreName" class="font-black text-sm uppercase tracking-wide">TOKO SAYA</h4>
+          <p class="text-[10px] text-stone-600 font-bold" id="receiptTagline">-- STRUK PEMBELIAN --</p>
+          <p class="text-[9.5px] text-stone-500" id="receiptAddress">Kota Anda</p>
+          <p class="text-[9.5px] text-stone-500" id="receiptPhone">Telp/WA: -</p>
           <div class="flex items-center justify-between text-[9px] text-stone-500 mt-1 pt-1 border-t border-dotted border-stone-300">
             <span id="receiptTxId">No. Kwitansi: #001</span>
             <span id="receiptDate">02/09/2026 14:06</span>
@@ -1898,7 +1898,7 @@
           </div>
           <div class="flex items-center justify-between text-[9.5px] text-stone-600">
             <span>Kasir:</span>
-            <span id="receiptCashier" class="font-bold text-stone-800">Mami</span>
+            <span id="receiptCashier" class="font-bold text-stone-800">Kasir</span>
           </div>
         </div>
 
@@ -1928,7 +1928,7 @@
         </div>
 
         <div class="text-center pt-1.5 border-t border-dotted border-stone-300 flex flex-col gap-0.5">
-          <p class="text-[9.5px] text-stone-600 font-bold" id="receiptSocial">Follow IG: @kedai.usaha.mami</p>
+          <p class="text-[9.5px] text-stone-600 font-bold" id="receiptSocial">Semoga Sehat & Sukses Selalu</p>
           <p class="text-[10px] text-stone-700 font-bold" id="receiptFooterNote">Terimakasih telah berkunjung.</p>
           <p class="text-[8.5px] text-stone-400 font-sans tracking-tight">Simpan struk ini sebagai bukti bayar • <strong class="text-stone-600">Aristotle POS</strong></p>
         </div>
@@ -2262,7 +2262,7 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label class="block text-stone-700 font-bold mb-1 text-xs">Nama Toko:</label>
-                  <input type="text" id="printerStoreNameInput" oninput="KasirApp.updateLiveReceiptPreview()" placeholder="Kedai Usaha Mami"
+                  <input type="text" id="printerStoreNameInput" oninput="KasirApp.updateLiveReceiptPreview()" placeholder="Contoh: Toko Kopi Senja"
                     class="w-full px-3.5 py-2 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none">
                 </div>
                 <div>
@@ -2280,7 +2280,7 @@
                 </div>
                 <div>
                   <label class="block text-stone-700 font-bold mb-1 text-xs">No. WhatsApp / Telepon:</label>
-                  <input type="text" id="printerPhoneInput" oninput="KasirApp.updateLiveReceiptPreview()" placeholder="081345028895"
+                  <input type="text" id="printerPhoneInput" oninput="KasirApp.updateLiveReceiptPreview()" placeholder="081234567890"
                     class="w-full px-3.5 py-2 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none">
                 </div>
               </div>
@@ -2288,12 +2288,12 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label class="block text-stone-700 font-bold mb-1 text-xs">Nama Kasir:</label>
-                  <input type="text" id="printerCashierInput" oninput="KasirApp.updateLiveReceiptPreview()" placeholder="Mami"
+                  <input type="text" id="printerCashierInput" oninput="KasirApp.updateLiveReceiptPreview()" placeholder="Kasir"
                     class="w-full px-3.5 py-2 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none">
                 </div>
                 <div>
                   <label class="block text-stone-700 font-bold mb-1 text-xs">Instagram / Media Sosial:</label>
-                  <input type="text" id="printerSocialInput" oninput="KasirApp.updateLiveReceiptPreview()" placeholder="@kedai.usaha.mami"
+                  <input type="text" id="printerSocialInput" oninput="KasirApp.updateLiveReceiptPreview()" placeholder="@toko_anda"
                     class="w-full px-3.5 py-2 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none">
                 </div>
               </div>
@@ -2326,10 +2326,10 @@
                 <!-- Receipt Header -->
                 <div class="text-center pb-2 border-b border-stone-300 flex flex-col items-center">
                   <img id="prevReceiptLogoImg" src="" alt="Logo" class="max-h-12 max-w-[130px] mx-auto object-contain filter grayscale contrast-200 mb-1 hidden">
-                  <h4 id="prevReceiptStoreName" class="font-black text-sm uppercase tracking-wide leading-tight text-stone-900">KEDAI USAHA MAMI</h4>
-                  <p class="text-[10px] text-stone-600 font-bold mt-0.5" id="prevReceiptTagline">-- SPESIAL RASA NUSANTARA --</p>
-                  <p class="text-[9.5px] text-stone-500" id="prevReceiptAddress">Samarinda, Kalimantan Timur</p>
-                  <p class="text-[9.5px] text-stone-500" id="prevReceiptPhone">Telp/WA: 081345028895</p>
+                  <h4 id="prevReceiptStoreName" class="font-black text-sm uppercase tracking-wide leading-tight text-stone-900">TOKO SAYA</h4>
+                  <p class="text-[10px] text-stone-600 font-bold mt-0.5" id="prevReceiptTagline">-- STRUK PEMBELIAN --</p>
+                  <p class="text-[9.5px] text-stone-500" id="prevReceiptAddress">Kota Anda</p>
+                  <p class="text-[9.5px] text-stone-500" id="prevReceiptPhone">Telp/WA: -</p>
                   <div class="w-full flex items-center justify-between text-[9px] text-stone-500 mt-1.5 pt-1 border-t border-dotted border-stone-300">
                     <span id="prevReceiptTxId">No. Kwitansi: #001</span>
                     <span id="prevReceiptDate">03/09/2026 20:30</span>
@@ -2340,7 +2340,7 @@
                   </div>
                   <div class="w-full flex items-center justify-between text-[9.5px] text-stone-600">
                     <span>Kasir:</span>
-                    <span id="prevReceiptCashier" class="font-bold text-stone-800">Mami</span>
+                    <span id="prevReceiptCashier" class="font-bold text-stone-800">Kasir</span>
                   </div>
                 </div>
 
@@ -2369,7 +2369,7 @@
 
                 <!-- Receipt Footer -->
                 <div class="text-center pt-1.5 border-t border-dotted border-stone-300 flex flex-col gap-0.5">
-                  <p class="text-[9.5px] text-stone-600 font-bold" id="prevReceiptSocial">Follow IG: @kedai.usaha.mami</p>
+                  <p class="text-[9.5px] text-stone-600 font-bold" id="prevReceiptSocial">Semoga Sehat & Sukses Selalu</p>
                   <p class="text-[10px] text-stone-700 font-bold" id="prevReceiptFooterNote">Terimakasih telah berkunjung.</p>
                   <p class="text-[8.5px] text-stone-400 font-sans tracking-tight">Simpan struk ini sebagai bukti bayar • <strong class="text-stone-600">Aristotle POS</strong></p>
                 </div>
@@ -2733,8 +2733,8 @@
             </span>
           </div>
           <div class="flex items-center justify-between gap-2">
-            <h4 id="cloudStoreNameDisplay" class="font-black text-stone-900 text-lg leading-tight truncate">Kedai Usaha Mami</h4>
-            <span id="cloudStoreIdShort" class="px-2 py-0.5 rounded-md bg-stone-200/80 text-stone-600 font-extrabold text-[10px] shrink-0">kedai_usaha_mami</span>
+            <h4 id="cloudStoreNameDisplay" class="font-black text-stone-900 text-lg leading-tight truncate">Toko Saya</h4>
+            <span id="cloudStoreIdShort" class="px-2 py-0.5 rounded-md bg-stone-200/80 text-stone-600 font-extrabold text-[10px] shrink-0">toko</span>
           </div>
           <p class="text-xs text-stone-600 leading-relaxed">
             Data pesanan, menu, dan laporan otomatis tersambung real-time antar perangkat kasir.
@@ -2792,7 +2792,7 @@
             <span class="material-symbols-rounded text-emerald-600 text-lg">system_update</span>
             <div>
               <p class="font-bold text-stone-800">Pembaruan Aplikasi</p>
-              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.2.1 (Terkini)</p>
+              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.2.2 (Terkini)</p>
             </div>
           </div>
           <button onclick="KasirApp.checkForAppUpdates(true)"
@@ -3026,7 +3026,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-black tracking-tight" id="updateModalTitle">Pembaruan Aplikasi Tersedia!</h3>
-              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.1</span>
+              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.2</span>
             </div>
             <p id="updateModalCurrentVersion" class="text-emerald-100 text-xs mt-0.5">Versi Anda saat ini: v1.1.3</p>
           </div>

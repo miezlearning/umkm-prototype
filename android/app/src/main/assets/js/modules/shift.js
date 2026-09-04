@@ -108,7 +108,7 @@ export function openStartShiftModal() {
   const cashierInput = document.getElementById('startShiftCashierName');
   const initialCashInput = document.getElementById('startShiftInitialCash');
 
-  const defaultCashier = state.printerConfig?.cashierName || state.auth?.ownerName || 'Mami';
+  const defaultCashier = state.printerConfig?.cashierName || state.auth?.ownerName || 'Kasir';
   if (cashierInput) cashierInput.value = defaultCashier;
   if (initialCashInput) initialCashInput.value = '';
 

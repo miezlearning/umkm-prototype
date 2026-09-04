@@ -1,9 +1,9 @@
 {
-  "versionCode": 48,
-  "versionName": "1.2.1",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.1/Aristotle-POS.apk",
+  "versionCode": 49,
+  "versionName": "1.2.2",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.2/Aristotle-POS.apk",
   "changelog": [
-    "Sistem mandiri & lembaran bersih (Clean Slate) multi-tenant untuk setiap perangkat baru tanpa akun default bawaan"
+    "Pembersihan total seluruh placeholder, nama kasir, struk thermal, dan QRIS payload bawaan agar setiap toko UMKM beroperasi 100% mandiri tanpa kebocoran data"
   ],
   "releaseDate": "2026-09-04"
 }

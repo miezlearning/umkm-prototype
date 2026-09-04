@@ -3,8 +3,9 @@
  * Standard Bank Indonesia (QRIS) & EMVCo Specification
  */
 
-// Default QRIS Statis Merchant (Kedai Usaha Mami - Mandiri Livin')
-export const FALLBACK_QRIS_PAYLOAD = '00020101021126690021ID.CO.BANKMANDIRI.WWW01189360000801942889650211719428896580303UMI51440014ID.CO.QRIS.WWW0215ID10254505223350303UMI5204581253033605802ID5916KEDAI USAHA MAMI6015Samarinda (Kota61057511962070703A016304EA56';
+// QRIS Statis Khusus Kedai Mami (Mandiri Livin')
+export const MAMI_QRIS_PAYLOAD = '00020101021126690021ID.CO.BANKMANDIRI.WWW01189360000801942889650211719428896580303UMI51440014ID.CO.QRIS.WWW0215ID10254505223350303UMI5204581253033605802ID5916KEDAI USAHA MAMI6015Samarinda (Kota61057511962070703A016304EA56';
+export const FALLBACK_QRIS_PAYLOAD = '';
 
 /**
  * Hitung Checksum CRC16 CCITT (0xFFFF / 0x1021) standar EMVCo QRIS
@@ -70,7 +71,7 @@ export function parseQRISMetadata(payload) {
   const tagMap = {};
   tags.forEach(t => { tagMap[t.tag] = t.value; });
 
-  const merchantName = tagMap['59'] || 'Kedai Usaha Mami';
+  const merchantName = tagMap['59'] || 'Toko Baru';
   const city = tagMap['60'] || '';
   const postalCode = tagMap['61'] || '';
 

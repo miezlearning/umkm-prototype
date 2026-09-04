@@ -134,11 +134,11 @@ export function generateReceiptPlainText(tx, customConfig = null) {
     return lStr + ' '.repeat(space) + rStr;
   };
 
-  const storeName = cfg.headerStoreName || state.storeProfile?.name || 'Kedai Usaha Mami';
+  const storeName = cfg.headerStoreName || state.storeProfile?.name || 'Toko Utama';
   const tagline = cfg.headerTagline || '';
   const address = cfg.headerAddress || state.storeProfile?.city || '';
   const phone = cfg.headerPhone || state.auth?.phone || '';
-  const cashier = cfg.cashierName || state.auth?.ownerName || 'Mami';
+  const cashier = cfg.cashierName || state.auth?.ownerName || 'Kasir';
   
   const d = tx.date ? new Date(tx.date) : new Date();
   const pad = (n) => String(n).padStart(2, '0');
@@ -1593,7 +1593,7 @@ export function renderPrintableReceiptArea(tx, cfg = null) {
     }
   }
 
-  const activeStoreName = config.headerStoreName || state.storeProfile?.name || 'KEDAI USAHA MAMI';
+  const activeStoreName = config.headerStoreName || state.storeProfile?.name || 'TOKO UTAMA';
   if (storeNameEl) storeNameEl.innerText = activeStoreName.toUpperCase();
   if (taglineEl) {
     taglineEl.innerText = config.headerTagline || '';
@@ -1615,7 +1615,7 @@ export function renderPrintableReceiptArea(tx, cfg = null) {
   if (txIdEl) txIdEl.innerText = `No. Kwitansi: #${tx.id ? tx.id.replace('TX-', '') : '001'}`;
   if (dateEl) dateEl.innerText = txDate;
   if (orderTimeEl) orderTimeEl.innerText = txDate;
-  if (cashierEl) cashierEl.innerText = config.cashierName || state.auth?.ownerName || 'Mami';
+  if (cashierEl) cashierEl.innerText = config.cashierName || state.auth?.ownerName || 'Kasir';
 
   if (itemListEl && Array.isArray(tx.items)) {
     itemListEl.innerHTML = tx.items.map(item => {
@@ -1898,7 +1898,7 @@ export function openPrinterConfigModal() {
   if (taglineInput) taglineInput.value = cfg.headerTagline || '';
   if (addressInput) addressInput.value = cfg.headerAddress || state.storeProfile?.city || '';
   if (phoneInput) phoneInput.value = cfg.headerPhone || state.auth?.phone || '';
-  if (cashierInput) cashierInput.value = cfg.cashierName || 'Mami';
+  if (cashierInput) cashierInput.value = cfg.cashierName || 'Kasir';
   if (socialInput) socialInput.value = cfg.footerSocial || '';
   if (footerNoteInput) footerNoteInput.value = cfg.footerNote || 'Terimakasih telah berkunjung.';
   if (showQueueBottomCheckbox) showQueueBottomCheckbox.checked = cfg.showQueueBottom !== false;
@@ -1934,7 +1934,7 @@ export function updateLiveReceiptPreview() {
     headerTagline: document.getElementById('printerTaglineInput')?.value || '',
     headerAddress: document.getElementById('printerAddressInput')?.value || '',
     headerPhone: document.getElementById('printerPhoneInput')?.value || '',
-    cashierName: document.getElementById('printerCashierInput')?.value || 'Mami',
+    cashierName: document.getElementById('printerCashierInput')?.value || 'Kasir',
     footerSocial: document.getElementById('printerSocialInput')?.value || '',
     footerNote: document.getElementById('printerFooterNoteInput')?.value || 'Terimakasih telah berkunjung.',
     footerHelp: 'Powered by Aristotle POS',
@@ -1972,7 +1972,7 @@ export function updateLiveReceiptPreview() {
   // 3. Header Informasi Toko
   const storeNameEl = document.getElementById('prevReceiptStoreName');
   if (storeNameEl) {
-    storeNameEl.innerText = (cfg.headerStoreName || state.storeProfile?.name || 'KEDAI USAHA MAMI').toUpperCase();
+    storeNameEl.innerText = (cfg.headerStoreName || state.storeProfile?.name || 'TOKO SAYA').toUpperCase();
   }
 
   const taglineEl = document.getElementById('prevReceiptTagline');
@@ -1995,7 +1995,7 @@ export function updateLiveReceiptPreview() {
 
   const cashierEl = document.getElementById('prevReceiptCashier');
   if (cashierEl) {
-    cashierEl.innerText = cfg.cashierName || state.auth?.ownerName || 'Mami';
+    cashierEl.innerText = cfg.cashierName || state.auth?.ownerName || 'Kasir';
   }
 
   // 4. Sample Item List (Mirip 100% #printArea)
@@ -2059,7 +2059,7 @@ export function savePrinterSettings(e) {
   const headerTagline = document.getElementById('printerTaglineInput')?.value.trim() || '';
   const headerAddress = document.getElementById('printerAddressInput')?.value.trim() || '';
   const headerPhone = document.getElementById('printerPhoneInput')?.value.trim() || '';
-  const cashierName = document.getElementById('printerCashierInput')?.value.trim() || 'Mami';
+  const cashierName = document.getElementById('printerCashierInput')?.value.trim() || 'Kasir';
   const footerSocial = document.getElementById('printerSocialInput')?.value.trim() || '';
   const footerNote = document.getElementById('printerFooterNoteInput')?.value.trim() || 'Terimakasih telah berkunjung.';
   const showQueueBottom = document.getElementById('printerShowQueueBottom')?.checked !== false;
@@ -2640,8 +2640,8 @@ export async function buildShiftZReportEscPosBytes(shiftSummary) {
   addBytes(0x1B, 0x40);
   addBytes(0x1B, 0x74, 0x00);
 
-  const storeName = cfg.headerStoreName || state.storeProfile?.name || 'KEDAI USAHA MAMI';
-  const cashier = shiftSummary.cashierName || state.auth?.ownerName || 'Mami';
+  const storeName = cfg.headerStoreName || state.storeProfile?.name || 'TOKO UTAMA';
+  const cashier = shiftSummary.cashierName || state.auth?.ownerName || 'Kasir';
 
   const formatDt = (iso) => {
     if (!iso) return '-';
@@ -2728,8 +2728,8 @@ export function renderPrintableShiftZReport(shiftSummary) {
     document.body.appendChild(container);
   }
 
-  const storeName = state.printerConfig?.headerStoreName || state.storeProfile?.name || 'KEDAI USAHA MAMI';
-  const cashier = shiftSummary.cashierName || state.auth?.ownerName || 'Mami';
+  const storeName = state.printerConfig?.headerStoreName || state.storeProfile?.name || 'TOKO UTAMA';
+  const cashier = shiftSummary.cashierName || state.auth?.ownerName || 'Kasir';
 
   const formatDt = (iso) => {
     if (!iso) return '-';

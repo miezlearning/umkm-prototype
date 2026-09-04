@@ -8,6 +8,7 @@ import {
   MASTER_DEV_HASH,
   DEFAULT_PRODUCTS, 
   DEFAULT_QRIS_PAYLOAD, 
+  MAMI_QRIS_PAYLOAD,
   DEFAULT_STORE_PROFILE,
   DEFAULT_PRINTER_CONFIG
 } from './config.js';
@@ -146,6 +147,8 @@ export function initState() {
   const savedQris = localStorage.getItem(keys.QRIS);
   if (savedQris && savedQris.trim()) {
     state.qrisPayload = savedQris.trim();
+  } else if (state.storeId === 'kedai_usaha_mami') {
+    state.qrisPayload = MAMI_QRIS_PAYLOAD;
   } else {
     state.qrisPayload = DEFAULT_QRIS_PAYLOAD;
   }
@@ -158,16 +161,38 @@ export function initState() {
     } catch (e) {
       state.storeProfile = { ...DEFAULT_STORE_PROFILE, id: state.storeId };
     }
-  } else {
-    // Auto-ekstrak dari payload QRIS
-    const meta = parseQRISMetadata(state.qrisPayload);
+  } else if (state.storeId === 'kedai_usaha_mami') {
     state.storeProfile = {
-      id: state.storeId,
-      name: meta.merchantName || 'Kedai Usaha Mami',
-      city: meta.city || 'Samarinda (Kota)',
-      nmid: meta.nmid || 'ID1025450522335',
-      acquirer: meta.acquirer || "Livin' by Mandiri"
+      id: 'kedai_usaha_mami',
+      name: 'Kedai Usaha Mami',
+      city: 'Samarinda (Kota)',
+      nmid: 'ID1025450522335',
+      acquirer: "Livin' by Mandiri"
     };
+    saveStoreProfile();
+  } else {
+    // Profil mandiri untuk toko baru
+    const autoTitle = state.storeId
+      ? state.storeId.replace(/[_-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      : 'Toko Baru';
+    if (state.qrisPayload) {
+      const meta = parseQRISMetadata(state.qrisPayload);
+      state.storeProfile = {
+        id: state.storeId,
+        name: meta.merchantName || autoTitle,
+        city: meta.city || 'Indonesia',
+        nmid: meta.nmid || '',
+        acquirer: meta.acquirer || 'Aristotle POS'
+      };
+    } else {
+      state.storeProfile = {
+        id: state.storeId,
+        name: autoTitle,
+        city: 'Indonesia',
+        nmid: '',
+        acquirer: 'Aristotle POS'
+      };
+    }
     saveStoreProfile();
   }
 
