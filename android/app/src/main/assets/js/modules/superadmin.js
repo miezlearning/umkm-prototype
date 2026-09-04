@@ -94,8 +94,8 @@ export async function handleSuperAdminAuthSubmit(e) {
 
   const hash = await hashSha256(enteredKey);
 
-  // Mendukung kecocokan SHA-256 hash atau plaintext bypass developer
-  if (hash === MASTER_DEV_HASH || enteredKey === 'miez_superdev_2026') {
+  // Verifikasi hash kriptografis SHA-256 passkey pengembang
+  if (hash === MASTER_DEV_HASH) {
     sessionStorage.setItem(SUPERADMIN_SESSION_KEY, '1');
     const modal = document.getElementById('superAdminAuthModal');
     if (modal) modal.classList.add('hidden');

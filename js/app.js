@@ -880,6 +880,7 @@ export async function init() {
   } finally {
     // 7. Dismiss Splash Screen smoothly (Guaranteed)
     dismissSplashScreen();
+    initHeaderClock();
   }
 
   // 6. Cek Route Super Admin via URL Parameter (?view=superadmin atau ?admin=super atau ?superadmin=1 atau #superadmin)
@@ -1004,6 +1005,83 @@ function initPullToRefresh() {
       icon.style.transform = '';
     }
   }, { passive: true });
+}
+
+let brandSecretTapCount = 0;
+let brandSecretTapTimer = null;
+
+/**
+ * Handle klik pada avatar brand / toko di Navigation Rail & Mobile Header.
+ * - Klik normal: Buka modal profil toko & cloud sync.
+ * - Secret 5-Tap Gesture: Buka otentikasi Super Admin bagi developer / platform owner.
+ */
+export function handleBrandLogoClick() {
+  brandSecretTapCount++;
+  if (brandSecretTapTimer) clearTimeout(brandSecretTapTimer);
+
+  if (brandSecretTapCount >= 5) {
+    brandSecretTapCount = 0;
+    playClick('pop');
+    showToast('Akses Pengembang: Membuka Autentikasi Teknis...', 'info', 2000);
+    openSuperAdmin();
+    return;
+  }
+
+  brandSecretTapTimer = setTimeout(() => {
+    brandSecretTapCount = 0;
+  }, 2500);
+
+  // Normal tap: Buka modal cloud profile
+  openCloudModal();
+}
+
+/**
+ * Toggle Mode Layar Penuh (Kiosk POS) untuk Tablet & Desktop
+ */
+export function toggleFullscreen() {
+  playClick('tap');
+  if (!document.fullscreenElement) {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+}
+
+// Fullscreen listener for icon updates
+if (typeof document !== 'undefined') {
+  document.addEventListener('fullscreenchange', () => {
+    const icon = document.getElementById('headerFullscreenIcon');
+    if (icon) {
+      icon.textContent = document.fullscreenElement ? 'fullscreen_exit' : 'fullscreen';
+    }
+  });
+}
+
+/**
+ * Inisialisasi Jam & Tanggal Realtime di Header Tablet/Desktop
+ */
+export function initHeaderClock() {
+  const dateEl = document.getElementById('liveHeaderDate');
+  const clockEl = document.getElementById('liveHeaderClock');
+  if (!dateEl || !clockEl) return;
+
+  function update() {
+    const now = new Date();
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    
+    dateEl.textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
+    const hours = String(now.getHours()).padStart(2, '0');
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    clockEl.textContent = `${hours}:${mins}`;
+  }
+
+  update();
+  setInterval(update, 1000);
 }
 
 export function openSuperAdmin() {
@@ -1225,8 +1303,11 @@ const KasirApp = {
   onUpdateDownloadProgress: updater.onUpdateDownloadProgress,
   onUpdateDownloadError: updater.onUpdateDownloadError,
 
-  // M3 Navigation Rail
-  updateM3NavRailUI: updateM3NavRailUI
+  // M3 Navigation Rail & Header Actions
+  updateM3NavRailUI: updateM3NavRailUI,
+  handleBrandLogoClick: handleBrandLogoClick,
+  toggleFullscreen: toggleFullscreen,
+  initHeaderClock: initHeaderClock
 };
 
 // Expose to window for inline onclick HTML handlers

@@ -1,9 +1,9 @@
 {
-  "versionCode": 52,
-  "versionName": "1.2.5",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.5/Aristotle-POS.apk",
+  "versionCode": 53,
+  "versionName": "1.2.6",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.6/Aristotle-POS.apk",
   "changelog": [
-    "Implementasi Google Material Design 3 (M3) Adaptive Navigation Rail untuk Tablet & Desktop, pembersihan header, dan integrasi hardware shortcuts"
+    "Pembersihan total akses publik Super Admin (keamanan multi-tenant), penghapusan bocoran passkey, peremajaan header dengan Live Clock & Kiosk Fullscreen, dan secret developer tap gesture"
   ],
   "releaseDate": "2026-09-04"
 }
