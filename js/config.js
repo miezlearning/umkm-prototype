@@ -6,11 +6,11 @@
 export const DEFAULT_QRIS_PAYLOAD = '00020101021126690021ID.CO.BANKMANDIRI.WWW01189360000801942889650211719428896580303UMI51440014ID.CO.QRIS.WWW0215ID10254505223350303UMI5204581253033605802ID5916KEDAI USAHA MAMI6015Samarinda (Kota61057511962070703A016304EA56';
 
 export const DEFAULT_STORE_PROFILE = {
-  id: 'kedai_usaha_mami',
-  name: 'Kedai Usaha Mami',
-  city: 'Samarinda (Kota)',
-  nmid: 'ID1025450522335',
-  acquirer: "Livin' by Mandiri"
+  id: '',
+  name: 'Toko Baru',
+  city: 'Indonesia',
+  nmid: '',
+  acquirer: 'Aristotle POS'
 };
 
 export const GLOBAL_STORAGE_KEYS = {
@@ -29,14 +29,14 @@ export const DEFAULT_PRINTER_CONFIG = {
   autoPrintKitchen: false, // Otomatis cetak tiket dapur saat bayar selesai
   autoKickDrawer: true, // Otomatis buka laci kasir saat bayar tunai
   logoBase64: '', // Base64 data logo toko
-  showLogo: true, // Tampilkan logo gambar di struk
-  cashierName: 'Mami', // Nama kasir yang tampil di struk
+  showLogo: false, // Tampilkan logo gambar di struk jika diupload
+  cashierName: 'Kasir', // Nama kasir yang tampil di struk
   headerStoreName: '', // Jika kosong, pakai nama toko di profil
-  headerTagline: '--- SPESIAL RASA NUSANTARA ---',
-  headerAddress: 'Samarinda, Kalimantan Timur',
-  headerPhone: '081345028895',
-  footerSocial: 'Follow IG: @miezlipp',
-  footerNote: 'Terimakasih telah berkunjung.',
+  headerTagline: 'Terima Kasih Atas Kunjungan Anda',
+  headerAddress: '',
+  headerPhone: '',
+  footerSocial: '',
+  footerNote: 'Semoga Sehat & Sukses Selalu.',
   footerHelp: 'Powered by Aristotle POS',
   showQueueBottom: true, // Tampilkan NO ANTRIAN besar di bagian paling bawah
   feedLines: 1
@@ -46,8 +46,8 @@ export const DEFAULT_PRINTER_CONFIG = {
  * Generate isolated localStorage keys per store ID (Multi-Tenant)
  * @param {string} storeId - ID unik toko UMKM
  */
-export function getStorageKeys(storeId = 'kedai_usaha_mami') {
-  const safeId = (storeId || 'kedai_usaha_mami').toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+export function getStorageKeys(storeId = 'toko_utama') {
+  const safeId = (storeId || 'toko_utama').toLowerCase().replace(/[^a-z0-9_-]/g, '_');
   return {
     PRODUCTS: `kasir_${safeId}_products_v1`,
     HISTORY: `kasir_${safeId}_history_v1`,
@@ -62,7 +62,7 @@ export function getStorageKeys(storeId = 'kedai_usaha_mami') {
   };
 }
 
-export const STORAGE_KEYS = getStorageKeys('kedai_usaha_mami');
+export const STORAGE_KEYS = getStorageKeys('toko_utama');
 
 export const DEFAULT_PRODUCTS = [
   { id: 'p1', name: 'Nasi Goreng Spesial', price: 18000, category: 'makanan', icon: 'lunch_dining' },

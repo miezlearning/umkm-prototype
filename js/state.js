@@ -26,16 +26,8 @@ export function getSavedStoresList() {
     }
   } catch (e) {}
   
-  // Default jika masih kosong: daftarkan Kedai Usaha Mami
-  return [
-    {
-      id: 'kedai_usaha_mami',
-      name: 'Kedai Usaha Mami',
-      ownerName: 'Mami',
-      phone: '081345028895',
-      lastOpened: new Date().toISOString()
-    }
-  ];
+  // Lembaran bersih (Clean Slate) untuk perangkat baru, siap untuk pendaftaran mandiri UMKM apa pun
+  return [];
 }
 
 export function registerStoreOnDevice(storeInfo) {
@@ -94,16 +86,18 @@ export function resolveActiveStoreId() {
 }
 
 export const activeStoreId = resolveActiveStoreId();
-export const currentStorageKeys = getStorageKeys(activeStoreId || 'kedai_usaha_mami');
+export const currentStorageKeys = getStorageKeys(activeStoreId || 'toko_utama');
 
 export const state = {
   storeId: activeStoreId,
   isSessionActive: !!activeStoreId,
-  storeProfile: { ...DEFAULT_STORE_PROFILE, id: activeStoreId || 'toko_baru' },
+  storeProfile: activeStoreId 
+    ? { ...DEFAULT_STORE_PROFILE, id: activeStoreId }
+    : { id: '', name: 'Aristotle POS', city: '', nmid: '', acquirer: 'Aristotle POS' },
   auth: {
     pin: '1234',
     ownerName: 'Pemilik Toko',
-    phone: '081345028895',
+    phone: '',
     requirePinForAdmin: false
   },
   userRole: localStorage.getItem(GLOBAL_STORAGE_KEYS.AUTH_ROLE) || 'owner', // 'owner' or 'cashier'

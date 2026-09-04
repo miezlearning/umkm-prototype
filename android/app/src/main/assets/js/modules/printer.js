@@ -271,13 +271,13 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
     return new Uint8Array(commands);
   }
 
-  const storeName = cfg.headerStoreName || state.storeProfile?.name || 'Kedai Usaha Mami';
-  const tagline = cfg.headerTagline || 'Cabang Utama';
-  const address = cfg.headerAddress || state.storeProfile?.city || 'Samarinda, Kalimantan Timur';
-  const phone = cfg.headerPhone || state.auth?.phone || '081345028895';
-  const cashier = cfg.cashierName || state.auth?.ownerName || 'Mami';
-  const social = cfg.footerSocial || 'Instagram: @kedai.usaha.mami';
-  const note = cfg.footerNote || 'Terimakasih telah berkunjung.';
+  const storeName = cfg.headerStoreName || state.storeProfile?.name || 'Aristotle POS';
+  const tagline = cfg.headerTagline || '';
+  const address = cfg.headerAddress || state.storeProfile?.city || '';
+  const phone = cfg.headerPhone || state.auth?.phone || '';
+  const cashier = cfg.cashierName || state.auth?.ownerName || 'Kasir';
+  const social = cfg.footerSocial || '';
+  const note = cfg.footerNote || 'Terima kasih telah berkunjung.';
 
   const d = tx.date ? new Date(tx.date) : new Date();
   const pad = (n) => String(n).padStart(2, '0');

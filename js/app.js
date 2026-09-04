@@ -12,7 +12,7 @@ import {
   verifyStorePin, 
   setUserRole 
 } from './state.js';
-import { getStorageKeys, GLOBAL_STORAGE_KEYS } from './config.js';
+import { getStorageKeys, GLOBAL_STORAGE_KEYS, DEFAULT_PRODUCTS, DEFAULT_PRINTER_CONFIG } from './config.js';
 import { showToast, playClick, escapeHtml, showConfirmDialog } from './utils.js';
 import * as pos from './modules/pos.js';
 import * as payment from './modules/payment.js';
@@ -232,7 +232,22 @@ export function renderSavedStoresList() {
   const stores = getSavedStoresList();
   if (stores.length === 0) {
     container.innerHTML = `
-      <p class="text-xs text-stone-400 italic py-2 text-center">Belum ada toko tersimpan di perangkat ini.</p>
+      <div class="py-4 px-3 text-center flex flex-col items-center justify-center bg-stone-50 rounded-2xl border border-dashed border-stone-300">
+        <p class="text-xs font-bold text-stone-700">Belum Ada Toko Terdaftar di HP Ini</p>
+        <p class="text-[11px] text-stone-500 mt-1 max-w-xs leading-relaxed">
+          Silakan daftarkan toko baru Anda dalam 10 detik atau coba akun demo kasir.
+        </p>
+        <div class="flex items-center gap-2 mt-3 w-full">
+          <button type="button" onclick="KasirApp.switchAuthTab('register')"
+            class="flex-1 py-2 px-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition active:scale-95">
+            + Daftar Toko Baru
+          </button>
+          <button type="button" onclick="KasirApp.quickDemoStore()"
+            class="py-2 px-2.5 rounded-xl bg-white hover:bg-stone-100 text-stone-700 font-bold text-xs border border-stone-300 transition active:scale-95">
+            Coba Demo
+          </button>
+        </div>
+      </div>
     `;
     return;
   }
@@ -263,6 +278,48 @@ export function renderSavedStoresList() {
       </div>
     `;
   }).join('');
+}
+
+/**
+ * Buat toko demo lokal terisolasi untuk uji coba langsung tanpa registrasi
+ */
+export function quickDemoStore() {
+  playClick('pop');
+  const demoId = 'toko_demo';
+  const demoProfile = {
+    id: demoId,
+    name: 'Toko Demo Aristotle',
+    city: 'Indonesia',
+    nmid: '',
+    acquirer: 'Aristotle POS'
+  };
+  const demoAuth = {
+    pin: '1234',
+    ownerName: 'Pemilik Demo',
+    phone: '',
+    requirePinForAdmin: false
+  };
+  const demoKeys = getStorageKeys(demoId);
+  try {
+    localStorage.setItem(demoKeys.PROFILE, JSON.stringify(demoProfile));
+    localStorage.setItem(demoKeys.AUTH, JSON.stringify(demoAuth));
+    localStorage.setItem(demoKeys.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
+    localStorage.setItem(demoKeys.PRINTER, JSON.stringify({
+      ...DEFAULT_PRINTER_CONFIG,
+      headerStoreName: 'Toko Demo Aristotle',
+      cashierName: 'Kasir Demo'
+    }));
+    localStorage.setItem(GLOBAL_STORAGE_KEYS.ACTIVE_STORE_ID, demoId);
+    registerStoreOnDevice({
+      id: demoId,
+      name: demoProfile.name,
+      ownerName: demoAuth.ownerName,
+      phone: demoAuth.phone
+    });
+  } catch (_) {}
+
+  quickSelectStore(demoId);
+  showToast('Masuk ke Toko Demo. Silakan coba semua fitur kasir!', 'success', 3500);
 }
 
 export function selectStoreForLogin(storeId, storeName) {
@@ -466,6 +523,20 @@ export function handleStoreRegisterSubmit(e) {
       ownerName,
       phone
     });
+
+    // Berikan starter menu produk contoh untuk toko baru jika masih kosong
+    if (!localStorage.getItem(newKeys.PRODUCTS)) {
+      localStorage.setItem(newKeys.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
+    }
+    // Siapkan konfigurasi printer standar menggunakan identitas toko baru
+    if (!localStorage.getItem(newKeys.PRINTER)) {
+      localStorage.setItem(newKeys.PRINTER, JSON.stringify({
+        ...DEFAULT_PRINTER_CONFIG,
+        headerStoreName: storeName,
+        headerPhone: phone,
+        cashierName: ownerName || 'Kasir'
+      }));
+    }
   } catch (err) {}
 
   quickSelectStore(cleanId);
@@ -782,7 +853,13 @@ export async function init() {
   // If no store is active or logged out -> Auto open store selector
   if (!state.storeId || sessionStorage.getItem('is_logged_out_state') === '1') {
     setTimeout(() => {
-      openUniversalLoginModal('login');
+      const saved = getSavedStoresList();
+      // Jika belum ada toko sama sekali di HP ini, langsung sodorkan tab Pendaftaran Toko Baru
+      if (saved.length === 0) {
+        openUniversalLoginModal('register');
+      } else {
+        openUniversalLoginModal('login');
+      }
       
       // Jika tautan mengandung ?store=..., otomatis isikan nama toko & fokuskan kolom PIN!
       try {
@@ -923,17 +1000,17 @@ const KasirApp = {
   openCloudModal,
   closeCloudModal,
   copyStoreShareLink,
-  switchStore,
   logoutStore,
+  quickDemoStore,
+  selectStoreForLogin,
+  deleteSavedStoreCard,
   openUniversalLoginModal,
   closeUniversalLoginModal,
   switchAuthTab,
   renderSavedStoresList,
-  selectStoreForLogin,
-  quickSelectStore,
-  deleteSavedStoreCard,
   handleStoreLoginSubmit,
   handleStoreRegisterSubmit,
+  logoutStoreSession,
   quickSelectStore,
   openPinSecurityModal,
   closePinSecurityModal,

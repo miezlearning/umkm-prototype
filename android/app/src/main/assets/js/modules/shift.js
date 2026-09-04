@@ -139,7 +139,7 @@ export function submitStartShift() {
 
   const newShift = {
     id: 'SHIFT-' + Date.now(),
-    storeId: state.storeId || 'kedai_usaha_mami',
+    storeId: state.storeId || 'toko_utama',
     cashierName,
     startTime: new Date().toISOString(),
     endTime: null,

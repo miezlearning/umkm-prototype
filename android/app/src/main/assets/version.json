@@ -1,9 +1,9 @@
 {
-  "versionCode": 47,
-  "versionName": "1.2.0",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.0/Aristotle-POS.apk",
+  "versionCode": 48,
+  "versionName": "1.2.1",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.1/Aristotle-POS.apk",
   "changelog": [
-    "Rilis Resmi v1.2.0: Manajemen Shift Kasir & Rekap Tutup Toko (Laporan Z), Diskon Transaksi (% dan Rp), Cetak Tiket Dapur & Auto Kick Drawer, Multi-Perangkat via Hotspot QR, dan Panduan Edukasi Lansia"
+    "Sistem mandiri & lembaran bersih (Clean Slate) multi-tenant untuk setiap perangkat baru tanpa akun default bawaan"
   ],
   "releaseDate": "2026-09-04"
 }
