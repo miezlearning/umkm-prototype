@@ -1,9 +1,11 @@
 {
-  "versionCode": 55,
-  "versionName": "1.2.8",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.8/Aristotle-POS.apk",
+  "versionCode": 56,
+  "versionName": "1.2.9",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.9/Aristotle-POS.apk",
   "changelog": [
-    "Eliminasi total duplikasi tombol navigasi & hardware di header, pembersihan tombol desktop usang, dan penyatuan kontrol ke Google M3 Navigation Rail"
+    "Optimasi mobile header Xiaomi 14T bebas sesak dan responsif",
+    "Perbaikan gesture multi-tap Super Admin dengan debounce",
+    "Penambahan tombol langsung Super Admin di footer profil toko"
   ],
   "releaseDate": "2026-09-04"
 }

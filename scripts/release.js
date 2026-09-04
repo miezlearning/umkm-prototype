@@ -77,7 +77,16 @@ if (fs.existsSync(indexPath)) {
   console.log('Updated index.html badges');
 }
 
-// 4. Update sw.js CACHE_NAME
+// 4. Update package.json
+const pkgPath = path.resolve('package.json');
+if (fs.existsSync(pkgPath)) {
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+  pkg.version = targetVersion;
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
+  console.log('Updated package.json');
+}
+
+// 5. Update sw.js CACHE_NAME
 const swPath = path.resolve('sw.js');
 if (fs.existsSync(swPath)) {
   let swContent = fs.readFileSync(swPath, 'utf-8');

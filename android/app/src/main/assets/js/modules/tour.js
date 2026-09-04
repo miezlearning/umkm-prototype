@@ -16,7 +16,7 @@ const TOUR_STEPS = [
     view: 'pos'
   },
   {
-    selector: '#headerShiftStatusBadge, #mobileHeaderShiftBtn',
+    selector: '#railShiftBtn, #headerShiftStatusBadge, #mobileHeaderShiftBtn',
     fallbackSelector: 'header',
     icon: 'schedule',
     iconColor: 'bg-teal-100 text-teal-800 border-teal-300',
@@ -25,7 +25,7 @@ const TOUR_STEPS = [
     view: 'pos'
   },
   {
-    selector: '#headerPrinterStatusBadge, #mobileHeaderPrinterBtn',
+    selector: '#railPrinterBtn, #headerPrinterStatusBadge, #mobileHeaderPrinterBtn',
     fallbackSelector: 'header',
     icon: 'print',
     iconColor: 'bg-sky-100 text-sky-800 border-sky-300',

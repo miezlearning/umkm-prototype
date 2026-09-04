@@ -233,16 +233,18 @@
       class="bg-white text-stone-900 shadow-sm sticky top-0 z-20 px-3 py-2 sm:px-5 sm:py-2.5 border-b border-stone-200">
       <div class="w-full flex items-center justify-between gap-3">
 
-        <!-- 1. MOBILE ONLY (< md): Store Profile Button + Store Title -->
+        <!-- 1. MOBILE ONLY (< md): Store Profile Button + Store Title (Multi-tap 3x opens Super Admin) -->
         <div class="md:hidden flex items-center gap-2 shrink-0 min-w-0">
-          <button id="mobileStoreProfileBtn" type="button" onclick="window.KasirApp.handleBrandLogoClick()"
+          <button id="mobileStoreProfileBtn" type="button" onclick="window.KasirApp.handleBrandLogoClick(event)"
             class="relative w-9 h-9 rounded-xl bg-white border border-stone-200/90 shadow-2xs hover:border-emerald-400 hover:bg-emerald-50/50 flex items-center justify-center transition active:scale-90 touch-target-large p-1 cursor-pointer shrink-0"
-            title="Klik untuk Info Toko / Hubungkan Perangkat">
+            title="Klik untuk Info Toko / Hubungkan Perangkat (3x untuk Super Admin)">
             <img src="icon-192.png" alt="Aristotle POS" class="w-full h-full object-contain">
             <span id="mobileStoreSyncDot" class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white shadow-xs animate-pulse"></span>
           </button>
-          <button type="button" onclick="openCloudModal()" class="flex items-center gap-1 text-left min-w-0 py-0.5" title="Buka Profil Toko">
-            <span id="mobileAppHeaderStoreTitle" class="text-xs font-black tracking-tight text-stone-900 truncate max-w-[130px]">Toko Saya</span>
+          <button id="mobileStoreTitleBtn" type="button" onclick="window.KasirApp.handleBrandLogoClick(event)"
+            class="flex items-center gap-1 text-left min-w-0 py-0.5 cursor-pointer"
+            title="Buka Profil Toko (3x untuk Super Admin)">
+            <span id="mobileAppHeaderStoreTitle" class="text-xs font-black tracking-tight text-stone-900 truncate max-w-[150px]">Toko Saya</span>
             <span class="material-symbols-rounded text-sm text-stone-400 shrink-0">arrow_drop_down</span>
           </button>
         </div>
@@ -279,32 +281,25 @@
           </button>
         </div>
 
-        <!-- Right Side on Mobile (< md): Quick Icon Actions -->
-        <div class="md:hidden flex items-center gap-1.5 shrink-0">
+        <!-- Right Side on Mobile (< md): Quick Essential Actions (Shift, Printer, Cart) -->
+        <div class="md:hidden flex items-center gap-2 shrink-0">
           <button id="mobileHeaderShiftBtn" type="button" onclick="window.KasirApp.handleShiftHeaderClick()"
-            class="sm:hidden w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-700 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large relative shrink-0"
+            class="w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-700 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large relative shrink-0"
             title="Shift Kasir & Tutup Buku (Z-Report)">
             <span id="mobileHeaderShiftDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span class="material-symbols-rounded text-lg text-emerald-700">schedule</span>
           </button>
-          <button id="mobileHeaderPrinterBtn" onclick="window.KasirApp.openPrinterConfigModal()"
-            class="sm:hidden w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-700 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large relative shrink-0"
+          <button id="mobileHeaderPrinterBtn" type="button" onclick="window.KasirApp.openPrinterConfigModal()"
+            class="w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-700 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large relative shrink-0"
             title="Status Printer & Multi-Device">
             <span id="mobileHeaderPrinterDot" class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-stone-400"></span>
             <span class="material-symbols-rounded text-lg text-stone-600">print</span>
           </button>
-          <a href="https://wa.me/6281345028895" target="_blank" title="Bantuan WhatsApp: 081345028895"
-            class="w-9 h-9 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large shrink-0">
-            <span class="material-symbols-rounded text-lg">chat</span>
-          </a>
-          <button onclick="KasirApp.openGuideTour(0)" title="Bantuan Panduan Kasir" aria-label="Bantuan Panduan"
-            class="w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-600 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large shrink-0">
-            <span class="material-symbols-rounded text-lg text-stone-500">help</span>
-          </button>
-          <button id="mobileHeaderCartBtn" onclick="toggleMobileCartDrawer()"
-            class="relative px-3 py-1.5 rounded-xl bg-stone-100 text-stone-600 border border-stone-200 flex items-center gap-1.5 touch-target-large active:scale-95 transition shrink-0">
+          <button id="mobileHeaderCartBtn" type="button" onclick="toggleMobileCartDrawer()"
+            class="relative px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200/80 text-stone-700 border border-stone-200 flex items-center gap-1.5 touch-target-large active:scale-95 transition shrink-0"
+            title="Buka Keranjang Pesanan">
             <span class="material-symbols-rounded text-lg text-stone-600">shopping_cart</span>
-            <span id="mobileHeaderCartTotal" class="text-xs font-bold">Rp 0</span>
+            <span id="mobileHeaderCartTotal" class="text-xs font-black">Rp 0</span>
           </button>
         </div>
       </div>
@@ -2857,9 +2852,18 @@
           <span>Keluar dari Toko Ini (Logout)</span>
         </button>
 
-        <!-- Watermark & Support Contact -->
-        <div class="pt-1 text-center flex flex-col items-center gap-0.5 text-[10px] text-stone-400">
-          <p>Aristotle POS • <a href="https://wa.me/6281345028895" target="_blank" class="font-bold text-emerald-800 hover:underline">Bantuan WA: 081345028895</a></p>
+        <!-- Watermark, Support Contact & Super Admin Fallback -->
+        <div class="pt-2 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-500">
+          <div>
+            <span>Aristotle POS • </span>
+            <a href="https://wa.me/6281345028895" target="_blank" class="font-bold text-emerald-800 hover:underline">Bantuan WA</a>
+          </div>
+          <button type="button" onclick="closeCloudModal(); window.KasirApp.openSuperAdmin();"
+            class="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200/90 text-stone-700 font-bold transition flex items-center gap-1.5 cursor-pointer active:scale-95 border border-stone-200/80 shadow-2xs"
+            title="Buka Portal Super Admin (Akses Pemilik Toko)">
+            <span class="material-symbols-rounded text-sm text-amber-700">shield_person</span>
+            <span>Super Admin</span>
+          </button>
         </div>
 
       </div>
@@ -3140,7 +3144,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-black tracking-tight" id="updateModalTitle">Pembaruan Aplikasi Tersedia!</h3>
-              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.8</span>
+              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.9</span>
             </div>
             <p id="updateModalCurrentVersion" class="text-emerald-100 text-xs mt-0.5">Versi Anda saat ini: v1.1.3</p>
           </div>
@@ -3300,7 +3304,7 @@
     <button id="btnNavPosDesktop"></button>
     <button id="btnNavReportDesktop"></button>
     <button id="btnNavAdminDesktop"></button>
-    <span id="appVersionBadge" class="hidden">v1.2.8</span>
+    <span id="appVersionBadge" class="hidden">v1.2.9</span>
   </div>
 
   <!-- Main JavaScript App Module -->
