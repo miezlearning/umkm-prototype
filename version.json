@@ -1,10 +1,10 @@
 {
-  "versionCode": 60,
-  "versionName": "1.2.13",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.13/Aristotle-POS.apk",
+  "versionCode": 61,
+  "versionName": "1.2.14",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.14/Aristotle-POS.apk",
   "changelog": [
-    "Perombakan alur koneksi multi-perangkat Kasir Utama & Pelayan",
-    "Penambahan tombol Hubungkan Kembali & deteksi Hotspot otomatis"
+    "Perbaikan deteksi IP Wi-Fi lokal & kestabilan sinkronisasi pairing multi-perangkat",
+    "Perbaikan pembukaan otomatis laci kasir (Cash Drawer) pada tes struk, tes dapur, dan transaksi tunai"
   ],
   "releaseDate": "2026-09-04"
 }

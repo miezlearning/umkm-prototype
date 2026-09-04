@@ -254,6 +254,12 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
   addBytes(0x1B, 0x40);
   addBytes(0x1B, 0x74, 0x00);
 
+  // Jika diminta buka laci kasir (Cash Drawer Kick):
+  // Kirim pulsa solenoid di AWAL agar laci langsung menyentak terbuka seketika tanpa menunggu selesai cetak
+  if (kickDrawer) {
+    const drawerBytes = buildOpenDrawerBytes();
+    for (let b of drawerBytes) commands.push(b);
+  }
 
   // 3. Sisipkan Logo Toko jika ada
   if (cfg.logoBase64 && cfg.showLogo !== false) {
@@ -393,10 +399,20 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
  */
 export function buildOpenDrawerBytes() {
   return new Uint8Array([
-    0x1B, 0x70, 0x00, 0x1E, 0x7D,       // ESC p Pin 2 (60ms ON, 250ms OFF)
-    0x1B, 0x70, 0x01, 0x1E, 0x7D,       // ESC p Pin 5 (60ms ON, 250ms OFF)
-    0x10, 0x14, 0x01, 0x00, 0x08,       // DLE DC4 1 0 8 (Real-time pulse Pin 2)
-    0x10, 0x14, 0x01, 0x01, 0x08        // DLE DC4 1 1 8 (Real-time pulse Pin 5)
+    // 1. ESC p Pin 2 (m = 0, t1 = 30 * 2ms = 60ms, t2 = 125 * 2ms = 250ms)
+    0x1B, 0x70, 0x00, 0x1E, 0x7D,
+    // 2. ESC p Pin 5 (m = 1)
+    0x1B, 0x70, 0x01, 0x1E, 0x7D,
+    // 3. ESC p Pin 2 Format Karakter ASCII '0' (0x30)
+    0x1B, 0x70, 0x30, 0x1E, 0x7D,
+    // 4. ESC p Pin 5 Format Karakter ASCII '1' (0x31)
+    0x1B, 0x70, 0x31, 0x1E, 0x7D,
+    // 5. DLE DC4 Real-time pulse Pin 2
+    0x10, 0x14, 0x01, 0x00, 0x08,
+    // 6. DLE DC4 Real-time pulse Pin 5
+    0x10, 0x14, 0x01, 0x01, 0x08,
+    // 7. Karakter BEL (0x07) standar pembuka laci kasir tertentu
+    0x07
   ]);
 }
 
@@ -404,7 +420,7 @@ export function buildOpenDrawerBytes() {
  * Buat Byte Array ESC/POS Khusus Tiket Dapur / Kitchen Checkpoint
  * Format tanpa harga, nomor antrian/meja ekstra besar, dan ada kotak checklist [  ]
  */
-export function buildKitchenTicketEscPosBytes(tx) {
+export function buildKitchenTicketEscPosBytes(tx, kickDrawer = false) {
   const cfg = state.printerConfig || {};
   const commands = [];
 
@@ -434,6 +450,12 @@ export function buildKitchenTicketEscPosBytes(tx) {
   // 1. Inisialisasi printer (ESC @ dan PC437)
   addBytes(0x1B, 0x40);
   addBytes(0x1B, 0x74, 0x00);
+
+  // Jika diminta buka laci kasir saat cetak tiket dapur
+  if (kickDrawer) {
+    const drawerBytes = buildOpenDrawerBytes();
+    for (let b of drawerBytes) commands.push(b);
+  }
 
   if (!tx) {
     return new Uint8Array(commands);
@@ -506,6 +528,11 @@ export function buildKitchenTicketEscPosBytes(tx) {
   addBytes(0x1B, 0x61, 0x01); // Align Center
   addText('[  ] SELESAI --> SERAHKAN\n');
   addText(doubleDivider);
+
+  if (kickDrawer) {
+    const drawerBytes = buildOpenDrawerBytes();
+    for (let b of drawerBytes) commands.push(b);
+  }
 
   // 8. Feed baris minimal tanpa ruang kosong berlebih
   const kitchenFeeds = Math.max(1, Math.min(3, Number(cfg.feedLines !== undefined ? cfg.feedLines : 1)));
@@ -1012,8 +1039,8 @@ export async function executeDirectLocalPrintReceipt(tx, shouldKickDrawer, force
 /**
  * Eksekusi Langsung Cetak Tiket Dapur secara lokal (hardware direct)
  */
-export async function executeDirectLocalKitchenTicket(tx) {
-  const bytes = buildKitchenTicketEscPosBytes(tx);
+export async function executeDirectLocalKitchenTicket(tx, shouldKickDrawer = false) {
+  const bytes = buildKitchenTicketEscPosBytes(tx, shouldKickDrawer);
   const cfg = state.printerConfig || {};
   const method = cfg.printMethod || 'browser';
 
@@ -1235,13 +1262,19 @@ export async function kickCashDrawer(directOnly = false) {
  * Jika perangkat terhubung printer -> Cetak langsung.
  * Jika perangkat sekunder (HP Pelayan) -> Coba Wi-Fi Lokal dulu, fallback ke Cloud Relay.
  */
-export async function printReceipt(tx, shouldKickDrawer = false, forceMethod = null) {
+export async function printReceipt(tx, shouldKickDrawer = null, forceMethod = null) {
   playClick('pop');
   if (!tx) return false;
 
+  const cfg = state.printerConfig || {};
+  const isCash = tx?.method === 'TUNAI' || tx?.paymentMethod === 'TUNAI' || (!tx?.isQris && tx?.method !== 'QRIS');
+  const resolvedKick = (shouldKickDrawer !== null && shouldKickDrawer !== undefined)
+    ? Boolean(shouldKickDrawer)
+    : Boolean(cfg.autoKickDrawer !== false && isCash);
+
   // 1. Kasir Utama yang terhubung ke printer fisik
   if (isLocalPrinterReady()) {
-    return await executeDirectLocalPrintReceipt(tx, shouldKickDrawer, forceMethod);
+    return await executeDirectLocalPrintReceipt(tx, resolvedKick, forceMethod);
   }
 
   // 2. HP Pelayan (Secondary Device)
@@ -1253,7 +1286,7 @@ export async function printReceipt(tx, shouldKickDrawer = false, forceMethod = n
 
   if (hostIp) {
     try {
-      const escPosBytes = await buildEscPosBytes(tx, shouldKickDrawer);
+      const escPosBytes = await buildEscPosBytes(tx, resolvedKick);
       const localOk = await tryPrintViaLocalLan(escPosBytes, hostIp);
       if (localOk) {
         showToast('Struk berhasil dicetak.', 'success', 2500);
@@ -1270,6 +1303,7 @@ export async function printReceipt(tx, shouldKickDrawer = false, forceMethod = n
     const jobId = await dispatchRemotePrintJob({
       type: 'receipt',
       tx: tx,
+      kickDrawer: resolvedKick,
       forceMethod: forceMethod
     });
     await waitForRemotePrintJob(jobId, 12000);
@@ -1284,7 +1318,7 @@ export async function printReceipt(tx, shouldKickDrawer = false, forceMethod = n
 /**
  * Cetak Tiket Dapur / Kitchen Checkpoint
  */
-export async function printKitchenTicket(tx) {
+export async function printKitchenTicket(tx, shouldKickDrawer = false) {
   playClick('pop');
   if (!tx) {
     showToast('Tidak ada data transaksi untuk dicetak.', 'warning');
@@ -1293,7 +1327,7 @@ export async function printKitchenTicket(tx) {
 
   // 1. Jika perangkat ini terhubung ke printer lokal (Device 1)
   if (isLocalPrinterReady()) {
-    return await executeDirectLocalKitchenTicket(tx);
+    return await executeDirectLocalKitchenTicket(tx, shouldKickDrawer);
   }
 
   // 2. Jalur Utama: Coba cetak langsung via Wi-Fi Lokal / Hotspot
@@ -1304,7 +1338,7 @@ export async function printKitchenTicket(tx) {
 
   if (hostIp) {
     try {
-      const escPosBytes = buildKitchenTicketEscPosBytes(tx);
+      const escPosBytes = buildKitchenTicketEscPosBytes(tx, shouldKickDrawer);
       const localOk = await tryPrintViaLocalLan(escPosBytes, hostIp);
       if (localOk) {
         showToast('Tiket dapur berhasil dicetak.', 'success', 2500);
@@ -1320,7 +1354,8 @@ export async function printKitchenTicket(tx) {
     showToast('Mengirim tiket dapur...', 'info', 2000);
     const jobId = await dispatchRemotePrintJob({
       type: 'kitchen',
-      tx: tx
+      tx: tx,
+      kickDrawer: shouldKickDrawer
     });
     showToast('Menunggu pencetakan tiket...', 'info', 2000);
     await waitForRemotePrintJob(jobId, 15000);
@@ -1361,11 +1396,15 @@ export function setupRemotePrintHostListener() {
     try {
       if (job.type === 'receipt' && job.tx) {
         const cfg = state.printerConfig || {};
-        const shouldKick = cfg.autoKickDrawer && (job.tx.method === 'TUNAI');
+        const isCash = job.tx.method === 'TUNAI';
+        const shouldKick = job.kickDrawer !== undefined ? Boolean(job.kickDrawer) : Boolean(cfg.autoKickDrawer !== false && isCash);
         await executeDirectLocalPrintReceipt(job.tx, shouldKick, job.forceMethod);
         showToast(`Mencetak struk dari [${job.createdByName || 'Pelayan'}]`, 'info', 3000);
       } else if (job.type === 'kitchen' && job.tx) {
-        await executeDirectLocalKitchenTicket(job.tx);
+        const cfg = state.printerConfig || {};
+        const isCash = job.tx.method === 'TUNAI';
+        const shouldKick = job.kickDrawer !== undefined ? Boolean(job.kickDrawer) : Boolean(cfg.autoKickDrawer !== false && isCash);
+        await executeDirectLocalKitchenTicket(job.tx, shouldKick);
         showToast(`Mencetak tiket dapur dari [${job.createdByName || 'Pelayan'}]`, 'info', 3000);
       } else if (job.type === 'drawer') {
         await executeDirectLocalKickDrawer();
@@ -1877,12 +1916,17 @@ export async function testPrintReceipt() {
   try {
     const sampleTx = getSampleTxData();
     const role = getDevicePrinterMode();
+    const modalCheckbox = document.getElementById('printerAutoKickDrawer');
+    const autoKickFromModal = modalCheckbox ? modalCheckbox.checked : undefined;
+    const cfgKick = state.printerConfig?.autoKickDrawer !== false;
+    const shouldKick = autoKickFromModal !== undefined ? autoKickFromModal : cfgKick;
+
     if (role === 'pelayan') {
       showToast('Mengirim tes struk ke Kasir Utama...', 'info', 2000);
-      await printReceipt(sampleTx);
+      await printReceipt(sampleTx, shouldKick);
     } else {
       showToast('Menguji cetak struk kasir...', 'info', 2000);
-      await executeDirectLocalPrintReceipt(sampleTx, false);
+      await executeDirectLocalPrintReceipt(sampleTx, shouldKick);
     }
   } catch (err) {
     console.error('Test receipt error:', err);
@@ -1898,12 +1942,17 @@ export async function testPrintKitchenTicket() {
   try {
     const sampleTx = getSampleTxData();
     const role = getDevicePrinterMode();
+    const modalCheckbox = document.getElementById('printerAutoKickDrawer');
+    const autoKickFromModal = modalCheckbox ? modalCheckbox.checked : undefined;
+    const cfgKick = state.printerConfig?.autoKickDrawer !== false;
+    const shouldKick = autoKickFromModal !== undefined ? autoKickFromModal : cfgKick;
+
     if (role === 'pelayan') {
       showToast('Mengirim tes tiket ke Kasir Utama...', 'info', 2000);
-      await printKitchenTicket(sampleTx);
+      await printKitchenTicket(sampleTx, shouldKick);
     } else {
       showToast('Menguji cetak tiket dapur...', 'info', 2000);
-      await executeDirectLocalKitchenTicket(sampleTx);
+      await executeDirectLocalKitchenTicket(sampleTx, shouldKick);
     }
   } catch (err) {
     console.error('Test kitchen ticket error:', err);
@@ -2318,9 +2367,11 @@ export async function reconnectPrinterHost(silent = false) {
 
   setupHostPresenceListener();
 
-  // 1. Uji probe langsung Hotspot lokal (gateway 192.168.43.1 / IP tersimpan)
+  // 1. Uji probe langsung Wi-Fi Lokal & Hotspot (IP presence cloud, IP tersimpan, gateway hotspot)
   let localConnected = false;
   let candidateIps = [];
+  const presenceIp = lastKnownHostPresence?.ip;
+  if (presenceIp && !candidateIps.includes(presenceIp)) candidateIps.push(presenceIp);
   const savedIp = state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip');
   if (savedIp && !candidateIps.includes(savedIp)) candidateIps.push(savedIp);
   if (!candidateIps.includes('192.168.43.1')) candidateIps.push('192.168.43.1');
@@ -2439,7 +2490,9 @@ export function openHostQrPairingModal() {
 
   const ipEl = document.getElementById('hostQrIpDisplay');
   if (ipEl) {
-    ipEl.textContent = `Toko: ${storeName} • Saluran Otomatis (Hotspot & Cloud)`;
+    const isHs = hostIp && hostIp.startsWith('192.168.43.');
+    const netLabel = isHs ? `Hotspot (${hostIp})` : (hostIp ? `Wi-Fi Lokal (${hostIp})` : 'Cloud Firebase');
+    ipEl.textContent = `Toko: ${storeName} • Jalur: ${netLabel}`;
   }
 
   modal.classList.remove('hidden');

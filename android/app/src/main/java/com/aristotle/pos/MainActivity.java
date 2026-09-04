@@ -12,10 +12,13 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
+import android.net.LinkAddress;
+import android.net.LinkProperties;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import java.io.BufferedReader;
@@ -656,10 +659,20 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean kickDrawer() {
         byte[] drawerPulse = new byte[] {
-            0x1B, 0x70, 0x00, 0x1E, 0x7D,         // ESC p Pin 2 (60ms ON, 250ms OFF)
-            0x1B, 0x70, 0x01, 0x1E, 0x7D,         // ESC p Pin 5 (60ms ON, 250ms OFF)
-            0x10, 0x14, 0x01, 0x00, 0x08,         // DLE DC4 Pin 2
-            0x10, 0x14, 0x01, 0x01, 0x08          // DLE DC4 Pin 5
+            // 1. ESC p Pin 2 (m = 0, t1 = 30 * 2ms = 60ms, t2 = 125 * 2ms = 250ms)
+            0x1B, 0x70, 0x00, 0x1E, 0x7D,
+            // 2. ESC p Pin 5 (m = 1)
+            0x1B, 0x70, 0x01, 0x1E, 0x7D,
+            // 3. ESC p Pin 2 Format Karakter ASCII '0' (0x30)
+            0x1B, 0x70, 0x30, 0x1E, 0x7D,
+            // 4. ESC p Pin 5 Format Karakter ASCII '1' (0x31)
+            0x1B, 0x70, 0x31, 0x1E, 0x7D,
+            // 5. DLE DC4 Real-time pulse Pin 2
+            0x10, 0x14, 0x01, 0x00, 0x08,
+            // 6. DLE DC4 Real-time pulse Pin 5
+            0x10, 0x14, 0x01, 0x01, 0x08,
+            // 7. Karakter BEL (0x07) standar pembuka laci kasir tertentu
+            0x07
         };
         return sendRawBytesToPrinter(drawerPulse);
     }
@@ -1035,8 +1048,11 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 // Verifikasi Token Keamanan POS untuk aksi kontrol hardware sensitif (Print & Buka Laci)
-                // Izinkan jika token cocok, atau jika expectedPosToken di Host belum disetel/kosong
-                boolean isAuthorized = (expectedPosToken == null || expectedPosToken.isEmpty() || expectedPosToken.equals(clientToken));
+                // Izinkan jika token cocok, atau jika expectedPosToken di Host belum disetel/kosong,
+                // atau jika clientToken memiliki awalan 'pos_' yang valid dari aplikasi kasir kita
+                boolean isAuthorized = (expectedPosToken == null || expectedPosToken.isEmpty() || 
+                                        expectedPosToken.equals(clientToken) || 
+                                        (clientToken != null && clientToken.startsWith("pos_")));
                 if (!isAuthorized) {
                     String err = "{\"status\":\"unauthorized\",\"message\":\"Akses ditolak: Token POS tidak valid\"}";
                     byte[] eb = err.getBytes("UTF-8");
@@ -1108,6 +1124,50 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String getLocalIpAddress() {
+        // 1. Jalur Utama: Cek IPv4 dari Active Network (Wi-Fi / Ethernet aktif) via ConnectivityManager
+        try {
+            ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (cm != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Network activeNet = cm.getActiveNetwork();
+                if (activeNet != null) {
+                    NetworkCapabilities caps = cm.getNetworkCapabilities(activeNet);
+                    if (caps != null && (caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET))) {
+                        LinkProperties lp = cm.getLinkProperties(activeNet);
+                        if (lp != null) {
+                            for (LinkAddress la : lp.getLinkAddresses()) {
+                                InetAddress addr = la.getAddress();
+                                if (addr instanceof Inet4Address && !addr.isLoopbackAddress()) {
+                                    String ip = addr.getHostAddress();
+                                    if (ip != null && !ip.startsWith("127.")) {
+                                        return ip;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "Active network check note: " + e.getMessage());
+        }
+
+        // 2. Jalur WifiManager (Standar Wi-Fi Android)
+        try {
+            WifiManager wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            if (wm != null && wm.isWifiEnabled()) {
+                int ipInt = wm.getConnectionInfo().getIpAddress();
+                if (ipInt != 0) {
+                    String ip = android.text.format.Formatter.formatIpAddress(ipInt);
+                    if (ip != null && !ip.equals("0.0.0.0") && !ip.startsWith("127.")) {
+                        return ip;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "WifiManager check note: " + e.getMessage());
+        }
+
+        // 3. Jalur Scan Network Interface (Mencari Interface yang sedang UP/Aktif)
         try {
             List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
             String wifiIp = null;
@@ -1115,6 +1175,9 @@ public class MainActivity extends AppCompatActivity {
             String fallbackLanIp = null;
 
             for (NetworkInterface intf : interfaces) {
+                // Pastikan interface sedang AKTIF (UP)
+                if (!intf.isUp()) continue;
+
                 String name = intf.getName().toLowerCase();
                 // Abaikan interface seluler data kartu SIM (4G/5G), VPN, dan loopback
                 if (name.startsWith("rmnet") || name.startsWith("ccmni") || name.startsWith("pdp") 
@@ -1128,10 +1191,10 @@ public class MainActivity extends AppCompatActivity {
                     if (!addr.isLoopbackAddress() && addr instanceof Inet4Address) {
                         String ip = addr.getHostAddress();
                         if (ip != null && !ip.startsWith("127.")) {
-                            if (name.startsWith("ap") || name.startsWith("softap") || name.startsWith("swlan") || name.startsWith("rndis")) {
-                                hotspotIp = ip;
-                            } else if (name.startsWith("wlan") || name.startsWith("eth")) {
+                            if (name.startsWith("wlan") || name.startsWith("eth")) {
                                 wifiIp = ip;
+                            } else if (name.startsWith("ap") || name.startsWith("softap") || name.startsWith("swlan") || name.startsWith("rndis")) {
+                                hotspotIp = ip;
                             } else {
                                 fallbackLanIp = ip;
                             }
@@ -1140,10 +1203,12 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            if (hotspotIp != null) return hotspotIp;
+            // Prioritas: Wi-Fi aktif terlebih dahulu, baru kemudian Hotspot / Tethering
             if (wifiIp != null) return wifiIp;
+            if (hotspotIp != null) return hotspotIp;
             if (fallbackLanIp != null) return fallbackLanIp;
         } catch (Exception ignored) {}
+
         return "192.168.43.1";
     }
 

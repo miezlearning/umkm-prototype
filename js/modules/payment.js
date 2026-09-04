@@ -543,33 +543,34 @@ export function completeTransaction() {
   showReceipt(newTx);
   playSuccessChime();
 
-  // 1. Auto-Print Struk Kasir / Tiket Dapur
+  // 1. Auto-Print Struk Kasir / Tiket Dapur & Buka Laci Kasir
   const printerCfg = state.printerConfig || {};
+  const isCash = !isQris;
+  const shouldKick = Boolean(printerCfg.autoKickDrawer !== false && isCash);
+
   if (printerCfg.autoPrintKitchen && printerCfg.autoPrint) {
     setTimeout(() => {
-      printKitchenTicket(newTx);
+      printKitchenTicket(newTx, false);
       setTimeout(() => {
-        printReceipt(newTx);
+        printReceipt(newTx, shouldKick);
       }, 700);
     }, 300);
   } else if (printerCfg.autoPrintKitchen) {
     setTimeout(() => {
-      printKitchenTicket(newTx);
+      printKitchenTicket(newTx, shouldKick);
+      if (shouldKick) {
+        setTimeout(() => kickCashDrawer(), 500);
+      }
     }, 300);
   } else if (printerCfg.autoPrint) {
     setTimeout(() => {
-      printReceipt(newTx);
+      printReceipt(newTx, shouldKick);
     }, 300);
-  }
-
-  // 2. Auto-Buka Laci Kasir jika bayar TUNAI (Independen dari autoPrint agar selalu terpicu)
-  if (printerCfg.autoKickDrawer && !isQris) {
-    // Jika tidak mencetak struk otomatis, picu buka laci langsung
-    if (!printerCfg.autoPrint) {
-      setTimeout(() => {
-        kickCashDrawer();
-      }, 300);
-    }
+  } else if (shouldKick) {
+    // Jika tidak mencetak otomatis, picu buka laci langsung saat bayar tunai
+    setTimeout(() => {
+      kickCashDrawer();
+    }, 300);
   }
 
   if (state.orderQueues.length > 1) {
@@ -604,7 +605,9 @@ export function showReceipt(tx) {
 
 export function printCurrentReceipt() {
   if (currentReceiptTx) {
-    printReceipt(currentReceiptTx);
+    const isCash = currentReceiptTx.method === 'TUNAI' || (!currentReceiptTx.isQris && currentReceiptTx.method !== 'QRIS');
+    const shouldKick = Boolean(state.printerConfig?.autoKickDrawer !== false && isCash);
+    printReceipt(currentReceiptTx, shouldKick);
   } else {
     window.print();
   }
@@ -613,7 +616,9 @@ export function printCurrentReceipt() {
 export async function printCurrentKitchenTicket() {
   if (currentReceiptTx) {
     try {
-      await printKitchenTicket(currentReceiptTx);
+      const isCash = currentReceiptTx.method === 'TUNAI' || (!currentReceiptTx.isQris && currentReceiptTx.method !== 'QRIS');
+      const shouldKick = Boolean(state.printerConfig?.autoKickDrawer !== false && isCash);
+      await printKitchenTicket(currentReceiptTx, shouldKick);
     } catch (err) {
       console.error('Print kitchen ticket error:', err);
       showToast('Gagal cetak tiket dapur: ' + (err.message || 'Kesalahan sistem'), 'error');

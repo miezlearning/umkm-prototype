@@ -4,6 +4,17 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.2.14] - 2026-09-04
+
+### 🖨️ Kestabilan Sinkronisasi Wi-Fi & Buka Laci Kasir (Cash Drawer) Otomatis
+- **Deteksi Akurat IP Wi-Fi Lokal:** Memperbarui fungsi `getLocalIpAddress()` di Android native (`MainActivity.java`) menggunakan `ConnectivityManager` dan `WifiManager` agar mendeteksi alamat IP router Wi-Fi lokal sesungguhnya secara andal, dan hanya menggunakan fallback `192.168.43.1` saat HP Kasir benar-benar mengaktifkan hotspot/tethering.
+- **Pairing QR & Cloud Presence Wi-Fi Instan:** QR Pairing dan data presence Firestore kini otomatis menyiarkan alamat IP Wi-Fi lokal yang akurat, sehingga HP Pelayan langsung terhubung tanpa perlu "memancing" lewat hotspot.
+- **Otomatisasi Laci Kasir Pembelian Tunai:** Memperbaiki aliran checkout di `payment.js` agar perintah buka laci kasir (`shouldKickDrawer`) selalu terkirim pada pencetakan struk dan tiket dapur saat metode bayar TUNAI, atau memicu pembukaan laci mandiri jika cetak otomatis dinonaktifkan.
+- **Dukungan Buka Laci pada Tes Struk & Tes Dapur:** Tombol Tes Struk dan Tes Dapur di menu pengaturan printer kini merespons toggle "Buka Laci Otomatis" secara real-time.
+- **Universal ESC/POS Solenoid Kick Pulse:** Memperluas byte sequence pembuka laci di `printer.js` dan `MainActivity.java` dengan pulsa multi-standar (ESC p Pin 2 & Pin 5, varian ASCII '0' & '1', DLE DC4 real-time pulses, dan BEL) serta menempatkannya di awal cetak struk agar laci kasir langsung menyentak terbuka seketika.
+
+---
+
 ## [v1.1.39] - 2026-09-04
 
 ### 🛡️ Pengamanan Menyeluruh Sistem (Security Hardening)
