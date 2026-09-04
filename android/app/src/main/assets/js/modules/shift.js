@@ -58,7 +58,7 @@ export function updateShiftHeaderUI() {
 
   if (active && active.status === 'open') {
     if (desktopBadge) {
-      desktopBadge.className = 'hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-950 text-xs font-bold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
+      desktopBadge.className = 'hidden';
       desktopBadge.title = `Shift Aktif: ${active.cashierName} (Mulai: ${formatDateTime(active.startTime)}). Klik untuk Tutup Shift / Laporan Z.`;
     }
     if (desktopDot) {
@@ -77,7 +77,7 @@ export function updateShiftHeaderUI() {
     }
   } else {
     if (desktopBadge) {
-      desktopBadge.className = 'hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-stone-100 hover:bg-stone-200/80 border border-stone-200/80 text-stone-700 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0';
+      desktopBadge.className = 'hidden';
       desktopBadge.title = 'Shift belum dibuka. Klik untuk Mulai Shift Kasir.';
     }
     if (desktopDot) {

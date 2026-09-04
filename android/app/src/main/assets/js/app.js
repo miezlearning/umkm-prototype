@@ -58,10 +58,6 @@ export function switchView(viewName) {
   const btnReportM = document.getElementById('btnNavReportMobile') || document.getElementById('btnNavReport');
   const btnAdminM = document.getElementById('btnNavAdminMobile') || document.getElementById('btnNavAdmin');
   
-  const btnPosD = document.getElementById('btnNavPosDesktop');
-  const btnReportD = document.getElementById('btnNavReportDesktop');
-  const btnAdminD = document.getElementById('btnNavAdminDesktop');
-
   // Hide all screens
   if (viewPos) viewPos.classList.add('hidden');
   if (viewAdmin) viewAdmin.classList.add('hidden');
@@ -75,13 +71,6 @@ export function switchView(viewName) {
     }
   });
 
-  // Reset Desktop Navigation Buttons
-  [btnPosD, btnReportD, btnAdminD].forEach(b => {
-    if (b) {
-      b.className = 'px-4 py-2 rounded-xl text-stone-700 hover:text-stone-950 hover:bg-white font-extrabold flex items-center gap-2 transition';
-    }
-  });
-
   const mobileNav = document.getElementById('mobileBottomNav') || document.querySelector('nav.lg\\:hidden') || document.querySelector('nav.md\\:hidden');
   const mainHeader = document.getElementById('mainAppHeader');
 
@@ -90,7 +79,6 @@ export function switchView(viewName) {
     if (mobileNav) mobileNav.classList.remove('hidden');
     if (viewPos) viewPos.classList.remove('hidden');
     if (btnPosM) btnPosM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
-    if (btnPosD) btnPosD.className = 'px-3 xl:px-4 py-1.5 xl:py-2 rounded-xl bg-emerald-700 text-white font-black text-xs xl:text-sm flex items-center gap-1.5 xl:gap-2 transition shadow-sm';
     pos.renderOrderQueueTabs();
     pos.renderProducts();
     pos.renderCart();
@@ -102,7 +90,6 @@ export function switchView(viewName) {
     if (mobileNav) mobileNav.classList.remove('hidden');
     if (viewAdmin) viewAdmin.classList.remove('hidden');
     if (btnAdminM) btnAdminM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
-    if (btnAdminD) btnAdminD.className = 'px-3 xl:px-4 py-1.5 xl:py-2 rounded-xl bg-emerald-700 text-white font-black text-xs xl:text-sm flex items-center gap-1.5 xl:gap-2 transition shadow-sm';
     admin.renderAdminTable();
     if (state.storeId) {
       window.history.replaceState(null, '', `${window.location.pathname}?store=${encodeURIComponent(state.storeId)}`);
@@ -112,7 +99,6 @@ export function switchView(viewName) {
     if (mobileNav) mobileNav.classList.remove('hidden');
     if (viewReport) viewReport.classList.remove('hidden');
     if (btnReportM) btnReportM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
-    if (btnReportD) btnReportD.className = 'px-3 xl:px-4 py-1.5 xl:py-2 rounded-xl bg-emerald-700 text-white font-black text-xs xl:text-sm flex items-center gap-1.5 xl:gap-2 transition shadow-sm';
     report.renderFinancialReport();
     if (state.storeId) {
       window.history.replaceState(null, '', `${window.location.pathname}?store=${encodeURIComponent(state.storeId)}`);

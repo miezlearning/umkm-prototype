@@ -259,21 +259,6 @@
             </span>
             <span class="material-symbols-rounded text-lg text-stone-500 group-hover:text-stone-900 transition shrink-0">arrow_drop_down</span>
           </button>
-
-          <!-- Hidden elements for scripts/release.js and JS compatibility -->
-          <button id="headerPrinterStatusBadge" type="button" onclick="window.KasirApp.openPrinterConfigModal()" class="hidden">
-            <span id="headerPrinterDot"></span>
-            <span id="headerPrinterIcon"></span>
-            <span id="headerPrinterText"></span>
-          </button>
-          <button id="headerShiftStatusBadge" type="button" onclick="window.KasirApp.handleShiftHeaderClick()" class="hidden">
-            <span id="headerShiftDot"></span>
-            <span id="headerShiftText"></span>
-          </button>
-          <button id="btnNavPosDesktop" onclick="switchView('pos')" class="hidden"></button>
-          <button id="btnNavReportDesktop" onclick="switchView('report')" class="hidden"></button>
-          <button id="btnNavAdminDesktop" onclick="switchView('admin')" class="hidden"></button>
-          <span id="appVersionBadge" class="hidden">v1.2.7</span>
         </div>
 
         <!-- Right Side on Tablet/Desktop: Live Realtime Clock & Kiosk Fullscreen Action -->
@@ -3155,7 +3140,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-black tracking-tight" id="updateModalTitle">Pembaruan Aplikasi Tersedia!</h3>
-              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.7</span>
+              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.8</span>
             </div>
             <p id="updateModalCurrentVersion" class="text-emerald-100 text-xs mt-0.5">Versi Anda saat ini: v1.1.3</p>
           </div>
@@ -3306,6 +3291,16 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Headless / Legacy DOM Stubs for Release Scripts & Backward Compatibility (100% permanently hidden) -->
+  <div style="display: none !important;" hidden aria-hidden="true">
+    <button id="headerPrinterStatusBadge" type="button"><span id="headerPrinterDot"></span><span id="headerPrinterIcon"></span><span id="headerPrinterText"></span></button>
+    <button id="headerShiftStatusBadge" type="button"><span id="headerShiftDot"></span><span id="headerShiftText"></span></button>
+    <button id="btnNavPosDesktop"></button>
+    <button id="btnNavReportDesktop"></button>
+    <button id="btnNavAdminDesktop"></button>
+    <span id="appVersionBadge" class="hidden">v1.2.8</span>
   </div>
 
   <!-- Main JavaScript App Module -->
