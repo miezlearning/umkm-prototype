@@ -404,3 +404,306 @@ export function importDataBackup(event) {
   };
   reader.readAsText(file);
 }
+
+// ================= BULK MENU TEXT IMPORT =================
+export const USER_SAMPLE_MENU_TEXT = `Makanan nasi Ayam serbuk 15k
+Nasi telor satu 10k
+Telor dobel 13k
+Mie jumbo/dobel 19k tambah telor 13k
+Mie biasa 7k tambah telor 10k
+Aneka minuman saset 5k
+Gud day 6k
+ABC kelepon 6k
+Nutri sari dll 5k
+Kopi hitam 5k
+Kopi susu 7k
+Teh tarik 7k
+Es teh solo 4k
+Josu 5k
+Millo 8k
+Aneka minuman botol 5k
+Sprit 7k
+Gud day 7k
+Susu ultra 7k
+Sijiro 4k
+Mineralle 5k
+AQua 5k`;
+
+let bulkParsedProducts = [];
+
+function parsePriceNumber(str) {
+  if (!str) return 0;
+  const clean = str.trim().toLowerCase().replace(/rp\.?\s*/g, '');
+  if (clean.endsWith('k') || clean.endsWith('rb') || clean.endsWith('ribu')) {
+    const num = parseFloat(clean.replace(/[^\d.,]/g, '').replace(',', '.'));
+    return Math.round(num * 1000);
+  }
+  const digits = clean.replace(/[^\d]/g, '');
+  const num = parseInt(digits, 10) || 0;
+  if (num > 0 && num < 1000) return num * 1000;
+  return num;
+}
+
+function cleanItemTitle(str) {
+  const words = (str || '').trim().split(/\s+/);
+  return words.map(w => {
+    if (/^(dll|dan|atau|ke|di|yang)$/i.test(w)) return w.toLowerCase();
+    if (/^(abc|qris|pos|josu|bbq)$/i.test(w)) return w.toUpperCase();
+    return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+  }).join(' ');
+}
+
+function pickMenuIcon(name, category) {
+  const n = (name || '').toLowerCase();
+  if (/mie|ramen|bakso|bihun|kwetiau/i.test(n)) return 'ramen_dining';
+  if (/nasi|ayam|bebek|sate|burger|daging|ikan/i.test(n)) return 'lunch_dining';
+  if (/telur|telor/i.test(n)) return 'egg';
+  if (/kopi|coffee|teh|tea/i.test(n)) return 'local_cafe';
+  if (/minuman|es |susu|josu|milo|millo|sprit|aqua|mineral|botol|saset/i.test(n)) return 'local_drink';
+  if (/roti|pisang|tahu|tempe|gorengan|camilan|snack/i.test(n)) return 'bakery_dining';
+  return category === 'minuman' ? 'local_drink' : (category === 'camilan' ? 'bakery_dining' : 'lunch_dining');
+}
+
+export function parseBulkMenuText(raw) {
+  const lines = (raw || '').split('\n');
+  const items = [];
+  let currentCategory = 'makanan';
+
+  for (let rawLine of lines) {
+    let line = rawLine.trim();
+    if (!line) continue;
+
+    // Deteksi header kategori jika ada
+    if (/^===?\s*makanan/i.test(line) || /^makanan\s*:/i.test(line)) {
+      currentCategory = 'makanan';
+      continue;
+    }
+    if (/^===?\s*minuman/i.test(line) || /^minuman\s*:/i.test(line)) {
+      currentCategory = 'minuman';
+      continue;
+    }
+    if (/^===?\s*camilan/i.test(line) || /^camilan\s*:/i.test(line)) {
+      currentCategory = 'camilan';
+      continue;
+    }
+
+    if (/^makanan\s+/i.test(line)) {
+      currentCategory = 'makanan';
+    } else if (/aneka minuman/i.test(line) || /^minuman\s+/i.test(line)) {
+      currentCategory = 'minuman';
+    }
+
+    // Periksa baris ganda dengan ekstra/varian (misal: 'Mie biasa 7k tambah telor 10k')
+    const tambahMatch = line.match(/(.+?)\s+(\d+[kK]?|\d+\.\d{3}|rp\.?\s*\d+)\s+(?:tambah|\+)\s+(.+?)\s+(\d+[kK]?|\d+\.\d{3}|rp\.?\s*\d+)$/i);
+    if (tambahMatch) {
+      let mainName = tambahMatch[1].replace(/^(makanan|minuman|camilan)\s+/i, '').trim();
+      const mainPrice = parsePriceNumber(tambahMatch[2]);
+      const addName = tambahMatch[3].trim();
+      const addPrice = parsePriceNumber(tambahMatch[4]);
+      
+      items.push({
+        id: 'p_' + Date.now() + '_' + Math.floor(Math.random() * 100000),
+        name: cleanItemTitle(mainName),
+        price: mainPrice,
+        category: currentCategory,
+        icon: pickMenuIcon(mainName, currentCategory),
+        isAvailable: true,
+        trackStock: false,
+        stock: null
+      });
+      items.push({
+        id: 'p_' + (Date.now() + 1) + '_' + Math.floor(Math.random() * 100000),
+        name: cleanItemTitle(`${mainName} + ${addName}`),
+        price: addPrice,
+        category: currentCategory,
+        icon: pickMenuIcon(mainName, currentCategory),
+        isAvailable: true,
+        trackStock: false,
+        stock: null
+      });
+      continue;
+    }
+
+    // Baris reguler: Ekstrak nama dan harga
+    const priceMatch = line.match(/(.*?)\s+(\d+[kK]|\d+rb|\d+\.\d{3}|rp\.?\s*\d+|\d{4,6}|\b\d{1,3}\b)$/i);
+    if (priceMatch) {
+      let name = priceMatch[1].replace(/^(makanan|minuman|camilan)\s+/i, '').trim();
+      let price = parsePriceNumber(priceMatch[2]);
+      if (!name) name = line;
+      
+      let cat = currentCategory;
+      if (/kopi|teh|susu|josu|millo|milo|sprit|aqua|mineral|nutri|jus|drink|kelepon|saset|botol/i.test(name)) {
+        cat = 'minuman';
+      } else if (/nasi|mie|ayam|telor|bebek|bakso|gorengan/i.test(name)) {
+        cat = 'makanan';
+      }
+
+      items.push({
+        id: 'p_' + Date.now() + '_' + Math.floor(Math.random() * 100000),
+        name: cleanItemTitle(name),
+        price: price,
+        category: cat,
+        icon: pickMenuIcon(name, cat),
+        isAvailable: true,
+        trackStock: false,
+        stock: null
+      });
+    } else {
+      items.push({
+        id: 'p_' + Date.now() + '_' + Math.floor(Math.random() * 100000),
+        name: cleanItemTitle(line),
+        price: 0,
+        category: currentCategory,
+        icon: pickMenuIcon(line, currentCategory),
+        isAvailable: true,
+        trackStock: false,
+        stock: null
+      });
+    }
+  }
+  return items;
+}
+
+export function openBulkImportModal(initialText = '') {
+  playClick('pop');
+  const modal = document.getElementById('bulkImportModal');
+  const textarea = document.getElementById('bulkMenuTextInput');
+  if (textarea) {
+    textarea.value = initialText || '';
+  }
+  handleBulkTextInput();
+  if (modal) modal.classList.remove('hidden');
+}
+
+export function closeBulkImportModal() {
+  playClick('pop');
+  const modal = document.getElementById('bulkImportModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+export function loadUserSampleMenu() {
+  playClick('tap');
+  const textarea = document.getElementById('bulkMenuTextInput');
+  if (textarea) {
+    textarea.value = USER_SAMPLE_MENU_TEXT;
+  }
+  handleBulkTextInput();
+  showToast('Daftar menu berhasil ditempel.', 'info', 2000);
+}
+
+export function handleBulkTextInput() {
+  const textarea = document.getElementById('bulkMenuTextInput');
+  const raw = textarea ? textarea.value : '';
+  bulkParsedProducts = parseBulkMenuText(raw);
+  renderBulkPreviewList();
+}
+
+export function renderBulkPreviewList() {
+  const container = document.getElementById('bulkImportPreviewList');
+  const badge = document.getElementById('bulkPreviewCountBadge');
+  const applyBtn = document.getElementById('btnApplyBulkImport');
+  const btnText = document.getElementById('btnApplyBulkImportText');
+
+  const count = bulkParsedProducts.length;
+  if (badge) badge.textContent = `${count} Menu`;
+  if (btnText) btnText.textContent = count > 0 ? `Simpan & Terapkan (${count} Menu)` : 'Simpan & Terapkan';
+  if (applyBtn) applyBtn.disabled = count === 0;
+
+  if (!container) return;
+
+  if (count === 0) {
+    container.innerHTML = `
+      <div class="p-6 text-center text-stone-400 bg-stone-50 rounded-2xl border border-dashed border-stone-200">
+        <span class="material-symbols-rounded text-3xl mb-1 text-stone-300">receipt_long</span>
+        <p class="text-xs font-bold">Belum ada menu yang terdeteksi.</p>
+        <p class="text-[11px] text-stone-400 mt-0.5">Ketik atau tempel teks menu di atas, atau klik "Tempel Menu Anda".</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="space-y-2 max-h-64 overflow-y-auto custom-scroll pr-1">
+      ${bulkParsedProducts.map((item, idx) => `
+        <div class="flex items-center gap-2 p-2 bg-stone-50 rounded-xl border border-stone-200">
+          <span class="material-symbols-rounded text-lg text-emerald-700 shrink-0 select-none">${item.icon}</span>
+          <select onchange="window.KasirApp.updateBulkPreviewRow(${idx}, 'category', this.value)"
+            class="p-1.5 rounded-lg bg-white border border-stone-300 text-xs font-bold text-stone-800 shrink-0">
+            <option value="makanan" ${item.category === 'makanan' ? 'selected' : ''}>Makanan</option>
+            <option value="minuman" ${item.category === 'minuman' ? 'selected' : ''}>Minuman</option>
+            <option value="camilan" ${item.category === 'camilan' ? 'selected' : ''}>Camilan</option>
+            <option value="topping" ${item.category === 'topping' ? 'selected' : ''}>Topping</option>
+          </select>
+          <input type="text" value="${escapeHtml(item.name)}" oninput="window.KasirApp.updateBulkPreviewRow(${idx}, 'name', this.value)"
+            class="flex-1 p-1.5 rounded-lg bg-white border border-stone-300 text-xs font-bold text-stone-900 outline-none focus:border-sky-600 shadow-2xs">
+          <div class="flex items-center gap-1 shrink-0">
+            <span class="text-[11px] font-bold text-stone-500">Rp</span>
+            <input type="number" value="${item.price}" oninput="window.KasirApp.updateBulkPreviewRow(${idx}, 'price', parseInt(this.value, 10) || 0)"
+              class="w-20 p-1.5 rounded-lg bg-white border border-stone-300 text-xs font-black text-emerald-800 outline-none focus:border-sky-600 shadow-2xs">
+          </div>
+          <button type="button" onclick="window.KasirApp.deleteBulkPreviewRow(${idx})"
+            class="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-100 flex items-center justify-center shrink-0 transition" title="Hapus">
+            <span class="material-symbols-rounded text-base">close</span>
+          </button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+export function updateBulkPreviewRow(index, field, value) {
+  if (bulkParsedProducts[index]) {
+    bulkParsedProducts[index][field] = value;
+    if (field === 'name' || field === 'category') {
+      bulkParsedProducts[index].icon = pickMenuIcon(bulkParsedProducts[index].name, bulkParsedProducts[index].category);
+    }
+  }
+}
+
+export function deleteBulkPreviewRow(index) {
+  playClick('pop');
+  if (index >= 0 && index < bulkParsedProducts.length) {
+    bulkParsedProducts.splice(index, 1);
+    renderBulkPreviewList();
+  }
+}
+
+export function applyBulkMenuImport() {
+  playClick('pop');
+  if (!bulkParsedProducts || bulkParsedProducts.length === 0) {
+    showToast('Tidak ada menu untuk disimpan.', 'warning', 2000);
+    return;
+  }
+
+  const modeRadios = document.getElementsByName('bulkImportMode');
+  let mode = 'append';
+  for (const r of modeRadios) {
+    if (r.checked) {
+      mode = r.value;
+      break;
+    }
+  }
+
+  if (mode === 'replace') {
+    state.products = [...bulkParsedProducts];
+  } else {
+    // Append (cek duplikasi nama agar tidak ganda persis)
+    const existingNames = new Set(state.products.map(p => p.name.toLowerCase()));
+    for (const item of bulkParsedProducts) {
+      if (existingNames.has(item.name.toLowerCase())) {
+        // Berikan ID baru jika tetap ditambahkan
+        item.id = 'p_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+      }
+      state.products.push(item);
+    }
+  }
+
+  saveProducts();
+  bulkParsedProducts.forEach(p => syncSaveProduct(p));
+
+  closeBulkImportModal();
+  renderAdminTable();
+  renderProducts();
+
+  showToast(`${bulkParsedProducts.length} menu berhasil disimpan!`, 'success', 3000);
+}

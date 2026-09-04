@@ -1,11 +1,10 @@
-# Aristotle POS v1.2.11 Release Notes
+# Aristotle POS v1.2.12 Release Notes
 
 **Tanggal Rilis:** 2026-09-04
 
 ### Catatan Pembaruan:
-- Penghapusan tombol Tes Ping yang redundan
-- Penyempurnaan tata letak input IP dan tombol Cari IP
-- Pembersihan seluruh copy UI menjadi lugas, jelas, dan informatif tanpa kata-kata berbunga
+- Fitur upload/impor teks menu otomatis
+- Dukungan format teks catatan & chat WhatsApp
 
 ---
 *Pembaruan ini dapat diunduh dan dipasang langsung dari dalam aplikasi (In-App Auto-Updater).*

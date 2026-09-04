@@ -1,11 +1,10 @@
 {
-  "versionCode": 58,
-  "versionName": "1.2.11",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.11/Aristotle-POS.apk",
+  "versionCode": 59,
+  "versionName": "1.2.12",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.12/Aristotle-POS.apk",
   "changelog": [
-    "Penghapusan tombol Tes Ping yang redundan",
-    "Penyempurnaan tata letak input IP dan tombol Cari IP",
-    "Pembersihan seluruh copy UI menjadi lugas, jelas, dan informatif tanpa kata-kata berbunga"
+    "Fitur upload/impor teks menu otomatis",
+    "Dukungan format teks catatan & chat WhatsApp"
   ],
   "releaseDate": "2026-09-04"
 }

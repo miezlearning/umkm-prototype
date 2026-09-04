@@ -1077,6 +1077,12 @@
             <span class="material-symbols-rounded text-base">add_circle</span>
             <span>Tambah Menu</span>
           </button>
+          <button onclick="openBulkImportModal()"
+            class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-1 shadow-sm transition touch-target-large"
+            title="Upload atau tempel teks daftar menu sekaligus">
+            <span class="material-symbols-rounded text-base">playlist_add</span>
+            <span>Upload Teks Menu</span>
+          </button>
           <button onclick="openPrinterConfigModal()"
             class="px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 font-extrabold text-xs flex items-center gap-1 transition touch-target-large shadow-sm"
             title="Atur printer thermal 58mm & laci kasir">
@@ -1905,6 +1911,105 @@
             class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs sm:text-sm touch-target-large shadow-sm">Simpan Menu</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ==================== BULK MENU TEXT IMPORTER MODAL ==================== -->
+  <div id="bulkImportModal"
+    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div
+      class="bg-white w-full sm:max-w-2xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95">
+      
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 pb-3 flex items-start justify-between border-b border-stone-100 bg-white">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center shrink-0">
+            <span class="material-symbols-rounded text-2xl">playlist_add</span>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black text-stone-900 leading-tight">Upload Teks Menu</h3>
+            <p class="text-xs text-stone-500 font-medium mt-0.5">Tempel daftar menu dari WhatsApp atau catatan</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeBulkImportModal()" class="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition" title="Tutup">
+          <span class="material-symbols-rounded text-2xl">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-4 sm:p-5 flex flex-col gap-4 overflow-y-auto custom-scroll flex-1">
+        
+        <!-- Text Area Section -->
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center justify-between">
+            <label for="bulkMenuTextInput" class="text-xs font-black text-stone-800 flex items-center gap-1.5">
+              <span>Teks Daftar Menu</span>
+            </label>
+            <button type="button" onclick="loadUserSampleMenu()"
+              class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-lg border border-indigo-200 flex items-center gap-1 transition shadow-2xs"
+              title="Isi otomatis dengan 22 menu Anda">
+              <span class="material-symbols-rounded text-sm">content_paste</span>
+              <span>Tempel Menu Anda</span>
+            </button>
+          </div>
+          
+          <textarea id="bulkMenuTextInput" rows="6" oninput="handleBulkTextInput()"
+            placeholder="Ketik atau tempel daftar menu di sini...
+Contoh:
+Makanan nasi Ayam serbuk 15k
+Nasi telor satu 10k
+Mie biasa 7k tambah telor 10k
+Aneka minuman saset 5k
+Kopi susu 7k"
+            class="w-full p-3 rounded-xl border border-stone-300 focus:border-indigo-600 focus:outline-none text-xs font-mono leading-relaxed bg-stone-50/50 resize-y"></textarea>
+          
+          <p class="text-[11px] text-stone-500">
+            Format bebas: sebut nama dan harga (misal: 15k, 15000, 15rb). Kategori otomatis terdeteksi (Makanan / Minuman / Camilan).
+          </p>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black text-stone-800">Hasil Deteksi Menu</span>
+            <span id="bulkPreviewCountBadge" class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 font-black text-xs">0 Menu</span>
+          </div>
+
+          <div id="bulkImportPreviewList">
+            <!-- Rendered by renderBulkPreviewList() -->
+          </div>
+        </div>
+
+        <!-- Save Mode Option -->
+        <div class="bg-stone-50 p-3 rounded-xl border border-stone-200 flex flex-col gap-2">
+          <span class="text-xs font-black text-stone-800">Opsi Penyimpanan</span>
+          <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 text-xs font-semibold text-stone-700">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" name="bulkImportMode" value="append" checked class="w-4 h-4 accent-indigo-600">
+              <span>Tambahkan ke menu yang ada</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" name="bulkImportMode" value="replace" class="w-4 h-4 accent-indigo-600">
+              <span class="text-amber-700">Ganti seluruh menu (reset menu lama)</span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 sm:p-5 pt-3 border-t border-stone-100 flex items-center justify-end gap-2 bg-stone-50/60">
+        <button type="button" onclick="closeBulkImportModal()"
+          class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 font-bold text-stone-700 text-xs sm:text-sm transition touch-target-large">
+          Batal
+        </button>
+        <button type="button" id="btnApplyBulkImport" onclick="applyBulkMenuImport()" disabled
+          class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs sm:text-sm flex items-center gap-1.5 transition touch-target-large shadow-sm">
+          <span class="material-symbols-rounded text-lg">check_circle</span>
+          <span id="btnApplyBulkImportText">Simpan & Terapkan</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -3184,7 +3289,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-black tracking-tight" id="updateModalTitle">Pembaruan Aplikasi Tersedia!</h3>
-              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.11</span>
+              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.12</span>
             </div>
             <p id="updateModalCurrentVersion" class="text-emerald-100 text-xs mt-0.5">Versi Anda saat ini: v1.1.3</p>
           </div>
@@ -3344,7 +3449,7 @@
     <button id="btnNavPosDesktop"></button>
     <button id="btnNavReportDesktop"></button>
     <button id="btnNavAdminDesktop"></button>
-    <span id="appVersionBadge" class="hidden">v1.2.11</span>
+    <span id="appVersionBadge" class="hidden">v1.2.12</span>
   </div>
 
   <!-- Main JavaScript App Module -->

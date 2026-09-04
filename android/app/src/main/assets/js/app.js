@@ -1265,6 +1265,15 @@ const KasirApp = {
   exportDataBackup: admin.exportDataBackup,
   importDataBackup: admin.importDataBackup,
 
+  // Bulk Menu Text Importer
+  openBulkImportModal: admin.openBulkImportModal,
+  closeBulkImportModal: admin.closeBulkImportModal,
+  loadUserSampleMenu: admin.loadUserSampleMenu,
+  handleBulkTextInput: admin.handleBulkTextInput,
+  updateBulkPreviewRow: admin.updateBulkPreviewRow,
+  deleteBulkPreviewRow: admin.deleteBulkPreviewRow,
+  applyBulkMenuImport: admin.applyBulkMenuImport,
+
   // Report & Bookkeeping
   setReportPeriod: report.setReportPeriod,
   renderFinancialReport: report.renderFinancialReport,
