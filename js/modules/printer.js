@@ -944,7 +944,7 @@ export function setDevicePrinterMode(mode) {
   }
 
   updatePrinterUIStatus();
-  showToast(cleanMode === 'host' ? 'Disetel sebagai Kasir Utama (Host Printer)' : 'Disetel sebagai HP Pelayan (Cloud Relay)', 'info', 3000);
+  showToast(cleanMode === 'host' ? 'Disetel sebagai Kasir Utama (Host Printer)' : 'Disetel sebagai HP Staf (Cloud Relay)', 'info', 3000);
 }
 
 /**
@@ -1479,16 +1479,16 @@ export function setupRemotePrintHostListener() {
         const isCash = job.tx.method === 'TUNAI';
         const shouldKick = job.kickDrawer !== undefined ? Boolean(job.kickDrawer) : Boolean(cfg.autoKickDrawer !== false && isCash);
         await executeDirectLocalPrintReceipt(job.tx, shouldKick, job.forceMethod);
-        showToast(`Mencetak struk dari [${job.createdByName || 'Pelayan'}]`, 'info', 3000);
+        showToast(`Mencetak struk dari [${job.createdByName || 'Staf'}]`, 'info', 3000);
       } else if (job.type === 'kitchen' && job.tx) {
         const cfg = state.printerConfig || {};
         const isCash = job.tx.method === 'TUNAI';
         const shouldKick = job.kickDrawer !== undefined ? Boolean(job.kickDrawer) : Boolean(cfg.autoKickDrawer !== false && isCash);
         await executeDirectLocalKitchenTicket(job.tx, shouldKick);
-        showToast(`Mencetak tiket dapur dari [${job.createdByName || 'Pelayan'}]`, 'info', 3000);
+        showToast(`Mencetak tiket dapur dari [${job.createdByName || 'Staf'}]`, 'info', 3000);
       } else if (job.type === 'drawer') {
         await executeDirectLocalKickDrawer();
-        showToast(`Membuka laci kasir atas perintah [${job.createdByName || 'Pelayan'}]`, 'info', 3000);
+        showToast(`Membuka laci kasir atas perintah [${job.createdByName || 'Staf'}]`, 'info', 3000);
       }
 
       await updateRemotePrintJobStatus(job.id, 'completed');
@@ -1576,8 +1576,8 @@ export function updatePrinterUIStatus() {
     }
     if (roleDesc) {
       roleDesc.textContent = isHotspot
-        ? 'Hotspot HP aktif. HP Pelayan dapat tersambung langsung.'
-        : `Terhubung langsung ke printer (${printerName || 'Bluetooth'}). Menerima pesanan cetak dari HP pelayan.`;
+        ? 'Hotspot HP aktif. HP Staf dapat tersambung langsung.'
+        : `Terhubung langsung ke printer (${printerName || 'Bluetooth'}). Menerima pesanan cetak dari HP staf.`;
     }
     if (rolePrinterName) rolePrinterName.textContent = isHotspot ? 'Jalur: Hotspot HP (192.168.43.1)' : (printerName ? `Hardware: ${printerName}` : 'Hardware: Bluetooth Standby');
 
@@ -1613,7 +1613,7 @@ export function updatePrinterUIStatus() {
     if (submitBtn) submitBtn.classList.remove('hidden');
 
   } else {
-    // HP PELAYAN
+    // HP STAF
     if (headerBadge) {
       headerBadge.className = 'hidden';
     }
@@ -1623,18 +1623,18 @@ export function updatePrinterUIStatus() {
       headerIcon.textContent = 'smartphone';
       headerIcon.className = 'material-symbols-rounded text-sm text-sky-700';
     }
-    if (headerText) headerText.textContent = 'HP Pelayan';
+    if (headerText) headerText.textContent = 'HP Staf';
     if (mobileDot) mobileDot.className = 'absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-sky-500';
 
     if (modalBadge) {
-      modalBadge.innerHTML = `<span class="text-sky-700 font-bold">HP Pelayan</span>`;
+      modalBadge.innerHTML = `<span class="text-sky-700 font-bold">HP Staf</span>`;
     }
 
     if (roleCard) {
       roleCard.className = 'bg-sky-50 border border-sky-200 rounded-2xl p-4 flex flex-col gap-2.5';
     }
     if (roleDot) roleDot.className = 'w-2.5 h-2.5 rounded-full bg-sky-500';
-    if (roleTitle) roleTitle.textContent = 'HP PELAYAN';
+    if (roleTitle) roleTitle.textContent = 'HP STAF';
     if (roleBadge) {
       roleBadge.textContent = 'Siap';
       roleBadge.className = 'px-2 py-0.5 rounded-full bg-sky-200/80 text-sky-900 font-extrabold text-[10px]';

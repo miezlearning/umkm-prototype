@@ -12,7 +12,7 @@ const TOUR_STEPS = [
     icon: 'storefront',
     iconColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     title: 'Info Toko & Hubungkan HP',
-    desc: 'Lihat profil toko, ganti cabang, amankan kasir dengan PIN 4-digit, atau bagikan kode QR / tautan untuk menghubungkan HP pelayan secara realtime.',
+    desc: 'Lihat profil toko, ganti cabang, amankan kasir dengan PIN 4-digit, atau bagikan kode QR / tautan untuk menghubungkan HP staf secara realtime.',
     view: 'pos'
   },
   {

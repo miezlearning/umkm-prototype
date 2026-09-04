@@ -2407,12 +2407,12 @@ Kopi susu 7k"
                 <button type="button" id="btnRolePelayan" onclick="KasirApp.setDevicePrinterRole('pelayan')"
                   class="flex-1 py-1.5 px-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1 text-stone-600 hover:bg-stone-100 transition">
                   <span class="material-symbols-rounded text-sm">smartphone</span>
-                  <span>HP Pelayan</span>
+                  <span>HP Staf</span>
                 </button>
               </div>
 
               <p id="multiDeviceRoleDesc" class="text-xs text-emerald-900 leading-relaxed font-medium">
-                Terhubung langsung ke printer. Menerima pesanan cetak dari HP pelayan.
+                Terhubung langsung ke printer. Menerima pesanan cetak dari HP staf.
               </p>
 
               <!-- Server Cetak Lokal Info (Host Kasir Utama di APK Android) -->
@@ -2424,11 +2424,11 @@ Kopi susu 7k"
                   </span>
                   <span id="localHostIpBadge" class="px-2 py-0.5 rounded bg-emerald-800 text-white font-mono text-[10px]">Aktif</span>
                 </div>
-                <p class="text-[10px] text-emerald-800">HP pelayan di jaringan yang sama dapat mencetak langsung.</p>
+                <p class="text-[10px] text-emerald-800">HP staf di jaringan yang sama dapat mencetak langsung.</p>
                 <button type="button" onclick="KasirApp.openHostQrPairingModal()"
                   class="mt-1 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition">
                   <span class="material-symbols-rounded text-base">qr_code_scanner</span>
-                  <span>Sambungkan HP Pelayan</span>
+                  <span>Sambungkan HP Staf</span>
                 </button>
               </div>
 
@@ -2439,16 +2439,16 @@ Kopi susu 7k"
                   <span>Mode Cloud Aktif</span>
                 </div>
                 <p class="text-[10px] text-amber-800">
-                  Pesanan dari pelayan dicetak melalui cloud.
+                  Pesanan dari staf dicetak melalui cloud.
                 </p>
                 <button type="button" onclick="KasirApp.openHostQrPairingModal()"
                   class="mt-1 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition">
                   <span class="material-symbols-rounded text-base">qr_code_scanner</span>
-                  <span>Sambungkan HP Pelayan</span>
+                  <span>Sambungkan HP Staf</span>
                 </button>
               </div>
 
-              <!-- Status HP Pelayan & Sambungan Kasir Utama -->
+              <!-- Status HP Staf & Sambungan Kasir Utama -->
               <div id="localHostIpInputContainer" class="hidden mt-1 p-3.5 bg-white/95 rounded-2xl border border-sky-200 flex flex-col gap-3 shadow-sm">
                 <!-- Status Header -->
                 <div class="flex items-center justify-between text-xs">
@@ -3223,18 +3223,15 @@ Kopi susu 7k"
       <!-- Body -->
       <div class="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
         
-        <!-- Info Toko Card -->
-        <div class="p-3.5 sm:p-4 rounded-2xl bg-stone-50 border border-stone-200/80 flex items-center justify-between gap-3 shadow-2xs">
+        <!-- Info Toko (Minimalist & Clean) -->
+        <div class="flex items-start justify-between gap-3 pb-0.5">
           <div class="min-w-0 flex-1">
-            <h4 id="cloudStoreNameDisplay" class="font-black text-stone-900 text-base sm:text-lg leading-tight truncate">Toko Saya</h4>
-            <div class="flex items-center gap-1.5 mt-1">
-              <span class="text-[11px] text-stone-400 font-mono">ID:</span>
-              <span id="cloudStoreIdShort" class="text-[11px] text-stone-600 font-mono bg-stone-200/70 px-1.5 py-0.5 rounded font-bold truncate max-w-[150px]">toko</span>
-            </div>
+            <h4 id="cloudStoreNameDisplay" class="font-extrabold text-stone-900 text-lg leading-tight truncate">Toko Saya</h4>
+            <p class="text-xs text-stone-400 font-mono mt-0.5" id="cloudStoreIdShort">toko</p>
           </div>
-          <div id="cloudModalStatusBadge" class="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 flex items-center gap-1.5 shrink-0 shadow-2xs">
-            <span id="cloudModalStatusDot" class="w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
-            <span id="cloudModalStatusText" class="text-[11px] font-bold text-emerald-800">Online</span>
+          <div id="cloudModalStatusBadge" class="flex items-center gap-1.5 pt-1 shrink-0">
+            <span id="cloudModalStatusDot" class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+            <span id="cloudModalStatusText" class="text-xs font-medium text-stone-500">Online</span>
           </div>
         </div>
 
@@ -3243,7 +3240,7 @@ Kopi susu 7k"
           <button onclick="KasirApp.openHostQrPairingModal()"
             class="py-2.5 px-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition active:scale-95">
             <span class="material-symbols-rounded text-base">qr_code_scanner</span>
-            <span class="truncate">HP Pelayan</span>
+            <span class="truncate">HP Staf</span>
           </button>
 
           <button onclick="copyStoreShareLink()"
@@ -3845,7 +3842,7 @@ Kopi susu 7k"
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-black tracking-tight" id="updateModalTitle">Pembaruan Aplikasi Tersedia!</h3>
-              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.21</span>
+              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.22</span>
             </div>
             <p id="updateModalCurrentVersion" class="text-emerald-100 text-xs mt-0.5">Versi Anda saat ini: v1.1.3</p>
           </div>
@@ -3912,8 +3909,8 @@ Kopi susu 7k"
             <span class="material-symbols-rounded text-2xl">qr_code_2</span>
           </div>
           <div>
-            <h3 class="text-base font-bold text-stone-900 leading-tight">Sambungkan HP Pelayan</h3>
-            <p class="text-xs text-stone-500 font-medium mt-0.5">Scan kode ini dari HP pelayan</p>
+            <h3 class="text-base font-bold text-stone-900 leading-tight">Sambungkan HP Staf</h3>
+            <p class="text-xs text-stone-500 font-medium mt-0.5">Scan kode ini dari HP staf / kru toko</p>
           </div>
         </div>
         <button onclick="KasirApp.closeHostQrPairingModal()" class="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition">
@@ -3935,7 +3932,7 @@ Kopi susu 7k"
         <div class="w-full bg-stone-50 p-3 rounded-2xl border border-stone-200 text-left text-xs flex flex-col gap-1.5">
           <p class="font-bold text-stone-800">Langkah penyambungan:</p>
           <ol class="list-decimal list-inside text-stone-600 space-y-1 text-[11px] leading-relaxed">
-            <li>Buka aplikasi di HP pelayan</li>
+            <li>Buka aplikasi di HP staf</li>
             <li>Pilih tombol <b>Scan QR Kasir</b></li>
             <li>Arahkan kamera ke kode QR ini</li>
           </ol>
@@ -4005,7 +4002,7 @@ Kopi susu 7k"
     <button id="btnNavPosDesktop"></button>
     <button id="btnNavReportDesktop"></button>
     <button id="btnNavAdminDesktop"></button>
-    <span id="appVersionBadge" class="hidden">v1.2.21</span>
+    <span id="appVersionBadge" class="hidden">v1.2.22</span>
   </div>
 
   <!-- Main JavaScript App Module -->
