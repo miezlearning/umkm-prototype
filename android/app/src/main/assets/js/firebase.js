@@ -1079,9 +1079,9 @@ export async function fetchAllStoresForSuperAdmin() {
 
       const todayStr = new Date().toDateString();
 
-      // Ambil metrik untuk setiap toko
+      // Ambil metrik untuk setiap toko secara paralel
       const storeEntries = Array.from(knownStoreMap.values());
-      for (const store of storeEntries) {
+      await Promise.all(storeEntries.map(async (store) => {
         try {
           // Ambil config jika PIN belum ada di registry
           const confDoc = await getDoc(doc(db, 'stores', store.id, 'data', 'config'));
@@ -1093,8 +1093,12 @@ export async function fetchAllStoresForSuperAdmin() {
             if (confData.profile?.name) store.name = confData.profile.name;
           }
 
-          // Hitung transaksi hari ini
-          const txSnap = await getDocs(collection(db, 'stores', store.id, 'transactions'));
+          // Hitung transaksi hari ini & jumlah produk secara bersamaan
+          const [txSnap, prodSnap] = await Promise.all([
+            getDocs(collection(db, 'stores', store.id, 'transactions')),
+            getDocs(collection(db, 'stores', store.id, 'products'))
+          ]);
+
           let todayRev = 0;
           let todayCount = 0;
           txSnap.forEach(tDoc => {
@@ -1106,14 +1110,11 @@ export async function fetchAllStoresForSuperAdmin() {
           });
           store.todayRevenue = todayRev;
           store.todayTxCount = todayCount;
-
-          // Hitung total produk
-          const prodSnap = await getDocs(collection(db, 'stores', store.id, 'products'));
           store.productCount = prodSnap.size;
         } catch (subErr) {
           console.warn(`Error fetching sub-data for store ${store.id}:`, subErr);
         }
-      }
+      }));
     } catch (err) {
       console.warn('Super Admin Firestore fetch error:', err);
     }

@@ -82,7 +82,10 @@ export function switchView(viewName) {
     }
   });
 
+  const mobileNav = document.getElementById('mobileBottomNav') || document.querySelector('nav.lg\\:hidden');
+
   if (viewName === 'pos') {
+    if (mobileNav) mobileNav.classList.remove('hidden');
     if (viewPos) viewPos.classList.remove('hidden');
     if (btnPosM) btnPosM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
     if (btnPosD) btnPosD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
@@ -93,6 +96,7 @@ export function switchView(viewName) {
       window.history.replaceState(null, '', `${window.location.pathname}?store=${encodeURIComponent(state.storeId)}`);
     }
   } else if (viewName === 'admin') {
+    if (mobileNav) mobileNav.classList.remove('hidden');
     if (viewAdmin) viewAdmin.classList.remove('hidden');
     if (btnAdminM) btnAdminM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
     if (btnAdminD) btnAdminD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
@@ -101,6 +105,7 @@ export function switchView(viewName) {
       window.history.replaceState(null, '', `${window.location.pathname}?store=${encodeURIComponent(state.storeId)}`);
     }
   } else if (viewName === 'report') {
+    if (mobileNav) mobileNav.classList.remove('hidden');
     if (viewReport) viewReport.classList.remove('hidden');
     if (btnReportM) btnReportM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
     if (btnReportD) btnReportD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
@@ -109,6 +114,7 @@ export function switchView(viewName) {
       window.history.replaceState(null, '', `${window.location.pathname}?store=${encodeURIComponent(state.storeId)}`);
     }
   } else if (viewName === 'superadmin') {
+    if (mobileNav) mobileNav.classList.add('hidden'); // Sembunyikan bottom bar kasir saat mode Super Admin
     if (viewSuperAdmin) viewSuperAdmin.classList.remove('hidden');
     window.history.replaceState(null, '', `${window.location.pathname}?view=superadmin`);
     superadmin.renderSuperAdminDashboard();
@@ -959,16 +965,12 @@ function initPullToRefresh() {
   }, { passive: true });
 }
 
-export async function openSuperAdminChangePin(storeId, storeName, currentPin) {
-  const newPin = prompt(`Masukkan PIN baru untuk toko "${storeName}" (ID: ${storeId}):`, currentPin || '1234');
-  if (newPin && newPin.trim()) {
-    const ok = await superAdminUpdateStorePin(storeId, newPin.trim());
-    if (ok) {
-      showToast(`PIN toko [${storeName}] berhasil diubah menjadi: ${newPin.trim()}`, 'success');
-      superadmin.renderSuperAdminDashboard();
-    } else {
-      showToast('Gagal mengubah PIN toko', 'error');
-    }
+export function openSuperAdmin() {
+  playClick('pop');
+  if (!superadmin.isSuperAdminAuthenticated()) {
+    superadmin.openSuperAdminAuthModal();
+  } else {
+    switchView('superadmin');
   }
 }
 
@@ -1010,7 +1012,7 @@ const KasirApp = {
   renderSavedStoresList,
   handleStoreLoginSubmit,
   handleStoreRegisterSubmit,
-  logoutStoreSession,
+  logoutStoreSession: logoutStore,
   quickSelectStore,
   openPinSecurityModal,
   closePinSecurityModal,
@@ -1020,7 +1022,11 @@ const KasirApp = {
   showToast,
 
   // Super Admin Monitoring
-  openSuperAdminChangePin,
+  openSuperAdmin,
+  openSuperAdminChangePin: superadmin.openSuperAdminChangePin,
+  closeSuperAdminChangePinModal: superadmin.closeSuperAdminChangePinModal,
+  handleSuperAdminChangePinSubmit: superadmin.handleSuperAdminChangePinSubmit,
+  togglePasskeyVisibility: superadmin.togglePasskeyVisibility,
   impersonateStore,
   openSuperAdminAuthModal: superadmin.openSuperAdminAuthModal,
   closeSuperAdminAuthModal: superadmin.closeSuperAdminAuthModal,
