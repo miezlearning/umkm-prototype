@@ -1,4 +1,4 @@
-import { state, saveProducts, saveHistory, saveQueues, getCurrentCart, getActiveQueue, calculateCartTotal } from '../state.js';
+import { state, saveProducts, saveHistory, saveQueues, getCurrentCart, getActiveQueue, calculateCartTotal, getQueueLineItems } from '../state.js';
 import { formatRp, formatDateShort, escapeHtml, showToast, playClick, playSuccessChime } from '../utils.js';
 import { renderOrderQueueTabs, renderCart, renderProducts, toggleMobileCartDrawer } from './pos.js';
 import { syncAddTransaction, syncSaveQueues, syncSaveProduct } from '../firebase.js';
@@ -439,8 +439,8 @@ export function completeTransaction() {
   const isQris = paymentMethod === 'qris';
   if (!isQris && cashGiven < finalPayable) return;
 
-  const currentCart = getCurrentCart();
   const activeQueue = getActiveQueue();
+  const rawItems = activeQueue ? getQueueLineItems(activeQueue) : [];
   
   // Hitung nomor antrian harian otomatis (Reset ke 01 setiap hari baru)
   const todayStr = new Date().toDateString();
@@ -452,16 +452,26 @@ export function completeTransaction() {
     queueName = `${queueNoFormatted} (${activeQueue.name})`;
   }
 
-  const orderItems = Object.entries(currentCart).map(([id, qty]) => {
-    const p = state.products.find(prod => prod.id === id);
-    const note = (activeQueue && activeQueue.notes && activeQueue.notes[id]) || '';
+  const orderItems = rawItems.map(it => {
+    const p = state.products.find(prod => prod.id === it.productId);
+    const validAddOns = Array.isArray(it.addOns) ? it.addOns.map(ao => ({
+      name: String(ao.name || '').trim(),
+      price: Number(ao.price) || 0
+    })) : [];
+    const addOnTotal = validAddOns.reduce((sum, ao) => sum + ao.price, 0);
+    const basePrice = p ? p.price : 0;
+    const finalUnitPrice = basePrice + addOnTotal;
+
     return {
-      id,
+      id: it.productId,
+      lineId: it.lineId,
       name: p ? p.name : 'Item',
-      price: p ? p.price : 0,
-      qty,
-      subtotal: (p ? p.price : 0) * qty,
-      note
+      basePrice: basePrice,
+      price: finalUnitPrice,
+      qty: it.qty,
+      subtotal: finalUnitPrice * it.qty,
+      note: it.note || '',
+      addOns: validAddOns
     };
   });
 
@@ -473,8 +483,10 @@ export function completeTransaction() {
       showToast('Peringatan: Data produk tidak valid. Transaksi dibatalkan demi keamanan.', 'error', 4000);
       return;
     }
-    item.price = masterProd.price;
-    item.subtotal = masterProd.price * item.qty;
+    const addOnTotal = (item.addOns || []).reduce((sum, ao) => sum + (Number(ao.price) || 0), 0);
+    item.basePrice = masterProd.price;
+    item.price = masterProd.price + addOnTotal;
+    item.subtotal = item.price * item.qty;
     verifiedRawSubtotal += item.subtotal;
   }
 

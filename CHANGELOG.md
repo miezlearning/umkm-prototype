@@ -4,6 +4,25 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.2.17] - 2026-09-04
+
+### 🍳 Add-On per Menu, Catatan Pemesanan Bebas, & Pemisahan Porsi (Item Splitting) Sesuai Standar Industri
+- **Konfigurasi Add-On / Topping per Menu:**
+  - Pemilik toko dapat menambahkan daftar Add-On / Topping ekstra (nama dan nominal harga tambahan) pada setiap menu melalui form Tambah/Edit Produk.
+  - Saat kasir memesan menu, sistem menyediakan checklist pilihan Add-On yang terintegrasi langsung di modal catatan pesanan.
+  - Subtotal harga otomatis memperhitungkan `(harga dasar menu + total add-on) × kuantitas porsi` secara presisi dan aman dari manipulasi data.
+- **Catatan Pemesanan Bebas Tanpa Batas Karakter:**
+  - Menghapus pembatasan karakter `maxlength="50"` dan menggantinya dengan `textarea` elastis agar kasir dapat menuliskan catatan pesanan sedetail dan sepanjang mungkin (misal: "tanpa bawang, kuah banyak dipisah, sambal cabai rawit ekstra pedas").
+- **Pemisahan Porsi Pesanan (Item Splitting Sesuai Standar Industri POS):**
+  - Mengatasi skenario umum di restoran/kafe ketika pelanggan memesan menu yang sama dengan preferensi berbeda (contoh: 2 porsi Nasi Goreng, 1 porsi pedas dan 1 porsi tidak pedas).
+  - Kasir dapat memilih opsi **"Semua Porsi"** atau **"Pisah 1 Porsi Ini"** langsung dari dialog catatan & topping. Jika dipilih *"Pisah 1 Porsi Ini"*, porsi tersebut otomatis dipisahkan menjadi baris mandiri di keranjang belanja.
+  - Baris yang dipisah memiliki catatan dan topping tersendiri, terakumulasi rapi di struk kasir, dan dicetak dengan kotak checklist terpisah `[  ]` pada tiket dapur (kitchen checkpoint) sehingga koki dapur tidak bingung atau salah menyajikan makanan.
+- **Pencetakan Add-On & Catatan Lengkap:**
+  - Struk belanja kasir (ESC/POS 58/80mm maupun tampilan layar) mencetak rincian Add-On terpilih (`+ Telur (+3.000)`) dan catatan khusus di bawah baris menu.
+  - Tiket dapur / bar checkpoint mencetak rincian Add-On dan catatan per baris porsi yang siap diceklis oleh koki dapur.
+
+---
+
 ## [v1.2.16] - 2026-09-04
 
 ### 📱 Penutupan Backdrop Modal & Navigasi Tombol Back Android Sesuai Standar Industri

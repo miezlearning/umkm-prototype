@@ -204,6 +204,12 @@ export function generateReceiptPlainText(tx, customConfig = null) {
           lines.push(' '.repeat(Math.max(0, width - priceStr.length)) + priceStr);
         }
       }
+      if (Array.isArray(item.addOns) && item.addOns.length > 0) {
+        item.addOns.forEach(ao => {
+          const aoPriceStr = Number(ao.price) > 0 ? ` (+${formatRp(ao.price).replace('Rp ', '')})` : '';
+          lines.push(`  + ${cleanAscii(ao.name)}${aoPriceStr}`);
+        });
+      }
       if (item.note) {
         lines.push(`  * ${cleanAscii(item.note)}`);
       }
@@ -382,6 +388,12 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
           addText(`${prefix}${itemName}\n`);
           addText(' '.repeat(Math.max(0, width - priceStr.length)) + priceStr + '\n');
         }
+      }
+      if (Array.isArray(item.addOns) && item.addOns.length > 0) {
+        item.addOns.forEach(ao => {
+          const aoPriceStr = Number(ao.price) > 0 ? ` (+${formatRp(ao.price).replace('Rp ', '')})` : '';
+          addText(`  + ${cleanAscii(ao.name)}${aoPriceStr}\n`);
+        });
       }
       if (item.note) {
         addText(`  * ${cleanAscii(item.note)}\n`);
@@ -574,6 +586,11 @@ export function buildKitchenTicketEscPosBytes(tx, kickDrawer = false) {
       }
       addBytes(0x1B, 0x45, 0x00); // Bold OFF
 
+      if (Array.isArray(item.addOns) && item.addOns.length > 0) {
+        item.addOns.forEach(ao => {
+          addText(`     + ${cleanAscii(ao.name)}\n`);
+        });
+      }
       if (item.note) {
         addText(`     * Ket: ${cleanAscii(item.note)}\n`);
       }
@@ -1809,6 +1826,11 @@ export function renderPrintableReceiptArea(tx, cfg = null) {
             <span class="font-black text-stone-900 whitespace-nowrap text-right shrink-0">${priceStr}</span>
           </div>
           ${hasDetail ? `<div class="text-[9.5px] text-stone-500 pl-3">@ ${unitPriceStr}</div>` : ''}
+          ${Array.isArray(item.addOns) && item.addOns.length > 0 ? `
+            <div class="text-[9.5px] text-stone-600 pl-3">
+              ${item.addOns.map(ao => `+ ${escapeHtml(ao.name)}${Number(ao.price) > 0 ? ` (+${formatRp(ao.price).replace('Rp ', '')})` : ''}`).join(', ')}
+            </div>
+          ` : ''}
           ${item.note ? `<span class="text-[9px] text-stone-600 italic pl-3">* ${escapeHtml(item.note)}</span>` : ''}
         </div>
       `;

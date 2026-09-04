@@ -2,7 +2,7 @@
  * Kasir Mami - POS Module (Catalog, Order Queue, Cart)
  */
 
-import { state, saveQueues, getCurrentCart, getActiveQueue, calculateCartTotal } from '../state.js';
+import { state, saveQueues, getCurrentCart, getActiveQueue, calculateCartTotal, getQueueLineItems, syncQueueCartFromItems } from '../state.js';
 import { formatRp, playBeep, playClick, escapeHtml, showToast, showConfirmDialog } from '../utils.js';
 import { syncSaveQueues } from '../firebase.js';
 
@@ -128,7 +128,8 @@ export function addNewOrderQueue() {
   state.orderQueues.push({
     id: newId,
     name: newName,
-    cart: {}
+    cart: {},
+    items: []
   });
   state.activeQueueId = newId;
   saveQueues();
@@ -302,7 +303,7 @@ export function deleteOrderQueue(queueId, event) {
   state.orderQueues = state.orderQueues.filter(q => q.id !== queueId);
 
   if (state.orderQueues.length === 0) {
-    state.orderQueues = [{ id: 'q_' + Date.now(), name: 'Pesanan #1', cart: {} }];
+    state.orderQueues = [{ id: 'q_' + Date.now(), name: 'Pesanan #1', cart: {}, items: [] }];
   } else if (
     state.orderQueues.length === 1 &&
     Object.keys(state.orderQueues[0].cart).length === 0 &&
@@ -492,15 +493,32 @@ export function addToCart(productId) {
 
   const q = getActiveQueue();
   if (q) {
-    const currentQtyInCart = q.cart[productId] || 0;
-    if (p.trackStock && (p.stock || 0) <= currentQtyInCart) {
+    const items = getQueueLineItems(q);
+    const totalQtyInCart = items.filter(it => it.productId === productId).reduce((sum, it) => sum + it.qty, 0);
+
+    if (p.trackStock && (p.stock || 0) <= totalQtyInCart) {
       playClick('del');
       showToast(`Stok "${p.name}" hanya tersisa ${p.stock}!`, 'warning');
       return;
     }
 
     playClick('tap');
-    q.cart[productId] = currentQtyInCart + 1;
+    // Cari line item standar yang belum memiliki catatan khusus dan belum memiliki addOn
+    let plainItem = items.find(it => it.productId === productId && (!it.note || it.note.trim() === '') && (!it.addOns || it.addOns.length === 0));
+    if (plainItem) {
+      plainItem.qty += 1;
+    } else {
+      const newLineId = 'line_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+      items.push({
+        lineId: newLineId,
+        productId: productId,
+        qty: 1,
+        note: '',
+        addOns: []
+      });
+    }
+
+    syncQueueCartFromItems(q);
     saveQueues();
     syncSaveQueues(state.orderQueues);
     renderOrderQueueTabs();
@@ -509,21 +527,53 @@ export function addToCart(productId) {
   }
 }
 
-export function updateCartQty(productId, delta) {
+export function updateCartQty(targetId, delta) {
   if (delta > 0) {
     playClick('tap');
   } else {
     playClick('del');
   }
   const q = getActiveQueue();
-  if (!q || !q.cart[productId]) return;
-  q.cart[productId] += delta;
-  if (q.cart[productId] <= 0) {
-    delete q.cart[productId];
-    if (q.notes && q.notes[productId]) {
-      delete q.notes[productId];
+  if (!q) return;
+
+  const items = getQueueLineItems(q);
+  // Cari berdasarkan lineId terlebih dahulu
+  let targetIndex = items.findIndex(it => it.lineId === targetId);
+
+  // Jika tidak ditemukan berdasarkan lineId, cari berdasarkan productId (misal tombol +/- di kartu katalog produk)
+  if (targetIndex === -1) {
+    if (delta > 0) {
+      targetIndex = items.findIndex(it => it.productId === targetId && (!it.note || it.note.trim() === '') && (!it.addOns || it.addOns.length === 0));
+      if (targetIndex === -1) {
+        targetIndex = items.map(it => it.productId).lastIndexOf(targetId);
+      }
+    } else {
+      targetIndex = items.map(it => it.productId).lastIndexOf(targetId);
     }
   }
+
+  if (targetIndex === -1) return;
+
+  const item = items[targetIndex];
+  const p = state.products.find(prod => prod.id === item.productId);
+
+  if (delta > 0) {
+    if (p && p.trackStock) {
+      const totalQtyInCart = items.filter(it => it.productId === item.productId).reduce((sum, it) => sum + it.qty, 0);
+      if (p.stock <= totalQtyInCart) {
+        showToast(`Stok "${p.name}" hanya tersisa ${p.stock}!`, 'warning');
+        return;
+      }
+    }
+    item.qty += delta;
+  } else {
+    item.qty += delta;
+    if (item.qty <= 0) {
+      items.splice(targetIndex, 1);
+    }
+  }
+
+  syncQueueCartFromItems(q);
   saveQueues();
   syncSaveQueues(state.orderQueues);
   renderOrderQueueTabs();
@@ -533,7 +583,10 @@ export function updateCartQty(productId, delta) {
 
 export async function confirmClearCart() {
   const q = getActiveQueue();
-  if (!q || Object.keys(q.cart).length === 0) return;
+  if (!q) return;
+  const items = getQueueLineItems(q);
+  if (items.length === 0 && Object.keys(q.cart || {}).length === 0) return;
+
   const ok = await showConfirmDialog({
     title: 'Kosongkan Pesanan',
     message: `Hapus semua item pesanan di ${q.name}?`,
@@ -542,6 +595,7 @@ export async function confirmClearCart() {
     icon: 'remove_shopping_cart'
   });
   if (ok) {
+    q.items = [];
     q.cart = {};
     q.notes = {};
     saveQueues();
@@ -557,8 +611,8 @@ export async function confirmClearCart() {
 export function renderCart() {
   const { total, count } = calculateCartTotal();
   const hasItems = count > 0;
-  const currentCart = getCurrentCart();
   const curQueue = getActiveQueue();
+  const items = curQueue ? getQueueLineItems(curQueue) : [];
 
   const desktopList = document.getElementById('cartItemsList');
   const desktopTotal = document.getElementById('cartTotalDisplay');
@@ -571,6 +625,7 @@ export function renderCart() {
 
   const mobileFloating = document.getElementById('mobileFloatingCart');
   const mobilePillCount = document.getElementById('mobilePillCount');
+  const mobilePillTotal = document.getElementById('mobilePillTotal');
   const mobileHeaderBtn = document.getElementById('mobileHeaderCartBtn');
   const mobileHeaderTotal = document.getElementById('mobileHeaderCartTotal');
 
@@ -594,49 +649,73 @@ export function renderCart() {
     if (hasItems) {
       const cur = getActiveQueue();
       mobilePillCount.innerText = `${cur ? cur.name : 'Pesanan'} (${count} Item)`;
-      mobilePillTotal.innerText = formatRp(total);
+      if (mobilePillTotal) mobilePillTotal.innerText = formatRp(total);
       mobileFloating.classList.remove('translate-y-28', 'opacity-0', 'pointer-events-none');
     } else {
       mobileFloating.classList.add('translate-y-28', 'opacity-0', 'pointer-events-none');
     }
   }
 
-  const itemIds = Object.keys(currentCart);
-  const itemsHtml = itemIds.length === 0 ? `
+  const itemsHtml = items.length === 0 ? `
     <div class="flex flex-col items-center justify-center h-36 text-stone-400 gap-1.5">
       <span class="material-symbols-rounded text-3xl text-stone-300">touch_app</span>
       <p class="font-bold text-xs sm:text-sm text-center">Sentuh menu untuk menambah pesanan</p>
     </div>
-  ` : itemIds.map(id => {
-    const p = state.products.find(prod => prod.id === id);
+  ` : items.map(item => {
+    const p = state.products.find(prod => prod.id === item.productId);
     if (!p) return '';
-    const qty = currentCart[id];
-    const subtotal = p.price * qty;
-    const note = (curQueue && curQueue.notes && curQueue.notes[id]) || '';
+    const addOns = Array.isArray(item.addOns) ? item.addOns : [];
+    const addOnTotal = addOns.reduce((sum, ao) => sum + (Number(ao.price) || 0), 0);
+    const unitPrice = (p.price || 0) + addOnTotal;
+    const subtotal = unitPrice * item.qty;
+    const hasAddOns = addOns.length > 0;
+    const hasNote = Boolean(item.note && item.note.trim());
 
     return `
       <div class="py-2.5 flex items-start justify-between gap-1.5 border-b border-stone-100 last:border-0">
         <div class="flex-1 min-w-0">
-          <h4 class="font-extrabold text-stone-900 text-xs sm:text-sm truncate">${escapeHtml(p.name)}</h4>
-          <p class="text-[11px] font-bold text-stone-500">${formatRp(p.price)} &times; ${qty} = <span class="text-emerald-800 font-black">${formatRp(subtotal)}</span></p>
-          ${note ? `
-            <button type="button" onclick="window.KasirApp.openItemNoteModal('${id}')" 
-              class="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded-md border border-amber-200 transition text-left">
-              <span class="material-symbols-rounded text-xs text-amber-700">edit_note</span>
-              <span class="truncate max-w-[140px] sm:max-w-[200px]">${escapeHtml(note)}</span>
-            </button>
-          ` : `
-            <button type="button" onclick="window.KasirApp.openItemNoteModal('${id}')"
-              class="mt-1 inline-flex items-center gap-0.5 text-[10px] font-bold text-stone-400 hover:text-emerald-700 hover:bg-emerald-50 px-1.5 py-0.5 rounded border border-transparent hover:border-emerald-200 transition">
-              <span class="material-symbols-rounded text-xs">add_comment</span>
-              <span>+ Catatan</span>
-            </button>
-          `}
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <h4 class="font-extrabold text-stone-900 text-xs sm:text-sm leading-tight">${escapeHtml(p.name)}</h4>
+            ${hasAddOns ? `<span class="text-[9.5px] font-black text-amber-800 bg-amber-100 px-1.5 py-0.2 rounded">+Add-on</span>` : ''}
+          </div>
+
+          <p class="text-[11px] font-bold text-stone-500 mt-0.5">
+            ${formatRp(unitPrice)} &times; ${item.qty} = <span class="text-emerald-800 font-black">${formatRp(subtotal)}</span>
+          </p>
+
+          ${hasAddOns ? `
+            <div class="flex flex-wrap gap-1 mt-1">
+              ${addOns.map(ao => `
+                <span class="text-[10px] font-bold text-amber-950 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                  <span class="material-symbols-rounded text-[11px] text-amber-600">check_circle</span>
+                  <span>${escapeHtml(ao.name)}</span>
+                  ${Number(ao.price) > 0 ? `<span class="text-amber-800 font-black">(+${formatRp(ao.price)})</span>` : ''}
+                </span>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          <div class="mt-1 flex items-center gap-1.5 flex-wrap">
+            ${hasNote ? `
+              <button type="button" onclick="window.KasirApp.openItemNoteModal('${item.lineId}')" 
+                class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded-md border border-amber-200 transition text-left cursor-pointer">
+                <span class="material-symbols-rounded text-xs text-amber-700">edit_note</span>
+                <span class="truncate max-w-[140px] sm:max-w-[200px]">${escapeHtml(item.note)}</span>
+              </button>
+            ` : `
+              <button type="button" onclick="window.KasirApp.openItemNoteModal('${item.lineId}')"
+                class="inline-flex items-center gap-0.5 text-[10px] font-bold text-stone-400 hover:text-emerald-700 hover:bg-emerald-50 px-1.5 py-0.5 rounded border border-transparent hover:border-emerald-200 transition cursor-pointer">
+                <span class="material-symbols-rounded text-xs">add_comment</span>
+                <span>+ Catatan / Topping</span>
+              </button>
+            `}
+          </div>
         </div>
+
         <div class="flex items-center gap-1 shrink-0 mt-0.5">
-          <button onclick="window.KasirApp.updateCartQty('${id}', -1)" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-black text-sm flex items-center justify-center touch-target-large transition">-</button>
-          <span class="w-5 text-center font-black text-xs text-stone-800">${qty}</span>
-          <button onclick="window.KasirApp.updateCartQty('${id}', 1)" class="w-7 h-7 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm flex items-center justify-center touch-target-large shadow-sm transition">+</button>
+          <button onclick="window.KasirApp.updateCartQty('${item.lineId}', -1)" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-black text-sm flex items-center justify-center touch-target-large transition cursor-pointer">-</button>
+          <span class="w-5 text-center font-black text-xs text-stone-800">${item.qty}</span>
+          <button onclick="window.KasirApp.updateCartQty('${item.lineId}', 1)" class="w-7 h-7 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm flex items-center justify-center touch-target-large shadow-sm transition cursor-pointer">+</button>
         </div>
       </div>
     `;
@@ -663,24 +742,103 @@ export function toggleMobileCartDrawer(forcedState) {
   }
 }
 
-// ================= SENIOR-FRIENDLY ITEM NOTE MODAL =================
-export function openItemNoteModal(productId) {
+// ================= SENIOR-FRIENDLY ITEM NOTE & ADD-ON MODAL =================
+export function openItemNoteModal(lineIdOrProductId) {
   playClick('pop');
   const q = getActiveQueue();
   if (!q) return;
 
-  const p = state.products.find(prod => prod.id === productId);
+  const items = getQueueLineItems(q);
+  let item = items.find(it => it.lineId === lineIdOrProductId);
+  if (!item) {
+    item = items.find(it => it.productId === lineIdOrProductId);
+  }
+  if (!item) return;
+
+  const p = state.products.find(prod => prod.id === item.productId);
   const prodNameEl = document.getElementById('itemNoteProductName');
   const prodIdEl = document.getElementById('itemNoteProductId');
+  const lineIdEl = document.getElementById('itemNoteLineId');
+  const scopeEl = document.getElementById('itemNoteScope');
   const inputEl = document.getElementById('itemNoteInput');
   const modal = document.getElementById('itemNoteModal');
 
   if (prodNameEl) prodNameEl.innerText = p ? p.name : 'Pesanan';
-  if (prodIdEl) prodIdEl.value = productId;
-  if (inputEl) inputEl.value = (q.notes && q.notes[productId]) || '';
+  if (prodIdEl) prodIdEl.value = item.productId;
+  if (lineIdEl) lineIdEl.value = item.lineId;
+  if (scopeEl) scopeEl.value = 'all';
+  if (inputEl) inputEl.value = item.note || '';
+
+  // 1. Opsi Pemisahan Porsi (Item Splitting jika qty > 1)
+  const splitSection = document.getElementById('itemNoteSplitSection');
+  const qtyDisplay = document.getElementById('itemNoteQtyDisplay');
+  const btnApplyAllQtyText = document.getElementById('btnApplyAllQtyText');
+
+  if (item.qty > 1) {
+    if (splitSection) splitSection.classList.remove('hidden');
+    if (qtyDisplay) qtyDisplay.innerText = item.qty;
+    if (btnApplyAllQtyText) btnApplyAllQtyText.innerText = item.qty;
+    setItemNoteScope('all', false);
+  } else {
+    if (splitSection) splitSection.classList.add('hidden');
+    setItemNoteScope('all', false);
+  }
+
+  // 2. Daftar Pilihan Add-On / Topping Ekstra Menu
+  const addOnSection = document.getElementById('itemNoteAddOnSection');
+  const addOnList = document.getElementById('itemNoteAddOnList');
+
+  if (p && Array.isArray(p.addOns) && p.addOns.length > 0) {
+    if (addOnSection) addOnSection.classList.remove('hidden');
+    if (addOnList) {
+      const selectedAddOnNames = (item.addOns || []).map(ao => String(ao.name || '').trim().toLowerCase());
+      addOnList.innerHTML = p.addOns.map(ao => {
+        const isChecked = selectedAddOnNames.includes(String(ao.name || '').trim().toLowerCase());
+        return `
+          <label class="flex items-center gap-2 p-2 rounded-xl bg-white border ${isChecked ? 'border-amber-400 bg-amber-50/60 ring-1 ring-amber-300' : 'border-stone-200'} cursor-pointer hover:border-amber-300 transition text-xs font-bold text-stone-800 touch-target-large select-none">
+            <input type="checkbox" name="itemAddOnCheckbox" value="${escapeHtml(ao.name)}" data-price="${ao.price || 0}" ${isChecked ? 'checked' : ''}
+              class="w-4 h-4 accent-amber-600 rounded cursor-pointer shrink-0"
+              onchange="this.closest('label').classList.toggle('border-amber-400', this.checked); this.closest('label').classList.toggle('bg-amber-50/60', this.checked); this.closest('label').classList.toggle('ring-1', this.checked); this.closest('label').classList.toggle('ring-amber-300', this.checked);">
+            <div class="flex flex-col min-w-0 flex-1 leading-tight">
+              <span class="truncate font-bold">${escapeHtml(ao.name)}</span>
+              <span class="text-[10px] text-amber-800 font-extrabold">${Number(ao.price) > 0 ? `+${formatRp(ao.price)}` : 'Gratis'}</span>
+            </div>
+          </label>
+        `;
+      }).join('');
+    }
+  } else {
+    if (addOnSection) addOnSection.classList.add('hidden');
+    if (addOnList) addOnList.innerHTML = '';
+  }
 
   if (modal) modal.classList.remove('hidden');
   setTimeout(() => { if (inputEl) inputEl.focus(); }, 100);
+}
+
+export function setItemNoteScope(scope, playSound = true) {
+  if (playSound) playClick('tap');
+  const scopeEl = document.getElementById('itemNoteScope');
+  if (scopeEl) scopeEl.value = scope;
+
+  const btnAll = document.getElementById('btnApplyAllPortions');
+  const btnSplit = document.getElementById('btnSplitOnePortion');
+
+  if (scope === 'split') {
+    if (btnAll) {
+      btnAll.className = 'py-2 px-2 rounded-xl bg-white text-stone-700 hover:bg-stone-100 font-bold border border-stone-300 text-center transition active:scale-95 cursor-pointer';
+    }
+    if (btnSplit) {
+      btnSplit.className = 'py-2 px-2 rounded-xl bg-amber-100 text-amber-950 font-black border-2 border-amber-400 text-center transition active:scale-95 cursor-pointer flex items-center justify-center gap-1 shadow-sm';
+    }
+  } else {
+    if (btnAll) {
+      btnAll.className = 'py-2 px-2 rounded-xl bg-emerald-100 text-emerald-900 font-black border-2 border-emerald-400 text-center transition active:scale-95 cursor-pointer shadow-sm';
+    }
+    if (btnSplit) {
+      btnSplit.className = 'py-2 px-2 rounded-xl bg-white text-stone-700 hover:bg-stone-100 font-bold border border-stone-300 text-center transition active:scale-95 cursor-pointer flex items-center justify-center gap-1';
+    }
+  }
 }
 
 export function closeItemNoteModal() {
@@ -714,21 +872,55 @@ export function saveItemNote(e) {
   playClick('pop');
   const q = getActiveQueue();
   const prodIdEl = document.getElementById('itemNoteProductId');
+  const lineIdEl = document.getElementById('itemNoteLineId');
+  const scopeEl = document.getElementById('itemNoteScope');
   const inputEl = document.getElementById('itemNoteInput');
   if (!q || !prodIdEl) return;
 
   const productId = prodIdEl.value;
+  const lineId = lineIdEl ? lineIdEl.value : '';
+  const scope = scopeEl ? scopeEl.value : 'all';
   const note = (inputEl ? inputEl.value : '').trim();
 
-  q.notes = q.notes || {};
-  if (note) {
-    q.notes[productId] = note;
-    showToast('Catatan pesanan disimpan', 'success', 2000);
+  // Kumpulkan Add-On yang dicentang
+  const selectedAddOns = [];
+  document.querySelectorAll('#itemNoteAddOnList input[name="itemAddOnCheckbox"]:checked').forEach(cb => {
+    selectedAddOns.push({
+      name: cb.value,
+      price: Number(cb.dataset.price) || 0
+    });
+  });
+
+  const items = getQueueLineItems(q);
+  let item = items.find(it => it.lineId === lineId);
+  if (!item) {
+    item = items.find(it => it.productId === productId);
+  }
+  if (!item) return;
+
+  if (scope === 'split' && item.qty > 1) {
+    // Kurangi 1 dari baris asli
+    item.qty -= 1;
+
+    // Buat baris baru mandiri khusus 1 porsi yang dicatat/diberi topping ini
+    const newLineId = 'line_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    items.push({
+      lineId: newLineId,
+      productId: item.productId,
+      qty: 1,
+      note: note,
+      addOns: selectedAddOns
+    });
+
+    showToast('1 porsi berhasil dipisahkan dengan catatan & topping khusus!', 'success', 3000);
   } else {
-    delete q.notes[productId];
-    showToast('Catatan pesanan dihapus', 'info', 2000);
+    // Terapkan ke baris ini
+    item.note = note;
+    item.addOns = selectedAddOns;
+    showToast('Catatan & topping pesanan berhasil disimpan.', 'success', 2000);
   }
 
+  syncQueueCartFromItems(q);
   saveQueues();
   syncSaveQueues(state.orderQueues);
   closeItemNoteModal();

@@ -452,11 +452,54 @@ export function saveQrisPayload(payload) {
 }
 
 /**
+ * Dapatkan daftar item baris keranjang antrian (Line Items)
+ * Mendukung item unik per preferensi catatan & add-on
+ */
+export function getQueueLineItems(q) {
+  if (!q) return [];
+  if (Array.isArray(q.items)) {
+    return q.items;
+  }
+  const items = [];
+  if (q.cart) {
+    Object.entries(q.cart).forEach(([prodId, qty]) => {
+      if (qty > 0) {
+        items.push({
+          lineId: 'line_' + prodId + '_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+          productId: prodId,
+          qty: qty,
+          note: (q.notes && q.notes[prodId]) || '',
+          addOns: []
+        });
+      }
+    });
+  }
+  q.items = items;
+  return items;
+}
+
+/**
+ * Sinkronkan kembali q.cart dan q.notes dari q.items untuk backward compatibility
+ */
+export function syncQueueCartFromItems(q) {
+  if (!q) return;
+  if (!Array.isArray(q.items)) q.items = [];
+  q.cart = {};
+  q.notes = {};
+  q.items.forEach(it => {
+    q.cart[it.productId] = (q.cart[it.productId] || 0) + it.qty;
+    if (it.note) {
+      q.notes[it.productId] = it.note;
+    }
+  });
+}
+
+/**
  * Dapatkan objek keranjang antrian yang aktif saat ini
  */
 export function getCurrentCart() {
   const q = state.orderQueues.find(item => item.id === state.activeQueueId);
-  return q ? q.cart : {};
+  return q ? (q.cart || {}) : {};
 }
 
 /**
@@ -467,19 +510,31 @@ export function getActiveQueue() {
 }
 
 /**
- * Hitung total harga dan jumlah item di keranjang aktif
+ * Hitung total harga dan jumlah item di keranjang aktif (termasuk harga Add-On)
  */
 export function calculateCartTotal() {
-  const currentCart = getCurrentCart();
+  const q = getActiveQueue();
+  if (!q) return { total: 0, count: 0 };
+
+  const items = getQueueLineItems(q);
   let total = 0;
   let count = 0;
-  Object.entries(currentCart).forEach(([id, qty]) => {
-    const p = state.products.find(prod => prod.id === id);
-    if (p) {
-      total += p.price * qty;
-      count += qty;
+
+  items.forEach(item => {
+    const p = state.products.find(prod => prod.id === item.productId);
+    if (p && item.qty > 0) {
+      let unitPrice = p.price;
+      if (Array.isArray(item.addOns)) {
+        item.addOns.forEach(ao => {
+          unitPrice += (Number(ao.price) || 0);
+        });
+      }
+      total += unitPrice * item.qty;
+      count += item.qty;
     }
   });
+
   return { total, count };
 }
+
 

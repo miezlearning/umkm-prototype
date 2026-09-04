@@ -98,6 +98,59 @@ export function toggleProductAvailability(id) {
   showToast(`Menu "${p.name}" sekarang ${p.isAvailable ? 'READY / TERSEDIA' : 'HABIS / KOSONG'}`, p.isAvailable ? 'success' : 'warning');
 }
 
+export function renderProductAddOns(addOns = []) {
+  const container = document.getElementById('productAddOnsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+  if (Array.isArray(addOns) && addOns.length > 0) {
+    addOns.forEach(ao => addNewAddOnRow(ao.name, ao.price));
+  }
+}
+
+export function addNewAddOnRow(name = '', price = '') {
+  playClick('tap');
+  const container = document.getElementById('productAddOnsContainer');
+  if (!container) return;
+  const row = document.createElement('div');
+  row.className = 'flex items-center gap-1.5 bg-white p-1.5 rounded-xl border border-stone-200';
+  row.innerHTML = `
+    <input type="text" placeholder="Nama Add-on (ex: Telur)" value="${escapeHtml(name)}"
+      class="addon-name-input flex-1 px-2.5 py-1.5 rounded-lg border border-stone-300 text-xs font-bold text-stone-900 focus:border-amber-500 focus:outline-none">
+    <div class="flex items-center gap-1">
+      <span class="text-[10px] font-bold text-stone-500">+Rp</span>
+      <input type="number" placeholder="0" min="0" step="500" value="${price !== undefined && price !== '' ? price : ''}"
+        class="addon-price-input w-20 px-2 py-1.5 rounded-lg border border-stone-300 text-xs font-black text-emerald-800 focus:border-amber-500 focus:outline-none">
+    </div>
+    <button type="button" onclick="this.closest('div.flex').remove()"
+      class="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer" title="Hapus Add-on">
+      <span class="material-symbols-rounded text-base">delete</span>
+    </button>
+  `;
+  container.appendChild(row);
+  const input = row.querySelector('.addon-name-input');
+  if (!name && input) input.focus();
+}
+
+export function collectProductAddOns() {
+  const container = document.getElementById('productAddOnsContainer');
+  if (!container) return [];
+  const rows = container.querySelectorAll('div.flex');
+  const addOns = [];
+  rows.forEach((row, idx) => {
+    const name = row.querySelector('.addon-name-input')?.value.trim();
+    const priceVal = parseInt(row.querySelector('.addon-price-input')?.value, 10);
+    const price = isNaN(priceVal) ? 0 : Math.max(0, priceVal);
+    if (name) {
+      addOns.push({
+        id: 'ao_' + idx + '_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+        name,
+        price
+      });
+    }
+  });
+  return addOns;
+}
+
 export function openAddProductModal() {
   playClick('pop');
   const titleEl = document.getElementById('productModalTitle');
@@ -118,6 +171,7 @@ export function openAddProductModal() {
   if (iconEl) iconEl.value = 'lunch_dining';
   if (isAvailEl) isAvailEl.checked = true;
   if (stockEl) stockEl.value = '';
+  renderProductAddOns([]);
   if (modal) modal.classList.remove('hidden');
 }
 
@@ -146,6 +200,7 @@ export function openEditProductModal(id) {
   if (stockEl) {
     stockEl.value = (p.trackStock && p.stock !== null && p.stock !== undefined) ? p.stock : '';
   }
+  renderProductAddOns(p.addOns || []);
   if (modal) modal.classList.remove('hidden');
 }
 
@@ -165,6 +220,7 @@ export function saveProduct(e) {
   const icon = document.getElementById('prodIcon').value;
   const isAvailable = document.getElementById('prodIsAvailable').checked;
   const stockInputRaw = document.getElementById('prodStock').value.trim();
+  const addOns = collectProductAddOns();
 
   if (!name || isNaN(price) || price <= 0) {
     showToast('Harap isi nama dan harga menu dengan benar', 'warning');
@@ -189,7 +245,8 @@ export function saveProduct(e) {
         icon,
         isAvailable: finalAvailable,
         trackStock,
-        stock
+        stock,
+        addOns
       };
       state.products[index] = productObj;
     }
@@ -202,7 +259,8 @@ export function saveProduct(e) {
       icon,
       isAvailable: finalAvailable,
       trackStock,
-      stock
+      stock,
+      addOns
     };
     state.products.unshift(productObj);
   }
@@ -215,7 +273,7 @@ export function saveProduct(e) {
   closeProductModal();
   renderAdminTable();
   renderProducts();
-  showToast(`Menu "${name}" berhasil disimpan! ${trackStock ? `(Stok: ${stock} Porsi)` : '(Stok Bebas)'}`, 'success');
+  showToast(`Menu "${name}" berhasil disimpan! ${addOns.length ? `(${addOns.length} Add-on)` : ''}`, 'success');
 }
 
 export async function deleteProduct(id) {
