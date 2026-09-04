@@ -108,6 +108,15 @@ if (fs.existsSync(assetsDir)) {
       console.log(`Synced ${f} to android assets`);
     }
   });
+
+  ['js', 'css'].forEach(dir => {
+    const srcDir = path.resolve(dir);
+    const destDir = path.join(assetsDir, dir);
+    if (fs.existsSync(srcDir)) {
+      fs.cpSync(srcDir, destDir, { recursive: true });
+      console.log(`Synced ${dir}/ recursively to android assets`);
+    }
+  });
 }
 
 console.log(`\nBerhasil memperbarui ke v${targetVersion}! Tinggal 'git commit' dan 'git push' ke master untuk memicu rilis CI/CD otomatis.`);

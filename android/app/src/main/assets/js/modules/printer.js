@@ -178,7 +178,12 @@ export function generateReceiptPlainText(tx, customConfig = null) {
   lines.push(divider);
 
   // 4. Ringkasan Pembayaran
-  lines.push(padBetween('Subtotal', formatRp(tx.total)));
+  const rawSubtotal = tx.subtotal || tx.total;
+  lines.push(padBetween('Subtotal', formatRp(rawSubtotal)));
+  if (tx.discount && tx.discount.amount > 0) {
+    const discLabel = tx.discount.type === 'percent' ? `Diskon (${tx.discount.value}%)` : 'Diskon';
+    lines.push(padBetween(discLabel, `-${formatRp(tx.discount.amount)}`));
+  }
   lines.push(padBetween('TOTAL', formatRp(tx.total)));
   lines.push('');
 
@@ -319,7 +324,12 @@ export async function buildEscPosBytes(tx, kickDrawer = false) {
   addText(divider);
 
   // 7. Subtotal & TOTAL (Bold)
-  addText(padBetween('Subtotal', formatRp(tx.total)) + '\n');
+  const rawSubtotal = tx.subtotal || tx.total;
+  addText(padBetween('Subtotal', formatRp(rawSubtotal)) + '\n');
+  if (tx.discount && tx.discount.amount > 0) {
+    const discLabel = tx.discount.type === 'percent' ? `Diskon (${tx.discount.value}%)` : 'Diskon';
+    addText(padBetween(discLabel, `-${formatRp(tx.discount.amount)}`) + '\n');
+  }
   addBytes(0x1B, 0x45, 0x01); // Bold ON
   addText(padBetween('TOTAL', formatRp(tx.total)) + '\n');
   addBytes(0x1B, 0x45, 0x00); // Bold OFF
@@ -1622,7 +1632,25 @@ export function renderPrintableReceiptArea(tx, cfg = null) {
     }).join('');
   }
 
-  if (subtotalEl) subtotalEl.innerText = formatRp(tx.total);
+  const rawSubtotal = tx.subtotal || tx.total;
+  if (subtotalEl) subtotalEl.innerText = formatRp(rawSubtotal);
+
+  const discountRow = document.getElementById('receiptDiscountRow');
+  const discountLabelEl = document.getElementById('receiptDiscountLabel');
+  const discountValEl = document.getElementById('receiptDiscountVal');
+
+  if (tx.discount && tx.discount.amount > 0) {
+    if (discountRow) discountRow.style.display = 'flex';
+    if (discountLabelEl) {
+      discountLabelEl.innerText = tx.discount.type === 'percent' 
+        ? `Diskon (${tx.discount.value}%):` 
+        : 'Diskon:';
+    }
+    if (discountValEl) discountValEl.innerText = `-${formatRp(tx.discount.amount)}`;
+  } else {
+    if (discountRow) discountRow.style.display = 'none';
+  }
+
   if (totalEl) totalEl.innerText = formatRp(tx.total);
 
   if (tx.method === 'QRIS') {
@@ -2566,4 +2594,254 @@ export function handleQrScanFromFile(event) {
   };
   reader.readAsDataURL(file);
 }
+
+/**
+ * Konversi Data Rekap Shift / Tutup Kasir (Z-Report) menjadi ESC/POS Byte Array
+ */
+export async function buildShiftZReportEscPosBytes(shiftSummary) {
+  const cfg = state.printerConfig || {};
+  const width = cfg.paperWidth === '80mm' ? 48 : 32;
+  const divider = '-'.repeat(width) + '\n';
+  const doubleDivider = '='.repeat(width) + '\n';
+  const commands = [];
+
+  const addBytes = (...bytes) => {
+    for (let b of bytes) commands.push(b);
+  };
+
+  const addText = (text) => {
+    const clean = String(text || '')
+      .replace(/[\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]/g, ' ')
+      .replace(/[^\x20-\x7E\n]/g, '');
+    for (let i = 0; i < clean.length; i++) {
+      commands.push(clean.charCodeAt(i));
+    }
+  };
+
+  const padCenter = (text) => {
+    const str = String(text || '').trim();
+    if (str.length >= width) return str.substring(0, width);
+    const leftPad = Math.floor((width - str.length) / 2);
+    const rightPad = width - str.length - leftPad;
+    return ' '.repeat(leftPad) + str + ' '.repeat(rightPad);
+  };
+
+  const padBetween = (left, right) => {
+    const lStr = String(left || '').trim();
+    const rStr = String(right || '').trim();
+    const space = width - lStr.length - rStr.length;
+    if (space < 1) {
+      return lStr.substring(0, Math.max(1, width - rStr.length - 1)) + ' ' + rStr;
+    }
+    return lStr + ' '.repeat(space) + rStr;
+  };
+
+  // Init ESC @ PC437
+  addBytes(0x1B, 0x40);
+  addBytes(0x1B, 0x74, 0x00);
+
+  const storeName = cfg.headerStoreName || state.storeProfile?.name || 'KEDAI USAHA MAMI';
+  const cashier = shiftSummary.cashierName || state.auth?.ownerName || 'Mami';
+
+  const formatDt = (iso) => {
+    if (!iso) return '-';
+    const d = new Date(iso);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  // Header Laporan
+  addBytes(0x1B, 0x61, 0x01); // Center
+  addText(doubleDivider);
+  addBytes(0x1B, 0x45, 0x01); // Bold ON
+  addBytes(0x1D, 0x21, 0x11); // Double size
+  addText('LAPORAN Z\n');
+  addBytes(0x1D, 0x21, 0x00); // Normal size
+  addText('REKAP TUTUP SHIFT KASIR\n');
+  addBytes(0x1B, 0x45, 0x00); // Bold OFF
+  addText(storeName.toUpperCase() + '\n');
+  addText(doubleDivider);
+
+  // Detail Shift (Align Left)
+  addBytes(0x1B, 0x61, 0x00); // Left
+  addText(padBetween('No. Shift', '#' + (shiftSummary.shiftId ? shiftSummary.shiftId.replace('SHIFT-', '') : '001')) + '\n');
+  addText(padBetween('Kasir', cashier) + '\n');
+  addText(padBetween('Buka Shift', formatDt(shiftSummary.startTime)) + '\n');
+  addText(padBetween('Tutup Shift', formatDt(shiftSummary.endTime)) + '\n');
+  addText(divider);
+
+  // Penjualan & Modal
+  addText(padBetween('Modal Awal (Kas)', formatRp(shiftSummary.initialCash || 0)) + '\n');
+  addText(padBetween('Penjualan Tunai', formatRp(shiftSummary.cashSales || 0)) + '\n');
+  addText(padBetween('Penjualan QRIS', formatRp(shiftSummary.qrisSales || 0)) + '\n');
+  if (shiftSummary.totalExpenses > 0) {
+    addText(padBetween('Pengeluaran Kas', '-' + formatRp(shiftSummary.totalExpenses)) + '\n');
+  }
+  addText(divider);
+
+  // Total Omset Penjualan
+  addBytes(0x1B, 0x45, 0x01); // Bold ON
+  addText(padBetween('TOTAL OMSET', formatRp(shiftSummary.totalSales || 0)) + '\n');
+  addText(padBetween('Total Transaksi', `${shiftSummary.txCount || 0} Struk`) + '\n');
+  addBytes(0x1B, 0x45, 0x00); // Bold OFF
+  addText(divider);
+
+  // Audit Uang Fisik Laci
+  addText(padBetween('Kas Seharusnya', formatRp(shiftSummary.expectedCash || 0)) + '\n');
+  if (shiftSummary.actualCash !== null && shiftSummary.actualCash !== undefined) {
+    addText(padBetween('Kas Fisik Aktual', formatRp(shiftSummary.actualCash)) + '\n');
+    const diff = shiftSummary.difference || 0;
+    let diffStatus = 'Rp 0 (PAS)';
+    if (diff > 0) diffStatus = `+${formatRp(diff)} (LEBIH)`;
+    else if (diff < 0) diffStatus = `-${formatRp(Math.abs(diff))} (KURANG)`;
+
+    addBytes(0x1B, 0x45, 0x01); // Bold ON
+    addText(padBetween('Selisih Kas', diffStatus) + '\n');
+    addBytes(0x1B, 0x45, 0x00); // Bold OFF
+  }
+  addText(divider);
+
+  if (shiftSummary.closingNotes) {
+    addText(`Catatan: ${shiftSummary.closingNotes}\n`);
+    addText(divider);
+  }
+
+  // Footer & Tanda Tangan
+  addBytes(0x1B, 0x61, 0x01); // Center
+  addText('Dicetak Otomatis • Aristotle POS\n\n');
+  addText('(___________________)\n');
+  addText(`Ttd. Kasir (${cashier})\n\n`);
+
+  addBytes(0x1B, 0x64, 0x03); // Feed 3 baris
+  return new Uint8Array(commands);
+}
+
+/**
+ * Render HTML printable Z-Report area
+ */
+export function renderPrintableShiftZReport(shiftSummary) {
+  let container = document.getElementById('shiftZReportPrintArea');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'shiftZReportPrintArea';
+    container.className = 'hidden';
+    document.body.appendChild(container);
+  }
+
+  const storeName = state.printerConfig?.headerStoreName || state.storeProfile?.name || 'KEDAI USAHA MAMI';
+  const cashier = shiftSummary.cashierName || state.auth?.ownerName || 'Mami';
+
+  const formatDt = (iso) => {
+    if (!iso) return '-';
+    const d = new Date(iso);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  const diff = shiftSummary.difference || 0;
+  let diffStatus = 'Rp 0 (PAS)';
+  if (diff > 0) diffStatus = `+${formatRp(diff)} (LEBIH)`;
+  else if (diff < 0) diffStatus = `-${formatRp(Math.abs(diff))} (KURANG)`;
+
+  container.innerHTML = `
+    <div style="max-width: 300px; margin: 0 auto; font-family: monospace; font-size: 11px; line-height: 1.3; color: #000; padding: 8px;">
+      <div style="text-align: center; font-weight: bold; border-bottom: 1px dashed #000; padding-bottom: 6px; margin-bottom: 6px;">
+        <div style="font-size: 14px; font-weight: 900;">LAPORAN Z</div>
+        <div style="font-size: 11px;">REKAP TUTUP SHIFT KASIR</div>
+        <div style="font-size: 12px; margin-top: 2px;">${escapeHtml(storeName.toUpperCase())}</div>
+      </div>
+      <div style="display: flex; justify-content: space-between;"><span>No. Shift:</span><span>#${escapeHtml((shiftSummary.shiftId || '001').replace('SHIFT-', ''))}</span></div>
+      <div style="display: flex; justify-content: space-between;"><span>Kasir:</span><span>${escapeHtml(cashier)}</span></div>
+      <div style="display: flex; justify-content: space-between;"><span>Buka:</span><span>${formatDt(shiftSummary.startTime)}</span></div>
+      <div style="display: flex; justify-content: space-between;"><span>Tutup:</span><span>${formatDt(shiftSummary.endTime)}</span></div>
+      <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
+      <div style="display: flex; justify-content: space-between;"><span>Modal Awal:</span><span>${formatRp(shiftSummary.initialCash || 0)}</span></div>
+      <div style="display: flex; justify-content: space-between;"><span>Penjualan Tunai:</span><span>${formatRp(shiftSummary.cashSales || 0)}</span></div>
+      <div style="display: flex; justify-content: space-between;"><span>Penjualan QRIS:</span><span>${formatRp(shiftSummary.qrisSales || 0)}</span></div>
+      ${shiftSummary.totalExpenses > 0 ? `<div style="display: flex; justify-content: space-between;"><span>Pengeluaran:</span><span>-${formatRp(shiftSummary.totalExpenses)}</span></div>` : ''}
+      <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
+      <div style="display: flex; justify-content: space-between; font-weight: 900;"><span>TOTAL OMSET:</span><span>${formatRp(shiftSummary.totalSales || 0)}</span></div>
+      <div style="display: flex; justify-content: space-between;"><span>Total Struk:</span><span>${shiftSummary.txCount || 0} Transaksi</span></div>
+      <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
+      <div style="display: flex; justify-content: space-between;"><span>Kas Seharusnya:</span><span>${formatRp(shiftSummary.expectedCash || 0)}</span></div>
+      <div style="display: flex; justify-content: space-between; font-weight: bold;"><span>Kas Fisik di Laci:</span><span>${formatRp(shiftSummary.actualCash !== null ? shiftSummary.actualCash : shiftSummary.expectedCash)}</span></div>
+      <div style="display: flex; justify-content: space-between; font-weight: 900;"><span>Selisih:</span><span>${diffStatus}</span></div>
+      ${shiftSummary.closingNotes ? `<div style="border-top: 1px dashed #000; margin: 6px 0;"></div><div>Catatan: ${escapeHtml(shiftSummary.closingNotes)}</div>` : ''}
+      <div style="text-align: center; margin-top: 16px; border-top: 1px dashed #000; padding-top: 8px;">
+        <div>Aristotle POS • Kasir Pintar UMKM</div>
+        <div style="margin-top: 24px;">(___________________)</div>
+        <div style="margin-top: 4px;">Ttd. Kasir (${escapeHtml(cashier)})</div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Cetak Struk Rekap Tutup Shift (Z-Report) ke Thermal / Browser
+ */
+export async function printShiftZReport(shiftSummary) {
+  if (!shiftSummary) {
+    showToast('Data shift tidak ditemukan', 'warning');
+    return false;
+  }
+
+  showToast('Menyiapkan struk Laporan Z...', 'info');
+  renderPrintableShiftZReport(shiftSummary);
+
+  // 1. Coba cetak ke native Android Service jika di aplikasi APK
+  if (window.AndroidBridge && typeof window.AndroidBridge.printBluetooth === 'function') {
+    try {
+      const bytes = await buildShiftZReportEscPosBytes(shiftSummary);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      const b64 = window.btoa(binary);
+      const ok = window.AndroidBridge.printBluetooth(b64);
+      if (ok) {
+        showToast('Laporan Z berhasil dicetak!', 'success');
+        return true;
+      }
+    } catch (e) {
+      console.warn('Native Android Bluetooth print Z-Report error:', e);
+    }
+  }
+
+  // 2. Cek koneksi Bluetooth Web API
+  if (bluetoothCharacteristic) {
+    try {
+      const bytes = await buildShiftZReportEscPosBytes(shiftSummary);
+      await sendBluetoothData(bytes);
+      showToast('Laporan Z tercetak (Bluetooth)!', 'success');
+      return true;
+    } catch (e) {
+      console.warn('Bluetooth print Z-Report gagal:', e);
+    }
+  }
+
+  // 3. Cek koneksi USB Serial
+  if (serialWriter) {
+    try {
+      const bytes = await buildShiftZReportEscPosBytes(shiftSummary);
+      await sendSerialData(bytes);
+      showToast('Laporan Z tercetak (USB Serial)!', 'success');
+      return true;
+    } catch (e) {
+      console.warn('Serial print Z-Report gagal:', e);
+    }
+  }
+
+  // 4. Fallback ke Print Dialog Browser
+  const printEl = document.getElementById('shiftZReportPrintArea');
+  if (printEl) {
+    document.body.classList.add('printing-shift-z');
+    printEl.classList.remove('hidden');
+    window.print();
+    setTimeout(() => {
+      printEl.classList.add('hidden');
+      document.body.classList.remove('printing-shift-z');
+    }, 1500);
+    return true;
+  }
+  return false;
+}
+
 

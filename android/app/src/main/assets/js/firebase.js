@@ -913,6 +913,42 @@ export async function syncSaveQueues(queues) {
 }
 
 /**
+ * Sync Shift Data (Open / Closed Z-Report) to Cloud
+ */
+export async function syncSaveShift(shift) {
+  if (!db || !shift || !shift.id) return;
+  try {
+    const currentStoreId = getStoreId();
+    const docRef = doc(db, 'stores', currentStoreId, 'shifts', shift.id);
+    await setDoc(docRef, {
+      ...shift,
+      syncedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (e) {
+    console.error('Failed to sync shift to cloud:', e);
+  }
+}
+
+/**
+ * Fetch Shifts History from Cloud
+ */
+export async function syncGetShifts() {
+  if (!db) return [];
+  try {
+    const currentStoreId = getStoreId();
+    const shiftCol = collection(db, 'stores', currentStoreId, 'shifts');
+    const snap = await getDocs(shiftCol);
+    const list = [];
+    snap.forEach(d => list.push(d.data()));
+    list.sort((a, b) => new Date(b.startTime || 0) - new Date(a.startTime || 0));
+    return list;
+  } catch (e) {
+    console.error('Failed to fetch shifts from cloud:', e);
+    return [];
+  }
+}
+
+/**
  * Force Push Local Data to Cloud (Manual Full Sync)
  */
 export async function forceUploadAllToCloud() {

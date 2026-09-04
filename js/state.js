@@ -119,7 +119,9 @@ export const state = {
   currentPeriod: 'today', // 'today', 'month', 'all'
   qrisPayload: DEFAULT_QRIS_PAYLOAD,
   qrisMode: 'dynamic', // 'dynamic' (nominal pas otomatis) or 'static' (nominal manual)
-  printerConfig: { ...DEFAULT_PRINTER_CONFIG }
+  printerConfig: { ...DEFAULT_PRINTER_CONFIG },
+  activeShift: null,
+  shifts: []
 };
 
 /**
@@ -137,6 +139,8 @@ export function initState() {
     state.orderQueues = [{ id: 'q_1', name: 'Pesanan #1', cart: {} }];
     state.activeQueueId = 'q_1';
     state.printerConfig = { ...DEFAULT_PRINTER_CONFIG };
+    state.activeShift = null;
+    state.shifts = [];
     updateUIStoreBranding();
     return;
   }
@@ -248,6 +252,30 @@ export function initState() {
     }
   } else {
     state.printerConfig = { ...DEFAULT_PRINTER_CONFIG };
+  }
+
+  // 9. Muat Status Shift Aktif & Riwayat Tutup Shift
+  const savedActiveShift = localStorage.getItem(keys.ACTIVE_SHIFT);
+  if (savedActiveShift) {
+    try {
+      state.activeShift = JSON.parse(savedActiveShift);
+    } catch (e) {
+      state.activeShift = null;
+    }
+  } else {
+    state.activeShift = null;
+  }
+
+  const savedShifts = localStorage.getItem(keys.SHIFTS);
+  if (savedShifts) {
+    try {
+      state.shifts = JSON.parse(savedShifts);
+      if (!Array.isArray(state.shifts)) state.shifts = [];
+    } catch (e) {
+      state.shifts = [];
+    }
+  } else {
+    state.shifts = [];
   }
 
   // Daftarkan toko aktif ini ke registry perangkat
@@ -373,6 +401,18 @@ export function saveExpenses() {
 
 export function saveQueues() {
   localStorage.setItem(currentStorageKeys.QUEUES, JSON.stringify(state.orderQueues));
+}
+
+export function saveActiveShift() {
+  if (state.activeShift) {
+    localStorage.setItem(currentStorageKeys.ACTIVE_SHIFT, JSON.stringify(state.activeShift));
+  } else {
+    localStorage.removeItem(currentStorageKeys.ACTIVE_SHIFT);
+  }
+}
+
+export function saveShifts() {
+  localStorage.setItem(currentStorageKeys.SHIFTS, JSON.stringify(state.shifts || []));
 }
 
 export function saveQrisPayload(payload) {

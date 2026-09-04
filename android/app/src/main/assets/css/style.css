@@ -119,8 +119,32 @@ html.fonts-loading .material-symbols-rounded {
     visibility: hidden !important;
   }
 
-  #printArea, #printArea * {
+  #printArea, #printArea *,
+  #shiftZReportPrintArea, #shiftZReportPrintArea * {
     visibility: visible !important;
+  }
+
+  body.printing-shift-z #printArea {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  #shiftZReportPrintArea:not(.hidden) {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 58mm !important;
+    max-width: 58mm !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 2mm !important;
+    box-sizing: border-box !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: none !important;
+    box-shadow: none !important;
+    z-index: 999999 !important;
+    display: block !important;
   }
 
   #printArea .flex {

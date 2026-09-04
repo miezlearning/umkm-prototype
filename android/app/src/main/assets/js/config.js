@@ -56,7 +56,9 @@ export function getStorageKeys(storeId = 'kedai_usaha_mami') {
     QRIS: `kasir_${safeId}_qris_payload_v1`,
     PROFILE: `kasir_${safeId}_profile_v1`,
     AUTH: `kasir_${safeId}_auth_v1`,
-    PRINTER: `kasir_${safeId}_printer_v1`
+    PRINTER: `kasir_${safeId}_printer_v1`,
+    SHIFTS: `kasir_${safeId}_shifts_v1`,
+    ACTIVE_SHIFT: `kasir_${safeId}_active_shift_v1`
   };
 }
 

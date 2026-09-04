@@ -22,6 +22,7 @@ import * as tour from './modules/tour.js';
 import * as superadmin from './modules/superadmin.js';
 import * as printer from './modules/printer.js';
 import * as updater from './modules/updater.js';
+import * as shift from './modules/shift.js';
 import { 
   initFirebaseSync, 
   setRemoteUpdateCallback, 
@@ -729,6 +730,13 @@ export async function init() {
       console.warn('Remote print listener init note:', e);
     }
 
+    // Inisialisasi status Shift Kasir
+    try {
+      shift.initShift();
+    } catch (e) {
+      console.warn('Shift init note:', e);
+    }
+
     // 6. Selesai (100%)
     updateLoadingProgress(100, 'Sistem kasir siap digunakan!');
     await new Promise(r => setTimeout(r, 200));
@@ -974,10 +982,33 @@ const KasirApp = {
   printCurrentKitchenTicket: payment.printCurrentKitchenTicket,
   kickCurrentDrawer: payment.kickCurrentDrawer,
   toggleQrisPaymentMode: payment.toggleQrisPaymentMode,
+  openDiscountModal: payment.openDiscountModal,
+  closeDiscountModal: payment.closeDiscountModal,
+  applyDiscount: payment.applyDiscount,
+  removeDiscount: payment.removeDiscount,
+  setDiscountModalType: payment.setDiscountModalType,
+  submitCustomDiscount: payment.submitCustomDiscount,
+  getActiveDiscount: payment.getActiveDiscount,
+  getFinalPayableTotal: payment.getFinalPayableTotal,
+
+  // Shift Management & Rekap Tutup Kasir (Z-Report)
+  openStartShiftModal: shift.openStartShiftModal,
+  closeStartShiftModal: shift.closeStartShiftModal,
+  submitStartShift: shift.submitStartShift,
+  setQuickStartCash: shift.setQuickStartCash,
+  openCloseShiftModal: shift.openCloseShiftModal,
+  closeCloseShiftModal: shift.closeCloseShiftModal,
+  handleActualCashInput: shift.handleActualCashInput,
+  finalizeCloseShift: shift.finalizeCloseShift,
+  printCurrentShiftZReport: shift.printCurrentShiftZReport,
+  handleShiftHeaderClick: shift.handleShiftHeaderClick,
+  getActiveShift: shift.getActiveShift,
+  calculateShiftSummary: shift.calculateShiftSummary,
 
   // Thermal Printer & Cash Drawer
   printReceipt: printer.printReceipt,
   printKitchenTicket: printer.printKitchenTicket,
+  printShiftZReport: printer.printShiftZReport,
   kickCashDrawer: printer.kickCashDrawer,
   isLocalPrinterReady: printer.isLocalPrinterReady,
   testPrintReceipt: printer.testPrintReceipt,

@@ -9,9 +9,155 @@ let paymentMethod = 'cash'; // 'cash' or 'qris'
 let cashGiven = 0;
 let cashContributions = [];
 let currentReceiptTx = null;
+let activeDiscount = null; // { type: 'percent'|'nominal', value: number, amount: number }
+let discountModalType = 'percent'; // 'percent' or 'nominal'
+
+export function getActiveDiscount() {
+  return activeDiscount;
+}
+
+export function getFinalPayableTotal() {
+  const { total } = calculateCartTotal();
+  if (!activeDiscount) return total;
+  let amount = 0;
+  if (activeDiscount.type === 'percent') {
+    amount = Math.round((total * activeDiscount.value) / 100);
+  } else {
+    amount = Math.min(activeDiscount.value, total);
+  }
+  activeDiscount.amount = Math.max(0, Math.min(amount, total));
+  return Math.max(0, total - activeDiscount.amount);
+}
+
+export function updatePaymentTotals() {
+  const { total: rawTotal } = calculateCartTotal();
+  const finalTotal = getFinalPayableTotal();
+
+  const totalEl = document.getElementById('payModalTotal');
+  if (totalEl) totalEl.innerText = formatRp(finalTotal);
+
+  const subtotalRow = document.getElementById('payModalSubtotalRow');
+  const subtotalVal = document.getElementById('payModalSubtotalVal');
+  const badgeContainer = document.getElementById('activeDiscountBadge');
+  const btnOpenDisc = document.getElementById('btnOpenDiscountModal');
+  const activeDiscText = document.getElementById('activeDiscountText');
+
+  if (activeDiscount && activeDiscount.amount > 0) {
+    if (subtotalRow) subtotalRow.classList.remove('hidden');
+    if (subtotalVal) subtotalVal.innerText = formatRp(rawTotal);
+    if (badgeContainer) badgeContainer.classList.remove('hidden');
+    if (btnOpenDisc) btnOpenDisc.classList.add('hidden');
+    if (activeDiscText) {
+      activeDiscText.innerText = activeDiscount.type === 'percent'
+        ? `Diskon ${activeDiscount.value}% (-${formatRp(activeDiscount.amount)})`
+        : `Diskon -${formatRp(activeDiscount.amount)}`;
+    }
+  } else {
+    if (subtotalRow) subtotalRow.classList.add('hidden');
+    if (badgeContainer) badgeContainer.classList.add('hidden');
+    if (btnOpenDisc) btnOpenDisc.classList.remove('hidden');
+  }
+
+  if (paymentMethod === 'qris') {
+    renderDynamicQrisCode();
+  } else {
+    updateChangeDisplay();
+  }
+}
+
+export function applyDiscount(type, value) {
+  playClick('pop');
+  const { total } = calculateCartTotal();
+  if (total <= 0) return;
+
+  const numVal = Math.max(0, Number(value) || 0);
+  if (numVal <= 0) {
+    removeDiscount();
+    return;
+  }
+
+  let amount = 0;
+  if (type === 'percent') {
+    const clampedPct = Math.min(100, Math.max(1, numVal));
+    amount = Math.round((total * clampedPct) / 100);
+    activeDiscount = { type: 'percent', value: clampedPct, amount };
+  } else {
+    amount = Math.min(numVal, total);
+    activeDiscount = { type: 'nominal', value: numVal, amount };
+  }
+
+  updatePaymentTotals();
+  closeDiscountModal();
+  showToast(`Diskon ${formatRp(activeDiscount.amount)} berhasil diterapkan!`, 'success');
+}
+
+export function removeDiscount() {
+  playClick('del');
+  activeDiscount = null;
+  updatePaymentTotals();
+  showToast('Diskon dibatalkan', 'info');
+}
+
+export function openDiscountModal() {
+  playClick('pop');
+  const { total } = calculateCartTotal();
+  const subtotalEl = document.getElementById('discountModalSubtotal');
+  if (subtotalEl) subtotalEl.innerText = formatRp(total);
+
+  const inputVal = document.getElementById('discountCustomInput');
+  if (inputVal) inputVal.value = '';
+
+  setDiscountModalType('percent');
+
+  const modal = document.getElementById('discountSelectionModal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+export function closeDiscountModal() {
+  playClick('pop');
+  const modal = document.getElementById('discountSelectionModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+export function setDiscountModalType(type) {
+  playClick('switch');
+  discountModalType = type;
+  const btnPct = document.getElementById('btnDiscountTypePercent');
+  const btnNom = document.getElementById('btnDiscountTypeNominal');
+  const unitLabel = document.getElementById('discountInputUnit');
+  const inputEl = document.getElementById('discountCustomInput');
+
+  if (type === 'percent') {
+    if (btnPct) btnPct.className = 'py-2 px-3 rounded-xl bg-rose-600 text-white font-black text-xs transition shadow-sm';
+    if (btnNom) btnNom.className = 'py-2 px-3 rounded-xl bg-stone-100 text-stone-700 font-bold text-xs hover:bg-stone-200 transition';
+    if (unitLabel) unitLabel.innerText = '%';
+    if (inputEl) {
+      inputEl.placeholder = 'Contoh: 10';
+      inputEl.max = '100';
+    }
+  } else {
+    if (btnNom) btnNom.className = 'py-2 px-3 rounded-xl bg-rose-600 text-white font-black text-xs transition shadow-sm';
+    if (btnPct) btnPct.className = 'py-2 px-3 rounded-xl bg-stone-100 text-stone-700 font-bold text-xs hover:bg-stone-200 transition';
+    if (unitLabel) unitLabel.innerText = 'Rp';
+    if (inputEl) {
+      inputEl.placeholder = 'Contoh: 5000';
+      inputEl.removeAttribute('max');
+    }
+  }
+}
+
+export function submitCustomDiscount() {
+  const inputEl = document.getElementById('discountCustomInput');
+  const val = inputEl ? Number(inputEl.value) : 0;
+  if (!val || val <= 0) {
+    showToast('Masukkan nilai diskon yang valid', 'warning');
+    return;
+  }
+  applyDiscount(discountModalType, val);
+}
 
 export function renderDynamicQrisCode() {
-  const { total } = calculateCartTotal();
+  const finalTotal = getFinalPayableTotal();
   const qrisContainer = document.getElementById('qrisDynamicContainer');
   const qrisTotalEl = document.getElementById('qrisDynamicTotal');
   const merchantNameEl = document.getElementById('qrisMerchantName');
@@ -19,7 +165,7 @@ export function renderDynamicQrisCode() {
   const acquirerEl = document.getElementById('qrisAcquirerDisplay');
   const badgeEl = document.getElementById('qrisModeBadge');
 
-  if (qrisTotalEl) qrisTotalEl.innerText = formatRp(total);
+  if (qrisTotalEl) qrisTotalEl.innerText = formatRp(finalTotal);
 
   const meta = parseQRISMetadata(state.qrisPayload);
   if (merchantNameEl) merchantNameEl.innerText = state.storeProfile?.name || meta.merchantName || 'Kedai Usaha Mami';
@@ -35,7 +181,7 @@ export function renderDynamicQrisCode() {
   }
 
   if (qrisContainer) {
-    const payload = isDynamic ? generateDynamicQRIS(state.qrisPayload, total) : state.qrisPayload;
+    const payload = isDynamic ? generateDynamicQRIS(state.qrisPayload, finalTotal) : state.qrisPayload;
     renderQRToContainer(qrisContainer, payload, 220);
   }
 }
@@ -51,8 +197,8 @@ export function openPaymentModal() {
   const { total } = calculateCartTotal();
   if (total <= 0) return;
 
-  const totalEl = document.getElementById('payModalTotal');
-  if (totalEl) totalEl.innerText = formatRp(total);
+  activeDiscount = null;
+  updatePaymentTotals();
 
   paymentMethod = 'cash';
   setPaymentMethod('cash');
@@ -109,8 +255,8 @@ export function setPaymentMethod(method) {
 
 export function calculateSplitBill(persons) {
   playClick('tap');
-  const { total } = calculateCartTotal();
-  const perPerson = Math.ceil(total / persons);
+  const finalTotal = getFinalPayableTotal();
+  const perPerson = Math.ceil(finalTotal / persons);
   const banner = document.getElementById('splitResultBanner');
   const btnReset = document.getElementById('btnResetSplit');
 
@@ -139,13 +285,13 @@ export function resetSplitBill() {
 
 export function selectQuickCash(amount) {
   playClick('cash');
-  const { total } = calculateCartTotal();
+  const finalTotal = getFinalPayableTotal();
   const toggleAcc = document.getElementById('toggleAccumulateCash');
   const isAccumulate = toggleAcc ? toggleAcc.checked : false;
   
   let incomingVal = 0;
   if (amount === 'exact') {
-    incomingVal = isAccumulate ? (total - cashGiven) : total;
+    incomingVal = isAccumulate ? (finalTotal - cashGiven) : finalTotal;
     if (incomingVal < 0) incomingVal = 0;
   } else {
     incomingVal = amount;
@@ -231,8 +377,8 @@ export function clearManualCash() {
 export function updateChangeDisplay() {
   if (paymentMethod === 'qris') return;
 
-  const { total } = calculateCartTotal();
-  const change = cashGiven - total;
+  const finalTotal = getFinalPayableTotal();
+  const change = cashGiven - finalTotal;
   const btnFinish = document.getElementById('btnFinishPayment');
   const changeDisplay = document.getElementById('changeDisplay');
   const cashGivenDisplay = document.getElementById('cashGivenDisplay');
@@ -240,7 +386,7 @@ export function updateChangeDisplay() {
 
   if (cashGivenDisplay) cashGivenDisplay.innerText = formatRp(cashGiven);
 
-  if (cashGiven >= total && total > 0) {
+  if (cashGiven >= finalTotal && finalTotal >= 0) {
     if (changeDisplay) {
       changeDisplay.innerText = formatRp(change);
       changeDisplay.className = 'text-xl sm:text-3xl font-black text-emerald-700';
@@ -251,7 +397,7 @@ export function updateChangeDisplay() {
     if (btnFinish) btnFinish.disabled = false;
   } else {
     if (changeDisplay) {
-      changeDisplay.innerText = cashGiven === 0 ? 'Rp 0' : `Kurang ${formatRp(total - cashGiven)}`;
+      changeDisplay.innerText = cashGiven === 0 ? 'Rp 0' : `Kurang ${formatRp(finalTotal - cashGiven)}`;
       changeDisplay.className = 'text-lg sm:text-2xl font-black text-red-600';
     }
     if (changeNotice) {
@@ -262,14 +408,11 @@ export function updateChangeDisplay() {
 }
 
 export function completeTransaction() {
-  const { total } = calculateCartTotal();
-  if (total <= 0) return;
+  const finalPayable = getFinalPayableTotal();
+  if (finalPayable < 0) return;
 
   const isQris = paymentMethod === 'qris';
-  if (!isQris && cashGiven < total) return;
-
-  const finalCash = isQris ? total : cashGiven;
-  const finalChange = isQris ? 0 : (cashGiven - total);
+  if (!isQris && cashGiven < finalPayable) return;
 
   const currentCart = getCurrentCart();
   const activeQueue = getActiveQueue();
@@ -298,7 +441,7 @@ export function completeTransaction() {
   });
 
   // Validasi Integritas Harga & Transaksi: Pastikan item & harga cocok 100% dengan master katalog
-  let verifiedTotal = 0;
+  let verifiedRawSubtotal = 0;
   for (const item of orderItems) {
     const masterProd = state.products.find(prod => prod.id === item.id);
     if (!masterProd || typeof masterProd.price !== 'number' || masterProd.price < 0 || item.qty <= 0) {
@@ -307,13 +450,35 @@ export function completeTransaction() {
     }
     item.price = masterProd.price;
     item.subtotal = masterProd.price * item.qty;
-    verifiedTotal += item.subtotal;
+    verifiedRawSubtotal += item.subtotal;
   }
 
-  if (verifiedTotal <= 0) {
+  if (verifiedRawSubtotal <= 0) {
     showToast('Total transaksi tidak valid.', 'error');
     return;
   }
+
+  // Hitung diskon secara presisi terhadap verifiedRawSubtotal
+  let finalVerifiedTotal = verifiedRawSubtotal;
+  let txDiscount = null;
+  if (activeDiscount) {
+    let discAmt = 0;
+    if (activeDiscount.type === 'percent') {
+      discAmt = Math.round((verifiedRawSubtotal * activeDiscount.value) / 100);
+    } else {
+      discAmt = Math.min(activeDiscount.value, verifiedRawSubtotal);
+    }
+    discAmt = Math.max(0, Math.min(discAmt, verifiedRawSubtotal));
+    finalVerifiedTotal = Math.max(0, verifiedRawSubtotal - discAmt);
+    txDiscount = {
+      type: activeDiscount.type,
+      value: activeDiscount.value,
+      amount: discAmt
+    };
+  }
+
+  const finalCash = isQris ? finalVerifiedTotal : cashGiven;
+  const finalChange = isQris ? 0 : (cashGiven - finalVerifiedTotal);
 
   const newTx = {
     id: 'TX-' + Date.now(),
@@ -321,7 +486,9 @@ export function completeTransaction() {
     orderName: queueName,
     method: isQris ? 'QRIS' : 'TUNAI',
     items: orderItems,
-    total: verifiedTotal,
+    subtotal: verifiedRawSubtotal,
+    discount: txDiscount,
+    total: finalVerifiedTotal,
     cashGiven: finalCash,
     change: finalChange,
     contributions: (!isQris && cashContributions.length > 1) ? cashContributions : null
@@ -397,7 +564,7 @@ export function completeTransaction() {
   renderOrderQueueTabs();
   renderCart();
   renderProducts();
-  showToast(`Pembayaran ${formatRp(total)} Berhasil (${newTx.method})!`, 'success');
+  showToast(`Pembayaran ${formatRp(newTx.total)} Berhasil (${newTx.method})!`, 'success');
 }
 
 export function showReceipt(tx) {

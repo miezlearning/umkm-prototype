@@ -1,9 +1,11 @@
 {
-  "versionCode": 43,
-  "versionName": "1.1.39",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.39/Aristotle-POS.apk",
+  "versionCode": 44,
+  "versionName": "1.1.40",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.40/Aristotle-POS.apk",
   "changelog": [
-    "Pengamanan menyeluruh: autentikasi port 8088 token POS, SHA-256 PIN & Master Dev, integritas harga"
+    "Fitur Manajemen Shift & Rekap Tutup Kasir (Z-Report)",
+    "Fitur Diskon Transaksi (% dan Rp)",
+    "Pembaruan Cetak Thermal 58mm/80mm"
   ],
-  "releaseDate": "2026-09-03"
+  "releaseDate": "2026-09-04"
 }

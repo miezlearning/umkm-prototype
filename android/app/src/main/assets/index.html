@@ -180,6 +180,15 @@
           <span id="headerPrinterText" class="truncate max-w-[140px]">Memeriksa Printer...</span>
         </button>
 
+        <!-- M3 Shift Management Chip -->
+        <button id="headerShiftStatusBadge" type="button" onclick="window.KasirApp.handleShiftHeaderClick()"
+          class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-stone-100 hover:bg-stone-200/80 border border-stone-200/80 text-stone-700 text-xs font-semibold cursor-pointer shadow-2xs transition active:scale-95 shrink-0"
+          title="Status Shift Kasir & Tutup Buku (Z-Report)">
+          <span id="headerShiftDot" class="w-2 h-2 rounded-full bg-stone-400 shrink-0"></span>
+          <span class="material-symbols-rounded text-sm text-stone-700">schedule</span>
+          <span id="headerShiftText" class="truncate max-w-[130px]">Buka Shift</span>
+        </button>
+
         <!-- Hidden appVersionBadge for scripts/release.js compatibility -->
         <span id="appVersionBadge" class="hidden">v1.1.20</span>
       </div>
@@ -221,6 +230,12 @@
 
       <!-- Quick Action Buttons on Mobile Header (Anti-Wrap & Clean Gap) -->
       <div class="lg:hidden flex items-center gap-1.5 shrink-0">
+        <button id="mobileHeaderShiftBtn" type="button" onclick="window.KasirApp.handleShiftHeaderClick()"
+          class="w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-700 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large relative shrink-0"
+          title="Shift Kasir & Tutup Buku (Z-Report)">
+          <span id="mobileHeaderShiftDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="material-symbols-rounded text-lg text-emerald-700">schedule</span>
+        </button>
         <button id="mobileHeaderPrinterBtn" onclick="window.KasirApp.openPrinterConfigModal()"
           class="w-9 h-9 rounded-xl bg-white hover:bg-stone-100 text-stone-700 flex items-center justify-center border border-stone-200 shadow-xs transition active:scale-90 touch-target-large relative shrink-0"
           title="Status Printer & Multi-Device">
@@ -510,10 +525,30 @@
 
           <!-- Top Row: Total Due & Payment Method Tabs -->
           <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch">
-            <!-- Total Due Banner -->
+            <!-- Total Due Banner & Discount Status -->
             <div class="md:col-span-5 bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-3.5 sm:p-4 text-center flex flex-col items-center justify-center shadow-sm">
               <span class="text-emerald-950 font-bold text-xs uppercase tracking-wider">Total Harus Dibayar</span>
               <span id="payModalTotal" class="text-2xl sm:text-3xl lg:text-4xl font-black text-stone-950 mt-0.5">Rp 0</span>
+              
+              <!-- Subtotal Asli & Discount Trigger / Badge -->
+              <div class="mt-2 flex flex-col items-center gap-1 w-full">
+                <div id="payModalSubtotalRow" class="hidden text-xs text-stone-500 font-medium">
+                  <span>Subtotal: </span>
+                  <span id="payModalSubtotalVal" class="font-bold line-through text-stone-400">Rp 0</span>
+                </div>
+                <div id="discountBadgeContainer" class="flex items-center justify-center gap-1.5">
+                  <button type="button" id="btnOpenDiscountModal" onclick="window.KasirApp.openDiscountModal()"
+                    class="px-3 py-1 rounded-full bg-white hover:bg-rose-50 border border-rose-200 text-rose-700 text-xs font-black flex items-center gap-1 transition shadow-xs active:scale-95 touch-target-large cursor-pointer">
+                    <span class="material-symbols-rounded text-sm text-rose-600">local_offer</span>
+                    <span>+ Tambah Diskon</span>
+                  </button>
+                  <div id="activeDiscountBadge" class="hidden items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 border border-rose-300 text-rose-900 text-xs font-black shadow-xs">
+                    <span class="material-symbols-rounded text-sm text-rose-600">local_offer</span>
+                    <span id="activeDiscountText">Diskon 10% (-Rp 5.000)</span>
+                    <button type="button" onclick="window.KasirApp.removeDiscount()" class="w-4 h-4 rounded-full bg-rose-200 hover:bg-rose-300 text-rose-800 flex items-center justify-center text-xs ml-0.5 cursor-pointer" title="Hapus Diskon">✕</button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- PILIH METODE BAYAR: TUNAI VS QRIS/TRANSFER -->
@@ -726,6 +761,262 @@
       </div>
     </div>
 
+    <!-- ==================== MINI MODAL: PILIH / INPUT DISKON ==================== -->
+    <div id="discountSelectionModal"
+      class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 animate-in fade-in">
+      <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-stone-200 p-4 sm:p-5 flex flex-col gap-3.5">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-2 border-b border-stone-100">
+          <div class="flex items-center gap-2">
+            <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
+              <span class="material-symbols-rounded text-xl">local_offer</span>
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-black text-stone-900 leading-tight">Diskon Transaksi</h3>
+              <p class="text-[11px] text-stone-500 font-semibold">Potongan harga untuk pesanan ini</p>
+            </div>
+          </div>
+          <button onclick="window.KasirApp.closeDiscountModal()" class="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition cursor-pointer">
+            <span class="material-symbols-rounded text-xl">close</span>
+          </button>
+        </div>
+
+        <!-- Current Subtotal Info -->
+        <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-200 flex items-center justify-between text-xs">
+          <span class="text-stone-600 font-bold">Total Pesanan Sebelum Diskon:</span>
+          <span id="discountModalSubtotal" class="font-black text-stone-900 text-sm">Rp 0</span>
+        </div>
+
+        <!-- Quick Discount Chips (Percentages & Nominals) -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-stone-700 font-extrabold text-xs">Pilihan Diskon Cepat:</label>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button type="button" onclick="window.KasirApp.applyDiscount('percent', 5)"
+              class="py-2 px-1 rounded-xl bg-stone-100 hover:bg-rose-50 hover:border-rose-300 border border-stone-200 font-black text-xs text-stone-800 transition active:scale-95 touch-target-large text-center">5%</button>
+            <button type="button" onclick="window.KasirApp.applyDiscount('percent', 10)"
+              class="py-2 px-1 rounded-xl bg-stone-100 hover:bg-rose-50 hover:border-rose-300 border border-stone-200 font-black text-xs text-stone-800 transition active:scale-95 touch-target-large text-center">10%</button>
+            <button type="button" onclick="window.KasirApp.applyDiscount('percent', 15)"
+              class="py-2 px-1 rounded-xl bg-stone-100 hover:bg-rose-50 hover:border-rose-300 border border-stone-200 font-black text-xs text-stone-800 transition active:scale-95 touch-target-large text-center">15%</button>
+            <button type="button" onclick="window.KasirApp.applyDiscount('percent', 20)"
+              class="py-2 px-1 rounded-xl bg-stone-100 hover:bg-rose-50 hover:border-rose-300 border border-stone-200 font-black text-xs text-stone-800 transition active:scale-95 touch-target-large text-center">20%</button>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 mt-0.5">
+            <button type="button" onclick="window.KasirApp.applyDiscount('nominal', 5000)"
+              class="py-1.5 px-2 rounded-xl bg-stone-100 hover:bg-rose-50 hover:border-rose-300 border border-stone-200 font-black text-xs text-stone-800 transition active:scale-95 touch-target-large text-center">Rp 5.000</button>
+            <button type="button" onclick="window.KasirApp.applyDiscount('nominal', 10000)"
+              class="py-1.5 px-2 rounded-xl bg-stone-100 hover:bg-rose-50 hover:border-rose-300 border border-stone-200 font-black text-xs text-stone-800 transition active:scale-95 touch-target-large text-center">Rp 10.000</button>
+            <button type="button" onclick="window.KasirApp.applyDiscount('nominal', 20000)"
+              class="py-1.5 px-2 rounded-xl bg-stone-100 hover:bg-rose-50 hover:border-rose-300 border border-stone-200 font-black text-xs text-stone-800 transition active:scale-95 touch-target-large text-center">Rp 20.000</button>
+          </div>
+        </div>
+
+        <!-- Custom Discount Input -->
+        <div class="flex flex-col gap-1.5 pt-1 border-t border-stone-100">
+          <div class="flex items-center justify-between">
+            <label class="text-stone-700 font-extrabold text-xs">Atau Input Nilai Bebas:</label>
+            <!-- Toggle % vs Rp -->
+            <div class="flex items-center bg-stone-100 p-0.5 rounded-lg border border-stone-200">
+              <button type="button" id="btnDiscountTypePercent" onclick="window.KasirApp.setDiscountModalType('percent')"
+                class="py-1 px-2 rounded-md bg-rose-600 text-white font-black text-[11px] transition shadow-xs">Persen (%)</button>
+              <button type="button" id="btnDiscountTypeNominal" onclick="window.KasirApp.setDiscountModalType('nominal')"
+                class="py-1 px-2 rounded-md text-stone-600 font-bold text-[11px] hover:text-stone-900 transition">Rupiah (Rp)</button>
+            </div>
+          </div>
+
+          <div class="relative flex items-center">
+            <span id="discountInputUnit" class="absolute left-3 text-stone-500 font-black text-sm">%</span>
+            <input type="number" id="discountCustomInput" placeholder="Contoh: 10"
+              class="w-full pl-8 pr-3 py-2.5 rounded-xl border-2 border-stone-200 focus:border-rose-500 text-stone-900 font-black text-base focus:outline-none transition">
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-stone-100">
+          <button type="button" onclick="window.KasirApp.closeDiscountModal()"
+            class="py-2.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition cursor-pointer">
+            Batal
+          </button>
+          <button type="button" onclick="window.KasirApp.submitCustomDiscount()"
+            class="py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer active:scale-95">
+            <span class="material-symbols-rounded text-base">check</span>
+            <span>Terapkan</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL BUKA SHIFT BARU (MODAL AWAL KAS) ==================== -->
+    <div id="startShiftModal"
+      class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 animate-in fade-in">
+      <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-stone-200 p-5 flex flex-col gap-4">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-2 border-b border-stone-100">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center border border-emerald-200">
+              <span class="material-symbols-rounded text-2xl">schedule</span>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-stone-900 leading-tight">Buka Shift Kasir Baru</h3>
+              <p class="text-xs text-stone-500 font-medium">Catat modal kas awal di laci</p>
+            </div>
+          </div>
+          <button onclick="window.KasirApp.closeStartShiftModal()" class="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition cursor-pointer">
+            <span class="material-symbols-rounded text-xl">close</span>
+          </button>
+        </div>
+
+        <!-- Nama Kasir -->
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-bold text-stone-700">Nama Kasir Bertugas:</label>
+          <input type="text" id="startShiftCashierName" placeholder="Contoh: Mami / Rina"
+            class="w-full px-3 py-2.5 rounded-xl border-2 border-stone-200 focus:border-emerald-500 text-stone-900 font-bold text-sm focus:outline-none transition">
+        </div>
+
+        <!-- Modal Awal Kas (Cash Float) -->
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-stone-700">Modal Awal Uang di Laci (Rp):</label>
+            <span class="text-[10px] text-stone-500">Uang kembalian awal</span>
+          </div>
+          <input type="number" id="startShiftInitialCash" placeholder="0"
+            class="w-full px-3 py-2.5 rounded-xl border-2 border-emerald-400 focus:border-emerald-600 text-stone-950 font-black text-lg text-right focus:outline-none transition">
+
+          <!-- Quick Cash Float Chips -->
+          <div class="grid grid-cols-4 gap-1.5 mt-1">
+            <button type="button" onclick="window.KasirApp.setQuickStartCash(0)"
+              class="py-1.5 px-1 rounded-xl bg-stone-100 hover:bg-emerald-50 border border-stone-200 font-black text-xs text-stone-800 transition active:scale-95 text-center">Rp 0</button>
+            <button type="button" onclick="window.KasirApp.setQuickStartCash(50000)"
+              class="py-1.5 px-1 rounded-xl bg-stone-100 hover:bg-emerald-50 border border-stone-200 font-black text-xs text-stone-800 transition active:scale-95 text-center">50rb</button>
+            <button type="button" onclick="window.KasirApp.setQuickStartCash(100000)"
+              class="py-1.5 px-1 rounded-xl bg-stone-100 hover:bg-emerald-50 border border-stone-200 font-black text-xs text-stone-800 transition active:scale-95 text-center">100rb</button>
+            <button type="button" onclick="window.KasirApp.setQuickStartCash(200000)"
+              class="py-1.5 px-1 rounded-xl bg-stone-100 hover:bg-emerald-50 border border-stone-200 font-black text-xs text-stone-800 transition active:scale-95 text-center">200rb</button>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-stone-100">
+          <button type="button" onclick="window.KasirApp.closeStartShiftModal()"
+            class="py-2.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition cursor-pointer">
+            Batal
+          </button>
+          <button type="button" onclick="window.KasirApp.submitStartShift()"
+            class="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-stone-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer active:scale-95">
+            <span class="material-symbols-rounded text-base">play_arrow</span>
+            <span>Mulai Shift</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL TUTUP SHIFT & AUDIT KASIR (Z-REPORT) ==================== -->
+    <div id="closeShiftModal"
+      class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 animate-in fade-in overflow-y-auto">
+      <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-stone-200 p-4 sm:p-6 flex flex-col gap-3.5 my-auto max-h-[95vh] overflow-y-auto custom-scroll">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-2 border-b border-stone-100">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center border border-emerald-200">
+              <span class="material-symbols-rounded text-2xl">point_of_sale</span>
+            </div>
+            <div>
+              <h3 class="text-base sm:text-lg font-black text-stone-900 leading-tight">Rekap Tutup Shift (Laporan Z)</h3>
+              <p class="text-xs text-stone-500 font-semibold" id="closeShiftTimeRange">Mulai 04/09/2026</p>
+            </div>
+          </div>
+          <button onclick="window.KasirApp.closeCloseShiftModal()" class="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition cursor-pointer">
+            <span class="material-symbols-rounded text-xl">close</span>
+          </button>
+        </div>
+
+        <!-- Info Kasir & Total Ringkasan -->
+        <div class="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-3 flex items-center justify-between">
+          <div class="flex flex-col">
+            <span class="text-[11px] font-bold text-emerald-900">Kasir Aktif:</span>
+            <span id="closeShiftCashier" class="font-black text-sm text-stone-900">Mami</span>
+          </div>
+          <div class="text-right flex flex-col">
+            <span class="text-[11px] font-bold text-emerald-900">Total Omset Shift:</span>
+            <span id="closeShiftTotalOmset" class="font-black text-base text-emerald-800">Rp 0</span>
+            <span id="closeShiftTxCount" class="text-[10px] text-stone-500 font-bold">0 Struk</span>
+          </div>
+        </div>
+
+        <!-- Rincian Kas & Pendapatan -->
+        <div class="bg-stone-50 border border-stone-200 rounded-2xl p-3.5 flex flex-col gap-2 text-xs">
+          <div class="flex justify-between items-center text-stone-600">
+            <span>Modal Awal Kas:</span>
+            <span id="closeShiftInitialCash" class="font-black text-stone-900">Rp 0</span>
+          </div>
+          <div class="flex justify-between items-center text-stone-600">
+            <span>Penjualan Tunai:</span>
+            <span id="closeShiftCashSales" class="font-black text-emerald-800">+Rp 0</span>
+          </div>
+          <div class="flex justify-between items-center text-stone-600">
+            <span>Penjualan QRIS:</span>
+            <span id="closeShiftQrisSales" class="font-black text-stone-900">Rp 0</span>
+          </div>
+          <div class="flex justify-between items-center text-stone-600">
+            <span>Pengeluaran Toko:</span>
+            <span id="closeShiftExpenses" class="font-black text-rose-600">-Rp 0</span>
+          </div>
+          <div class="h-px bg-stone-200 my-0.5"></div>
+          <div class="flex justify-between items-center text-stone-900 font-black text-sm">
+            <span>Total Uang Kas Seharusnya di Laci:</span>
+            <span id="closeShiftExpectedCash" class="text-emerald-800 text-base">Rp 0</span>
+          </div>
+        </div>
+
+        <!-- Form Hitung Uang Fisik Aktual -->
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-black text-stone-800">Uang Fisik Aktual di Laci (Dihitung Kasir):</label>
+            <span class="text-[10px] font-bold text-stone-500">Hitung uang cash fisik</span>
+          </div>
+          <input type="number" id="closeShiftActualCash" oninput="window.KasirApp.handleActualCashInput()" placeholder="0"
+            class="w-full px-3.5 py-2.5 rounded-xl border-2 border-emerald-500 focus:border-emerald-600 text-stone-950 font-black text-xl text-right focus:outline-none transition shadow-xs">
+
+          <!-- Live Selisih Indicator Badge -->
+          <div id="closeShiftDiffBadge" class="p-3 rounded-2xl bg-emerald-50 border-2 border-emerald-300 flex items-center justify-between shadow-2xs transition">
+            <div id="closeShiftDiffValText" class="w-full flex items-center justify-between">
+              <div class="flex items-center gap-1.5 text-emerald-800 font-black text-sm">
+                <span class="material-symbols-rounded text-lg">check_circle</span>
+                <span>UANG KAS PAS</span>
+              </div>
+              <span class="text-xs font-bold text-emerald-700">Tidak ada selisih (Rp 0)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Catatan Penutupan -->
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-bold text-stone-700">Catatan Tutup Shift (Opsional):</label>
+          <input type="text" id="closeShiftNotes" placeholder="Contoh: Laci rapi, uang setor diserahkan ke Mami"
+            class="w-full px-3 py-2 rounded-xl border border-stone-200 text-stone-800 text-xs font-medium focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col gap-2 pt-2 border-t border-stone-100">
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="window.KasirApp.printCurrentShiftZReport()"
+              class="py-2.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 border border-stone-200 text-stone-800 font-black text-xs flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer">
+              <span class="material-symbols-rounded text-base text-stone-600">print</span>
+              <span>Cetak Laporan Z</span>
+            </button>
+            <button type="button" onclick="window.KasirApp.finalizeCloseShift()"
+              class="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-stone-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer">
+              <span class="material-symbols-rounded text-base">lock</span>
+              <span>Tutup & Kunci Shift</span>
+            </button>
+          </div>
+          <button type="button" onclick="window.KasirApp.closeCloseShiftModal()"
+            class="py-2 text-stone-500 hover:text-stone-700 text-xs font-bold transition text-center cursor-pointer">
+            Kembali ke Kasir (Belum Tutup)
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- ==================== SCREEN 3: PRODUCT MANAGEMENT & DATA BACKUP ==================== -->
     <div id="viewAdmin" class="hidden flex-1 flex-col gap-3.5">
       <div
@@ -798,8 +1089,14 @@
           </button>
         </div>
 
-        <!-- Action Buttons: Catat Pengeluaran, WA Share, CSV Export -->
+        <!-- Action Buttons: Catat Pengeluaran, Shift Z-Report, WA Share, CSV Export -->
         <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="window.KasirApp.handleShiftHeaderClick()"
+            class="px-3.5 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-950 font-extrabold text-xs sm:text-sm flex items-center gap-1.5 border border-emerald-300 transition touch-target-large shadow-2xs"
+            title="Kelola Shift & Rekap Tutup Kasir (Z-Report)">
+            <span class="material-symbols-rounded text-lg text-emerald-700">schedule</span>
+            <span>Shift & Laporan Z</span>
+          </button>
           <button onclick="openExpenseModal()"
             class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition touch-target-large active:scale-95">
             <span class="material-symbols-rounded text-lg">receipt_long</span>
@@ -1612,6 +1909,10 @@
             <span>Subtotal</span>
             <span id="receiptSubtotal"></span>
           </div>
+          <div class="flex justify-between text-rose-600 font-bold text-xs" id="receiptDiscountRow" style="display: none;">
+            <span id="receiptDiscountLabel">Diskon:</span>
+            <span id="receiptDiscountVal">-Rp 0</span>
+          </div>
           <div class="flex justify-between font-black text-sm">
             <span>TOTAL:</span>
             <span id="receiptTotal"></span>
@@ -1640,6 +1941,8 @@
 
       <!-- Hidden Fallback Printable Kitchen Area (58mm Thermal) -->
       <div id="kitchenPrintArea" class="hidden"></div>
+      <!-- Printable Shift Z-Report Thermal Area -->
+      <div id="shiftZReportPrintArea" class="hidden"></div>
 
       <!-- Action Buttons Grid (Struk Kasir, Tiket Dapur, Buka Laci, Settings, New Order) -->
       <div class="flex flex-col gap-2 pt-1">
@@ -2489,7 +2792,7 @@
             <span class="material-symbols-rounded text-emerald-600 text-lg">system_update</span>
             <div>
               <p class="font-bold text-stone-800">Pembaruan Aplikasi</p>
-              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.1.39 (Terkini)</p>
+              <p id="appVersionLabel" class="text-[10px] text-stone-500">v1.1.40 (Terkini)</p>
             </div>
           </div>
           <button onclick="KasirApp.checkForAppUpdates(true)"
@@ -2723,7 +3026,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-black tracking-tight" id="updateModalTitle">Pembaruan Aplikasi Tersedia!</h3>
-              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.1.39</span>
+              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.1.40</span>
             </div>
             <p id="updateModalCurrentVersion" class="text-emerald-100 text-xs mt-0.5">Versi Anda saat ini: v1.1.3</p>
           </div>
