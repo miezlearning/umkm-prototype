@@ -1,9 +1,9 @@
 {
-  "versionCode": 53,
-  "versionName": "1.2.6",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.6/Aristotle-POS.apk",
+  "versionCode": 54,
+  "versionName": "1.2.7",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.7/Aristotle-POS.apk",
   "changelog": [
-    "Pembersihan total akses publik Super Admin (keamanan multi-tenant), penghapusan bocoran passkey, peremajaan header dengan Live Clock & Kiosk Fullscreen, dan secret developer tap gesture"
+    "Redesain compact modal Profil Toko & Multi-Device agar proporsional, tidak terpotong pada layar kecil/tablet, dan nyaman digunakan"
   ],
   "releaseDate": "2026-09-04"
 }
