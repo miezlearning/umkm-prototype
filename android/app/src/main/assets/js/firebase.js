@@ -23,8 +23,8 @@ import {
   orderBy
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-import { DEFAULT_PRODUCTS, getStorageKeys, MASTER_DEV_HASH } from './config.js';
-import { state, currentStorageKeys, updateUIStoreBranding, getSavedStoresList } from './state.js';
+import { DEFAULT_PRODUCTS, getStorageKeys, MASTER_DEV_HASH, DEFAULT_PRINTER_CONFIG } from './config.js';
+import { state, currentStorageKeys, updateUIStoreBranding, getSavedStoresList, removeStoreFromDevice, registerStoreOnDevice } from './state.js';
 import { showToast, hashSha256 } from './utils.js';
 
 // Firebase Configuration (Google Firebase Web Public Project Identifier)
@@ -666,7 +666,7 @@ export async function authenticateStoreLogin(storeId, inputPin) {
   if (activeAuth?.pinHash) {
     isPinMatch = inputHash === activeAuth.pinHash;
   } else {
-    const expectedPin = String(activeAuth?.pin || '1234').trim();
+    const expectedPin = String(activeAuth?.pin || '123456').trim();
     isPinMatch = trimmedPin === expectedPin;
     if (isPinMatch) {
       if (!activeAuth) activeAuth = {};
@@ -685,7 +685,7 @@ export async function authenticateStoreLogin(storeId, inputPin) {
       success: false,
       exists: true,
       storeName,
-      message: `PIN salah untuk toko "${storeName}". Masukkan 4 digit PIN yang sesuai.`
+      message: `PIN salah untuk toko "${storeName}". Masukkan 6 digit PIN yang sesuai.`
     };
   }
 
@@ -1149,7 +1149,7 @@ export async function syncStoreToRegistry(storeInfo) {
       name: storeInfo.name || storeInfo.id,
       ownerName: storeInfo.ownerName || 'Owner',
       phone: storeInfo.phone || '',
-      pin: storeInfo.pin || '1234',
+      pin: storeInfo.pin || '123456',
       updatedAt: new Date().toISOString()
     }, { merge: true });
   } catch (e) {
@@ -1172,7 +1172,7 @@ export async function fetchAllStoresForSuperAdmin() {
       name: s.name,
       ownerName: s.ownerName || 'Owner',
       phone: s.phone || '',
-      pin: '1234',
+      pin: '123456',
       todayRevenue: 0,
       todayTxCount: 0,
       productCount: 0
@@ -1191,7 +1191,7 @@ export async function fetchAllStoresForSuperAdmin() {
           name: data.name || d.id,
           ownerName: data.ownerName || 'Owner',
           phone: data.phone || '',
-          pin: data.pin || '1234',
+          pin: data.pin || '123456',
           todayRevenue: 0,
           todayTxCount: 0,
           productCount: 0
@@ -1212,6 +1212,7 @@ export async function fetchAllStoresForSuperAdmin() {
             if (confData.auth?.ownerName) store.ownerName = confData.auth.ownerName;
             if (confData.auth?.phone) store.phone = confData.auth.phone;
             if (confData.profile?.name) store.name = confData.profile.name;
+            if (confData.profile?.city) store.city = confData.profile.city;
           }
 
           // Hitung transaksi hari ini & jumlah produk secara bersamaan
@@ -1291,18 +1292,253 @@ export async function superAdminUpdateStorePin(storeId, newPin) {
 }
 
 /**
- * Super Admin: Hapus toko dari Cloud Firestore
+ * Super Admin: Daftarkan Toko Mitra Baru ke Cloud Firestore & Local Storage
+ */
+export async function superAdminCreateStore(storeData, includeStarterMenu = true) {
+  if (!storeData || !storeData.name) return { success: false, message: 'Nama toko wajib diisi' };
+  
+  const cleanName = String(storeData.name).trim();
+  const cleanId = String(storeData.id || cleanName.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')).trim();
+  const cleanOwner = String(storeData.ownerName || 'Pemilik Toko').trim();
+  const cleanPhone = String(storeData.phone || '').trim();
+  const cleanCity = String(storeData.city || 'Indonesia').trim();
+  const cleanPin = String(storeData.pin || '123456').trim();
+  const pinHash = await hashSha256(cleanPin);
+
+  if (!cleanId) return { success: false, message: 'ID Toko tidak valid' };
+
+  // 1. Simpan ke Cloud Firestore jika online
+  if (db) {
+    try {
+      const regRef = doc(db, 'stores_registry', cleanId);
+      await setDoc(regRef, {
+        id: cleanId,
+        name: cleanName,
+        ownerName: cleanOwner,
+        phone: cleanPhone,
+        city: cleanCity,
+        pin: cleanPin,
+        pinHash: pinHash,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      const confRef = doc(db, 'stores', cleanId, 'data', 'config');
+      await setDoc(confRef, {
+        profile: {
+          id: cleanId,
+          name: cleanName,
+          city: cleanCity,
+          nmid: '',
+          acquirer: 'Aristotle POS'
+        },
+        auth: {
+          pin: cleanPin,
+          pinHash: pinHash,
+          ownerName: cleanOwner,
+          phone: cleanPhone,
+          requirePinForAdmin: false
+        },
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      // Jika menyertakan starter menu
+      if (includeStarterMenu) {
+        const batch = writeBatch(db);
+        DEFAULT_PRODUCTS.forEach(p => {
+          const pRef = doc(db, 'stores', cleanId, 'products', p.id);
+          batch.set(pRef, {
+            ...p,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
+        });
+        await batch.commit();
+      }
+    } catch (e) {
+      console.error('Failed to create store in Firestore:', e);
+    }
+  }
+
+  // 2. Simpan profil & auth ke Local Storage perangkat
+  try {
+    const keys = getStorageKeys(cleanId);
+    const profile = {
+      id: cleanId,
+      name: cleanName,
+      city: cleanCity,
+      nmid: '',
+      acquirer: 'Aristotle POS'
+    };
+    const auth = {
+      pin: cleanPin,
+      pinHash: pinHash,
+      ownerName: cleanOwner,
+      phone: cleanPhone,
+      requirePinForAdmin: false
+    };
+    localStorage.setItem(keys.PROFILE, JSON.stringify(profile));
+    localStorage.setItem(keys.AUTH, JSON.stringify(auth));
+    if (includeStarterMenu && !localStorage.getItem(keys.PRODUCTS)) {
+      localStorage.setItem(keys.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
+    }
+    if (!localStorage.getItem(keys.PRINTER)) {
+      localStorage.setItem(keys.PRINTER, JSON.stringify({
+        ...DEFAULT_PRINTER_CONFIG,
+        headerStoreName: cleanName,
+        headerPhone: cleanPhone,
+        cashierName: cleanOwner || 'Kasir'
+      }));
+    }
+    registerStoreOnDevice({
+      id: cleanId,
+      name: cleanName,
+      ownerName: cleanOwner,
+      phone: cleanPhone,
+      city: cleanCity
+    });
+  } catch (e) {}
+
+  return { success: true, storeId: cleanId, storeName: cleanName };
+}
+
+/**
+ * Super Admin: Perbarui Profil & Identitas Toko Mitra di Firestore & Local Storage
+ */
+export async function superAdminUpdateStore(storeData) {
+  if (!storeData || !storeData.storeId) return { success: false, message: 'ID Toko tidak valid' };
+  const storeId = storeData.storeId;
+  const cleanName = String(storeData.name || storeId).trim();
+  const cleanOwner = String(storeData.ownerName || 'Pemilik Toko').trim();
+  const cleanPhone = String(storeData.phone || '').trim();
+  const cleanCity = String(storeData.city || 'Indonesia').trim();
+  const cleanPin = storeData.pin ? String(storeData.pin).trim() : '';
+
+  let pinHash = '';
+  if (cleanPin) {
+    pinHash = await hashSha256(cleanPin);
+  }
+
+  // 1. Update Firestore
+  if (db) {
+    try {
+      const regRef = doc(db, 'stores_registry', storeId);
+      const patchReg = {
+        name: cleanName,
+        ownerName: cleanOwner,
+        phone: cleanPhone,
+        city: cleanCity,
+        updatedAt: new Date().toISOString()
+      };
+      if (cleanPin) {
+        patchReg.pin = cleanPin;
+        patchReg.pinHash = pinHash;
+      }
+      await setDoc(regRef, patchReg, { merge: true });
+
+      const confRef = doc(db, 'stores', storeId, 'data', 'config');
+      const patchConf = {
+        profile: {
+          name: cleanName,
+          city: cleanCity
+        },
+        auth: {
+          ownerName: cleanOwner,
+          phone: cleanPhone
+        },
+        updatedAt: new Date().toISOString()
+      };
+      if (cleanPin) {
+        patchConf.auth.pin = cleanPin;
+        patchConf.auth.pinHash = pinHash;
+      }
+      await setDoc(confRef, patchConf, { merge: true });
+    } catch (e) {
+      console.error('Failed to update store in Firestore:', e);
+    }
+  }
+
+  // 2. Update Local Storage
+  try {
+    const keys = getStorageKeys(storeId);
+    const profStr = localStorage.getItem(keys.PROFILE);
+    if (profStr) {
+      const pObj = JSON.parse(profStr);
+      pObj.name = cleanName;
+      pObj.city = cleanCity;
+      localStorage.setItem(keys.PROFILE, JSON.stringify(pObj));
+    }
+    const authStr = localStorage.getItem(keys.AUTH);
+    if (authStr) {
+      const aObj = JSON.parse(authStr);
+      aObj.ownerName = cleanOwner;
+      aObj.phone = cleanPhone;
+      if (cleanPin) {
+        aObj.pin = cleanPin;
+        aObj.pinHash = pinHash;
+      }
+      localStorage.setItem(keys.AUTH, JSON.stringify(aObj));
+    }
+    registerStoreOnDevice({
+      id: storeId,
+      name: cleanName,
+      ownerName: cleanOwner,
+      phone: cleanPhone,
+      city: cleanCity
+    });
+
+    if (state.storeId === storeId) {
+      if (state.storeProfile) {
+        state.storeProfile.name = cleanName;
+        state.storeProfile.city = cleanCity;
+      }
+      if (state.auth) {
+        state.auth.ownerName = cleanOwner;
+        state.auth.phone = cleanPhone;
+        if (cleanPin) {
+          state.auth.pin = cleanPin;
+          state.auth.pinHash = pinHash;
+        }
+      }
+      updateUIStoreBranding();
+    }
+  } catch (e) {}
+
+  return { success: true, storeId, storeName: cleanName };
+}
+
+/**
+ * Super Admin: Hapus toko secara menyeluruh dari Cloud Firestore & Perangkat
  */
 export async function deleteStoreFromCloud(storeId) {
-  if (!storeId || !db) return false;
-  try {
-    const regRef = doc(db, 'stores_registry', storeId);
-    await deleteDoc(regRef);
-    return true;
-  } catch (e) {
-    console.error('Failed to delete store from registry:', e);
-    return false;
+  if (!storeId) return false;
+
+  // 1. Hapus dari Firestore jika online
+  if (db) {
+    try {
+      const regRef = doc(db, 'stores_registry', storeId);
+      await deleteDoc(regRef);
+
+      const confRef = doc(db, 'stores', storeId, 'data', 'config');
+      await deleteDoc(confRef);
+    } catch (e) {
+      console.error('Failed to delete store from registry:', e);
+    }
   }
+
+  // 2. Bersihkan dari registry perangkat lokal
+  try {
+    removeStoreFromDevice(storeId);
+    const keys = getStorageKeys(storeId);
+    localStorage.removeItem(keys.PROFILE);
+    localStorage.removeItem(keys.AUTH);
+    localStorage.removeItem(keys.PRODUCTS);
+    localStorage.removeItem(keys.TRANSACTIONS);
+    localStorage.removeItem(keys.EXPENSES);
+    localStorage.removeItem(keys.PRINTER);
+  } catch (e) {}
+
+  return true;
 }
 
 /**

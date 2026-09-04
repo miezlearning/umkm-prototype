@@ -7,7 +7,7 @@ service cloud.firestore {
       allow read: if true;
       allow create, update: if request.resource.data.name is string
                             && request.resource.data.name.size() > 0;
-      allow delete: if false; // Cegah penghapusan sembarangan
+      allow delete: if true;
     }
     
     // 2. Data Terisolasi Tiap Toko (Multi-Tenant Store Boundary)
@@ -15,8 +15,7 @@ service cloud.firestore {
       
       // Konfigurasi Profil & Auth
       match /data/config {
-        allow read: if true;
-        allow write: if request.resource.data != null;
+        allow read, write, delete: if true;
       }
       
       // Produk & Katalog Toko

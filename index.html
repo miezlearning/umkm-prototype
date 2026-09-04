@@ -1407,115 +1407,171 @@
 
     </div>
 
-    <!-- ==================== SCREEN 5: SUPER ADMIN • MONITORING SELURUH UMKM (GOOGLE MATERIAL DESIGN 3) ==================== -->
-    <div id="viewSuperAdmin" class="hidden flex-1 flex-col gap-6 max-w-7xl mx-auto w-full pb-16 px-3 sm:px-6 animate-in fade-in-50">
+    <!-- ==================== SCREEN 5: SUPER ADMIN ==================== -->
+    <div id="viewSuperAdmin" class="hidden flex-1 flex-col gap-3 max-w-6xl mx-auto w-full pb-20 px-3 sm:px-4">
 
-      <!-- M3 Top App Bar -->
-      <div class="bg-white p-4 sm:p-5 rounded-[28px] shadow-sm border border-stone-200/90 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-        
-        <div class="flex items-center gap-3">
-          <button type="button" onclick="switchView('pos')"
-            class="w-11 h-11 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition active:scale-95 shrink-0 shadow-2xs"
-            title="Kembali ke Layar Kasir">
-            <span class="material-symbols-rounded text-2xl">arrow_back</span>
-          </button>
-          <div class="w-11 h-11 rounded-2xl bg-amber-100 text-amber-900 border border-amber-200 flex items-center justify-center shrink-0 shadow-2xs">
-            <span class="material-symbols-rounded text-2xl">admin_panel_settings</span>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <h2 class="text-base sm:text-lg font-black text-stone-900 leading-tight">Super Admin Portal</h2>
-              <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-[10px] border border-amber-200">M3 Hub</span>
+      <!-- Header -->
+      <div class="bg-white p-3 sm:p-4 rounded-2xl border border-stone-200 flex flex-col gap-3">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <button type="button" onclick="switchView('pos')"
+              class="h-9 w-9 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition active:scale-95 shrink-0"
+              title="Kembali ke Kasir">
+              <span class="material-symbols-rounded text-lg">arrow_back</span>
+            </button>
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-9 h-9 rounded-xl bg-stone-900 text-white flex items-center justify-center shrink-0">
+                <span class="material-symbols-rounded text-lg">admin_panel_settings</span>
+              </div>
+              <div class="min-w-0">
+                <h2 class="text-sm sm:text-base font-extrabold text-stone-900 leading-tight">Super Admin</h2>
+                <p class="text-[11px] sm:text-xs text-stone-500 truncate">Pantau omzet dan kelola semua toko</p>
+              </div>
             </div>
-            <p class="text-xs text-stone-500 font-medium mt-0.5">Monitoring omzet & transaksi multi-tenant terpusat</p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button type="button" onclick="KasirApp.openSuperAdminAddStoreModal()" id="saAddStoreBtn"
+              class="h-9 px-3.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition active:scale-95"
+              title="Tambah Toko Mitra">
+              <span class="material-symbols-rounded text-base">add_business</span>
+              <span>+ Tambah Mitra</span>
+            </button>
+            <button type="button" onclick="KasirApp.renderSuperAdminDashboard()" id="saRefreshBtn"
+              class="h-9 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center gap-1.5 border border-stone-200 transition active:scale-95"
+              title="Muat ulang">
+              <span class="material-symbols-rounded text-base">sync</span>
+              <span class="hidden md:inline">Refresh</span>
+            </button>
+            <button type="button" onclick="KasirApp.logoutSuperAdmin()"
+              class="h-9 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center gap-1.5 border border-stone-200 transition active:scale-95"
+              title="Kunci">
+              <span class="material-symbols-rounded text-base">lock</span>
+              <span class="hidden md:inline">Kunci</span>
+            </button>
           </div>
         </div>
 
-        <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-          <!-- M3 Pill Search Bar -->
-          <div class="relative flex-1 sm:w-72 min-w-[180px]">
-            <span class="material-symbols-rounded absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-lg">search</span>
-            <input type="text" placeholder="Cari UMKM, ID, atau owner..." oninput="KasirApp.handleSuperAdminSearch(event)"
-              class="w-full pl-10 pr-4 py-2.5 rounded-full bg-stone-100/90 border border-stone-200/80 focus:bg-white focus:border-amber-600 font-bold text-stone-900 text-xs outline-none transition shadow-2xs">
-          </div>
-
-          <!-- M3 Refresh Button -->
-          <button type="button" onclick="KasirApp.renderSuperAdminDashboard()"
-            class="px-3.5 py-2.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-extrabold text-xs flex items-center gap-1.5 border border-stone-200 transition active:scale-95 shadow-2xs"
-            title="Refresh Data Cloud">
-            <span class="material-symbols-rounded text-base">sync</span>
-            <span class="hidden sm:inline">Refresh</span>
-          </button>
-
-          <!-- M3 Lock Session Button -->
-          <button type="button" onclick="KasirApp.logoutSuperAdmin()"
-            class="px-3.5 py-2.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 font-extrabold text-xs flex items-center gap-1.5 border border-rose-200 transition active:scale-95 shadow-2xs"
-            title="Kunci & Keluar dari Sesi Super Admin">
-            <span class="material-symbols-rounded text-base">lock</span>
-            <span>Kunci</span>
+        <!-- Search -->
+        <div class="relative">
+          <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-lg">search</span>
+          <input type="text" id="superAdminSearchInput" placeholder="Cari nama toko, ID, atau owner..." oninput="KasirApp.handleSuperAdminSearch(event)"
+            class="w-full pl-9 pr-9 py-2.5 rounded-xl bg-stone-50 border border-stone-200 text-sm text-stone-900 outline-none focus:border-stone-900 focus:bg-white transition placeholder:text-stone-400 placeholder:font-normal">
+          <button type="button" id="saSearchClearBtn" onclick="KasirApp.clearSuperAdminSearch()"
+            class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-1">
+            <span class="material-symbols-rounded text-base">close</span>
           </button>
         </div>
-
       </div>
 
-      <!-- M3 KPI Tonal Metric Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-
-        <!-- 1. Total Toko UMKM (Amber Tonal Surface) -->
-        <div class="bg-amber-50/70 border border-amber-200/80 rounded-[24px] p-4 sm:p-5 flex flex-col justify-between gap-3 shadow-2xs hover:shadow-sm transition">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] sm:text-xs font-black text-amber-900 uppercase tracking-wider">Total UMKM Aktif</span>
-            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-100 text-amber-900 border border-amber-200 flex items-center justify-center">
-              <span class="material-symbols-rounded text-lg sm:text-xl">storefront</span>
-            </div>
+      <!-- Ringkasan -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+        <!-- 1. Total Toko -->
+        <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-stone-200">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[11px] font-bold text-stone-500">Total Toko</span>
+            <span class="material-symbols-rounded text-lg text-stone-400">storefront</span>
           </div>
-          <div>
-            <h3 id="saStatTotalStores" class="text-xl sm:text-2xl xl:text-3xl font-black text-amber-950 leading-tight">0</h3>
-            <span class="inline-block text-[10px] sm:text-[11px] font-bold text-amber-800 bg-amber-100/70 px-2.5 py-0.5 rounded-full border border-amber-200 mt-2">Mitra Terhubung</span>
-          </div>
+          <p id="saStatTotalStores" class="text-2xl sm:text-3xl font-extrabold text-stone-900 tabular-nums mt-1 leading-none">0</p>
+          <p class="text-[11px] text-stone-500 mt-1.5"><span id="saActiveStoresCount">0</span> aktif hari ini</p>
         </div>
 
-        <!-- 2. Total Omzet Seluruh Toko Hari Ini (Emerald Tonal Surface) -->
-        <div class="bg-emerald-50/70 border border-emerald-200/80 rounded-[24px] p-4 sm:p-5 flex flex-col justify-between gap-3 shadow-2xs hover:shadow-sm transition">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] sm:text-xs font-black text-emerald-900 uppercase tracking-wider">Omzet Seluruh UMKM</span>
-            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-200 flex items-center justify-center">
-              <span class="material-symbols-rounded text-lg sm:text-xl">payments</span>
-            </div>
+        <!-- 2. Omzet Hari Ini -->
+        <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-stone-200">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[11px] font-bold text-stone-500">Omzet Hari Ini</span>
+            <span class="material-symbols-rounded text-lg text-stone-400">payments</span>
           </div>
-          <div>
-            <h3 id="saStatTotalRevenue" class="text-xl sm:text-2xl xl:text-3xl font-black text-emerald-950 leading-tight">Rp 0</h3>
-            <span class="inline-block text-[10px] sm:text-[11px] font-bold text-emerald-800 bg-emerald-100/70 px-2.5 py-0.5 rounded-full border border-emerald-200 mt-2">Penjualan Hari Ini</span>
-          </div>
+          <p id="saStatTotalRevenue" class="text-lg sm:text-2xl font-extrabold text-stone-900 tabular-nums mt-1.5 leading-none truncate">Rp 0</p>
+          <p class="text-[11px] text-stone-500 mt-1.5">Semua toko</p>
         </div>
 
-        <!-- 3. Total Transaksi Selesai Hari Ini (Teal Tonal Surface) -->
-        <div class="bg-teal-50/70 border border-teal-200/80 rounded-[24px] p-4 sm:p-5 flex flex-col justify-between gap-3 shadow-2xs hover:shadow-sm transition">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] sm:text-xs font-black text-teal-900 uppercase tracking-wider">Total Transaksi</span>
-            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-teal-100 text-teal-900 border border-teal-200 flex items-center justify-center">
-              <span class="material-symbols-rounded text-lg sm:text-xl">receipt_long</span>
-            </div>
+        <!-- 3. Transaksi -->
+        <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-stone-200">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[11px] font-bold text-stone-500">Transaksi</span>
+            <span class="material-symbols-rounded text-lg text-stone-400">receipt_long</span>
           </div>
-          <div>
-            <h3 id="saStatTotalTx" class="text-xl sm:text-2xl xl:text-3xl font-black text-teal-950 leading-tight">0 Trx</h3>
-            <span class="inline-block text-[10px] sm:text-[11px] font-bold text-teal-800 bg-teal-100/70 px-2.5 py-0.5 rounded-full border border-teal-200 mt-2">Struk Berhasil</span>
-          </div>
+          <p id="saStatTotalTx" class="text-2xl sm:text-3xl font-extrabold text-stone-900 tabular-nums mt-1 leading-none">0</p>
+          <p class="text-[11px] text-stone-500 mt-1.5">Struk hari ini</p>
         </div>
 
+        <!-- 4. Rata-rata -->
+        <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-stone-200">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[11px] font-bold text-stone-500">Rata-rata Struk</span>
+            <span class="material-symbols-rounded text-lg text-stone-400">trending_up</span>
+          </div>
+          <p id="saStatAvgTxValue" class="text-lg sm:text-2xl font-extrabold text-stone-900 tabular-nums mt-1.5 leading-none truncate">Rp 0</p>
+          <p class="text-[11px] text-stone-500 mt-1.5">Per transaksi</p>
+        </div>
       </div>
 
-      <!-- M3 Stores Grid List -->
-      <div class="flex flex-col gap-3.5">
-        <div class="flex items-center justify-between flex-wrap gap-2">
-          <h3 class="text-xs sm:text-sm font-black text-stone-900 uppercase tracking-wider flex items-center gap-2">
-            <span class="material-symbols-rounded text-lg text-emerald-700">domain</span>
-            <span>Daftar Toko UMKM & Kontrol Hak Akses</span>
-          </h3>
-          <span class="text-[11px] text-stone-500 hidden sm:inline">Pilih "Buka Kasir" untuk beralih toko secara instan</span>
+      <!-- Filter & Urutan -->
+      <div class="bg-white p-2.5 sm:p-3 rounded-2xl border border-stone-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+        <div class="flex items-center gap-1.5 overflow-x-auto">
+          <button type="button" onclick="KasirApp.setSuperAdminStatusFilter('all')" data-sa-filter="all"
+            class="sa-filter-btn px-3 py-1.5 rounded-lg font-bold bg-stone-900 text-white text-xs transition whitespace-nowrap shrink-0">
+            Semua (<span id="saFilterAllCount">0</span>)
+          </button>
+          <button type="button" onclick="KasirApp.setSuperAdminStatusFilter('active_today')" data-sa-filter="active_today"
+            class="sa-filter-btn px-3 py-1.5 rounded-lg font-medium bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs transition whitespace-nowrap shrink-0">
+            Ada omzet (<span id="saFilterActiveCount">0</span>)
+          </button>
+          <button type="button" onclick="KasirApp.setSuperAdminStatusFilter('current_store')" data-sa-filter="current_store"
+            class="sa-filter-btn px-3 py-1.5 rounded-lg font-medium bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs transition whitespace-nowrap shrink-0">
+            Toko ini
+          </button>
         </div>
-        <div id="superAdminStoreList" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          <!-- Injected via superadmin.js -->
+
+        <div class="flex items-center justify-between sm:justify-end gap-2 border-t border-stone-100 pt-2.5 sm:border-0 sm:pt-0 shrink-0">
+          <select id="saSortSelect" onchange="KasirApp.setSuperAdminSort(this.value)"
+            class="h-8 px-2 rounded-lg bg-stone-50 border border-stone-200 font-medium text-stone-700 text-xs outline-none focus:border-stone-900 cursor-pointer max-w-[180px]">
+            <option value="revenue_desc">Omzet tertinggi</option>
+            <option value="tx_desc">Transaksi terbanyak</option>
+            <option value="name_asc">Nama A-Z</option>
+            <option value="id_asc">ID toko</option>
+          </select>
+
+          <div class="flex items-center p-0.5 bg-stone-100 rounded-lg border border-stone-200">
+            <button type="button" id="saViewModeGridBtn" onclick="KasirApp.setSuperAdminViewMode('grid')"
+              class="p-1.5 rounded-md bg-white text-stone-900 shadow-sm transition"
+              title="Tampilan kartu">
+              <span class="material-symbols-rounded text-lg block">grid_view</span>
+            </button>
+            <button type="button" id="saViewModeTableBtn" onclick="KasirApp.setSuperAdminViewMode('table')"
+              class="p-1.5 rounded-md text-stone-400 hover:text-stone-700 transition"
+              title="Tampilan tabel">
+              <span class="material-symbols-rounded text-lg block">table_rows</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daftar Toko: Kartu -->
+      <div id="superAdminStoreList" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5 sm:gap-3">
+        <!-- Injected via superadmin.js -->
+      </div>
+
+      <!-- Daftar Toko: Tabel -->
+      <div id="superAdminStoreTableContainer" class="hidden bg-white rounded-2xl border border-stone-200 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs min-w-[720px]">
+            <thead>
+              <tr class="bg-stone-50 border-b border-stone-200 text-[11px] font-bold text-stone-500">
+                <th class="py-2.5 px-4">Toko</th>
+                <th class="py-2.5 px-3">ID</th>
+                <th class="py-2.5 px-3">PIN</th>
+                <th class="py-2.5 px-3">WA</th>
+                <th class="py-2.5 px-3 text-right">Omzet</th>
+                <th class="py-2.5 px-3 text-center">Struk</th>
+                <th class="py-2.5 px-3 text-center">Menu</th>
+                <th class="py-2.5 px-4 text-right"></th>
+              </tr>
+            </thead>
+            <tbody id="superAdminStoreTableBody" class="divide-y divide-stone-100">
+              <!-- Injected via superadmin.js -->
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -3225,7 +3281,7 @@ Kopi susu 7k"
               <span class="material-symbols-rounded text-emerald-600 text-lg shrink-0">system_update</span>
               <div class="min-w-0">
                 <p class="font-bold text-stone-800 text-xs leading-none">Versi Aplikasi</p>
-                <p id="appVersionLabel" class="text-[10px] text-stone-500 truncate mt-0.5">v1.2.6 (Terkini)</p>
+                <p id="appVersionLabel" class="text-[10px] text-stone-500 truncate mt-0.5">v1.2.19 (Terkini)</p>
               </div>
             </div>
             <button onclick="KasirApp.checkForAppUpdates(true)"
@@ -3331,8 +3387,8 @@ Kopi susu 7k"
           </div>
 
           <div>
-            <label class="block text-stone-700 font-bold mb-1 text-xs">PIN Toko (Default: 1234):</label>
-            <input type="password" id="loginPinInput" placeholder="••••" required
+            <label class="block text-stone-700 font-bold mb-1 text-xs">PIN Toko (Default: 123456):</label>
+            <input type="password" id="loginPinInput" placeholder="••••••" maxlength="8" required
               class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-mono font-black text-stone-900 text-center tracking-widest text-lg outline-none">
           </div>
 
@@ -3366,10 +3422,10 @@ Kopi susu 7k"
           </div>
 
           <div>
-            <label class="block text-stone-700 font-bold mb-1 text-xs">Buat 4 Digit PIN Keamanan Toko:</label>
-            <input type="password" id="regPin" maxlength="4" inputmode="numeric" pattern="[0-9]*" value="1234" required placeholder="1234"
+            <label class="block text-stone-700 font-bold mb-1 text-xs">Buat 6 Digit PIN Keamanan Toko:</label>
+            <input type="password" id="regPin" maxlength="6" inputmode="numeric" pattern="[0-9]*" value="123456" required placeholder="123456"
               class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-mono font-bold text-stone-900 text-center tracking-widest text-base outline-none">
-            <p class="text-[10px] text-stone-500 mt-0.5">PIN 4 digit angka untuk mengunci menu laporan dari kasir</p>
+            <p class="text-[10px] text-stone-500 mt-0.5">PIN 6 digit angka untuk mengunci menu & laporan dari kasir</p>
           </div>
 
           <button type="submit"
@@ -3404,7 +3460,7 @@ Kopi susu 7k"
       </div>
 
       <form id="pinSecurityForm" onsubmit="handlePinSecuritySubmit(event)" class="flex flex-col gap-3 mt-1">
-        <input type="password" id="pinSecurityInput" autofocus placeholder="••••"
+        <input type="password" id="pinSecurityInput" autofocus placeholder="••••••" maxlength="8"
           class="w-full px-3 py-2.5 rounded-xl bg-stone-100 border border-stone-300 focus:bg-white focus:border-emerald-600 font-mono font-black text-stone-900 text-center tracking-widest text-xl outline-none">
 
         <div class="grid grid-cols-2 gap-2 pt-1">
@@ -3486,20 +3542,20 @@ Kopi susu 7k"
         <input type="hidden" id="saPinTargetStoreId" value="">
         
         <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-black text-stone-700">PIN Baru Toko (4-6 Angka):</label>
+          <label class="text-xs font-black text-stone-700">PIN Baru Toko (6 Digit Angka):</label>
           <div class="relative">
-            <input type="text" id="saNewPinInput" required maxlength="8" placeholder="Contoh: 1234"
+            <input type="text" id="saNewPinInput" required maxlength="8" placeholder="Contoh: 123456"
               class="w-full px-4 py-3 rounded-2xl bg-stone-50 border-2 border-stone-200 focus:border-amber-600 font-mono font-black text-center text-xl tracking-widest text-stone-900 outline-none transition">
           </div>
           <!-- Quick Presets -->
           <div class="flex items-center justify-center gap-2 mt-1">
             <span class="text-[10px] text-stone-400 font-bold">Preset:</span>
-            <button type="button" onclick="document.getElementById('saNewPinInput').value = '1234'"
-              class="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-mono font-bold text-xs transition">1234</button>
-            <button type="button" onclick="document.getElementById('saNewPinInput').value = '0000'"
-              class="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-mono font-bold text-xs transition">0000</button>
-            <button type="button" onclick="document.getElementById('saNewPinInput').value = '2026'"
-              class="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-mono font-bold text-xs transition">2026</button>
+            <button type="button" onclick="document.getElementById('saNewPinInput').value = '123456'"
+              class="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-mono font-bold text-xs transition">123456</button>
+            <button type="button" onclick="document.getElementById('saNewPinInput').value = '000000'"
+              class="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-mono font-bold text-xs transition">000000</button>
+            <button type="button" onclick="document.getElementById('saNewPinInput').value = '202600'"
+              class="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-mono font-bold text-xs transition">202600</button>
           </div>
         </div>
 
@@ -3520,6 +3576,245 @@ Kopi susu 7k"
     </div>
   </div>
 
+  <!-- ==================== MODAL: M3 SUPER ADMIN ADD STORE ==================== -->
+  <div id="superAdminAddStoreModal"
+    class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+    <div
+      class="bg-white w-full sm:max-w-md rounded-t-[28px] sm:rounded-[28px] shadow-2xl border border-stone-200/90 overflow-hidden flex flex-col my-auto animate-in zoom-in-95">
+      
+      <!-- Header -->
+      <div class="p-5 pb-3 border-b border-stone-100 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center justify-center shrink-0">
+            <span class="material-symbols-rounded text-xl">add_business</span>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold text-stone-900 leading-tight">Tambah Mitra UMKM Baru</h3>
+            <p class="text-[11px] text-stone-500">Daftarkan toko baru langsung ke sistem cloud</p>
+          </div>
+        </div>
+        <button type="button" onclick="KasirApp.closeSuperAdminAddStoreModal()"
+          class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center transition">
+          <span class="material-symbols-rounded text-base">close</span>
+        </button>
+      </div>
+
+      <!-- Form -->
+      <form id="superAdminAddStoreForm" onsubmit="KasirApp.handleSuperAdminAddStoreSubmit(event)" class="p-5 flex flex-col gap-3.5 max-h-[75vh] overflow-y-auto">
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">Nama Usaha / Toko <span class="text-rose-500">*</span></label>
+          <input type="text" id="saAddStoreName" required placeholder="Contoh: Kopi Kenangan Senopati"
+            oninput="KasirApp.handleSuperAdminStoreNameInput(this.value)"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-stone-900 font-bold text-stone-900 text-sm outline-none transition">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">ID Toko (Slug Unik) <span class="text-rose-500">*</span></label>
+          <input type="text" id="saAddStoreId" required placeholder="kopi_kenangan_senopati"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-stone-100 border border-stone-300 focus:bg-white focus:border-stone-900 font-mono font-bold text-stone-800 text-xs outline-none transition">
+          <p class="text-[10px] text-stone-400 mt-1">Digunakan untuk login cepat dan URL direktori toko</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">Nama Pemilik / Kasir <span class="text-rose-500">*</span></label>
+            <input type="text" id="saAddOwnerName" required placeholder="Ibu Siti / Mas Budi"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-stone-900 font-medium text-stone-900 text-xs outline-none transition">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">Nomor WhatsApp <span class="text-rose-500">*</span></label>
+            <input type="tel" id="saAddPhone" required placeholder="081234567890"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-stone-900 font-mono font-medium text-stone-900 text-xs outline-none transition">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">Kota / Lokasi</label>
+            <input type="text" id="saAddCity" value="Indonesia" placeholder="Misal: Jakarta / Bandung"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-stone-900 font-medium text-stone-900 text-xs outline-none transition">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">PIN Toko (6 Digit) <span class="text-rose-500">*</span></label>
+            <input type="text" id="saAddPin" maxlength="8" value="123456" required placeholder="123456"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-stone-900 font-mono font-black text-center text-stone-900 text-xs tracking-widest outline-none transition">
+          </div>
+        </div>
+
+        <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl flex items-center gap-2.5 cursor-pointer"
+          onclick="document.getElementById('saAddIncludeMenu').checked = !document.getElementById('saAddIncludeMenu').checked">
+          <input type="checkbox" id="saAddIncludeMenu" checked onclick="event.stopPropagation()"
+            class="w-4 h-4 rounded text-emerald-700 accent-emerald-700">
+          <div class="text-[11px] select-none">
+            <span class="font-bold text-emerald-950">Sertakan Menu Contoh (Starter Pack)</span>
+            <p class="text-emerald-800 text-[10px]">Menambahkan 15 menu default agar kasir langsung siap digunakan</p>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-stone-100">
+          <button type="button" onclick="KasirApp.closeSuperAdminAddStoreModal()"
+            class="py-2.5 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition active:scale-95">
+            Batal
+          </button>
+          <button type="submit" id="saAddStoreSubmitBtn"
+            class="py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs transition active:scale-95 shadow-sm flex items-center justify-center gap-1.5">
+            <span class="material-symbols-rounded text-base">save</span>
+            <span>Simpan Mitra</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: M3 SUPER ADMIN EDIT STORE ==================== -->
+  <div id="superAdminEditStoreModal"
+    class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+    <div
+      class="bg-white w-full sm:max-w-md rounded-t-[28px] sm:rounded-[28px] shadow-2xl border border-stone-200/90 overflow-hidden flex flex-col my-auto animate-in zoom-in-95">
+      
+      <!-- Header -->
+      <div class="p-5 pb-3 border-b border-stone-100 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-stone-100 text-stone-800 border border-stone-200 flex items-center justify-center shrink-0">
+            <span class="material-symbols-rounded text-xl">edit_square</span>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold text-stone-900 leading-tight">Edit Profil Mitra UMKM</h3>
+            <p class="text-[11px] text-stone-500">Perbarui identitas toko & kontak pengelola</p>
+          </div>
+        </div>
+        <button type="button" onclick="KasirApp.closeSuperAdminEditStoreModal()"
+          class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center transition">
+          <span class="material-symbols-rounded text-base">close</span>
+        </button>
+      </div>
+
+      <!-- Form -->
+      <form id="superAdminEditStoreForm" onsubmit="KasirApp.handleSuperAdminEditStoreSubmit(event)" class="p-5 flex flex-col gap-3.5 max-h-[75vh] overflow-y-auto">
+        <input type="hidden" id="saEditStoreTargetId">
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">ID Toko (Terkunci)</label>
+          <div class="px-3.5 py-2 rounded-xl bg-stone-100 border border-stone-200 font-mono font-bold text-stone-600 text-xs flex items-center justify-between">
+            <span id="saEditStoreIdBadge">-</span>
+            <span class="text-[10px] text-stone-400 font-normal">ID tidak dapat diubah</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">Nama Usaha / Toko <span class="text-rose-500">*</span></label>
+          <input type="text" id="saEditStoreName" required placeholder="Nama Toko"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-stone-900 font-bold text-stone-900 text-sm outline-none transition">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">Nama Pemilik / Kasir <span class="text-rose-500">*</span></label>
+            <input type="text" id="saEditOwnerName" required placeholder="Nama Pemilik"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-stone-900 font-medium text-stone-900 text-xs outline-none transition">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">Nomor WhatsApp</label>
+            <input type="tel" id="saEditPhone" placeholder="081234567890"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-stone-900 font-mono font-medium text-stone-900 text-xs outline-none transition">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">Kota / Lokasi</label>
+            <input type="text" id="saEditCity" placeholder="Kota"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-stone-900 font-medium text-stone-900 text-xs outline-none transition">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">PIN Toko (6 Digit)</label>
+            <input type="text" id="saEditPin" maxlength="8" placeholder="123456"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-stone-900 font-mono font-black text-center text-stone-900 text-xs tracking-widest outline-none transition">
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-stone-100">
+          <button type="button" onclick="KasirApp.closeSuperAdminEditStoreModal()"
+            class="py-2.5 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition active:scale-95">
+            Batal
+          </button>
+          <button type="submit" id="saEditStoreSubmitBtn"
+            class="py-2.5 px-4 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-extrabold text-xs transition active:scale-95 shadow-sm flex items-center justify-center gap-1.5">
+            <span class="material-symbols-rounded text-base">check</span>
+            <span>Simpan Perubahan</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: M3 SUPER ADMIN DELETE STORE ==================== -->
+  <div id="superAdminDeleteStoreModal"
+    class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div
+      class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-red-200 overflow-hidden flex flex-col animate-in zoom-in-95">
+      
+      <!-- Danger Header -->
+      <div class="bg-red-50 p-6 pb-4 border-b border-red-100 text-center flex flex-col items-center gap-2">
+        <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-600 border border-red-200 flex items-center justify-center shadow-xs">
+          <span class="material-symbols-rounded text-2xl">delete_forever</span>
+        </div>
+        <div>
+          <h3 class="text-base font-black text-stone-900">Hapus Toko Mitra?</h3>
+          <p class="text-stone-500 text-xs mt-0.5">Tindakan ini tidak dapat dibatalkan</p>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="p-5 flex flex-col gap-3.5">
+        <input type="hidden" id="saDeleteTargetStoreId">
+
+        <div class="bg-stone-50 p-3 rounded-2xl border border-stone-200 text-xs flex flex-col gap-1.5">
+          <div class="flex justify-between items-center">
+            <span class="text-stone-500 font-medium">Nama Toko:</span>
+            <span id="saDeleteStoreName" class="font-extrabold text-stone-900 truncate max-w-[180px]">-</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-stone-500 font-medium">ID Toko:</span>
+            <span id="saDeleteStoreIdBadge" class="font-mono font-bold text-stone-700 bg-stone-200/70 px-1.5 py-0.5 rounded">-</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-stone-500 font-medium">Omzet Hari Ini:</span>
+            <span id="saDeleteStoreRevenue" class="font-bold text-stone-900">-</span>
+          </div>
+        </div>
+
+        <p class="text-[11px] text-stone-600 leading-relaxed">
+          Toko ini akan dihapus permanen dari direktori cloud registry dan daftar perangkat.
+        </p>
+
+        <!-- Safety Guard Checkbox -->
+        <label class="flex items-start gap-2.5 p-3 rounded-xl bg-red-50/70 border border-red-200 cursor-pointer select-none">
+          <input type="checkbox" id="saDeleteConfirmCheck" onchange="KasirApp.toggleSuperAdminDeleteConfirmCheck()"
+            class="w-4 h-4 mt-0.5 rounded text-red-600 accent-red-600 shrink-0">
+          <span class="text-[11px] text-red-950 font-bold leading-tight">
+            Saya mengerti dan setuju menghapus toko mitra ini secara permanen
+          </span>
+        </label>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-stone-100">
+          <button type="button" onclick="KasirApp.closeSuperAdminDeleteStoreModal()"
+            class="py-2.5 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition active:scale-95">
+            Batal
+          </button>
+          <button type="button" id="saConfirmDeleteBtn" disabled onclick="KasirApp.confirmSuperAdminDeleteStore()"
+            class="py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white font-black text-xs transition active:scale-95 shadow-sm flex items-center justify-center gap-1.5">
+            <span class="material-symbols-rounded text-base">delete</span>
+            <span>Hapus Toko</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== IN-APP AUTO-UPDATER MODAL ==================== -->
   <div id="updateAppModal"
     class="fixed inset-0 z-50 bg-black/70 backdrop-blur-md hidden flex items-center justify-center p-4 overflow-y-auto">
@@ -3535,7 +3830,7 @@ Kopi susu 7k"
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-black tracking-tight" id="updateModalTitle">Pembaruan Aplikasi Tersedia!</h3>
-              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.18</span>
+              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.19</span>
             </div>
             <p id="updateModalCurrentVersion" class="text-emerald-100 text-xs mt-0.5">Versi Anda saat ini: v1.1.3</p>
           </div>
@@ -3695,7 +3990,7 @@ Kopi susu 7k"
     <button id="btnNavPosDesktop"></button>
     <button id="btnNavReportDesktop"></button>
     <button id="btnNavAdminDesktop"></button>
-    <span id="appVersionBadge" class="hidden">v1.2.18</span>
+    <span id="appVersionBadge" class="hidden">v1.2.19</span>
   </div>
 
   <!-- Main JavaScript App Module -->

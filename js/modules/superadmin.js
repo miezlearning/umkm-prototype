@@ -10,11 +10,16 @@ import { getStorageKeys, MASTER_DEV_HASH } from '../config.js';
 import { 
   fetchAllStoresForSuperAdmin, 
   superAdminUpdateStorePin,
+  superAdminCreateStore,
+  superAdminUpdateStore,
   deleteStoreFromCloud 
 } from '../firebase.js';
 
 let superAdminStores = [];
 let searchQuery = '';
+let activeStatusFilter = 'all'; // 'all' | 'active_today' | 'current_store'
+let activeSortBy = 'revenue_desc'; // 'revenue_desc' | 'tx_desc' | 'name_asc' | 'id_asc'
+let viewMode = 'grid'; // 'grid' | 'table'
 let isLoading = false;
 
 const SUPERADMIN_SESSION_KEY = 'superadmin_auth_session_v1';
@@ -27,7 +32,7 @@ export function isSuperAdminAuthenticated() {
 }
 
 /**
- * Buka modal autentikasi Super Admin (M3 Dialog)
+ * Buka modal autentikasi Super Admin
  */
 export function openSuperAdminAuthModal() {
   playClick('pop');
@@ -68,7 +73,6 @@ export function closeSuperAdminAuthModal() {
   const modal = document.getElementById('superAdminAuthModal');
   if (modal) modal.classList.add('hidden');
 
-  // Jika belum terautentikasi dan saat ini berada di layar superadmin, kembalikan ke kasir
   if (!isSuperAdminAuthenticated()) {
     const viewSuperAdmin = document.getElementById('viewSuperAdmin');
     if (viewSuperAdmin && !viewSuperAdmin.classList.contains('hidden')) {
@@ -88,19 +92,18 @@ export async function handleSuperAdminAuthSubmit(e) {
   const enteredKey = input ? input.value.trim() : '';
 
   if (!enteredKey) {
-    showToast('Masukkan passkey pengembang!', 'warning');
+    showToast('Masukkan passkey', 'warning');
     return;
   }
 
   const hash = await hashSha256(enteredKey);
 
-  // Verifikasi hash kriptografis SHA-256 passkey pengembang
   if (hash === MASTER_DEV_HASH) {
     sessionStorage.setItem(SUPERADMIN_SESSION_KEY, '1');
     const modal = document.getElementById('superAdminAuthModal');
     if (modal) modal.classList.add('hidden');
 
-    showToast('Akses Super Admin Terverifikasi', 'success', 2500);
+    showToast('Berhasil masuk', 'success', 2000);
     if (window.KasirApp && window.KasirApp.switchView) {
       window.KasirApp.switchView('superadmin');
     } else {
@@ -108,7 +111,7 @@ export async function handleSuperAdminAuthSubmit(e) {
     }
   } else {
     playClick('error');
-    showToast('Kunci akses Super Admin salah! Silakan hubungi tim pengembang.', 'error', 3500);
+    showToast('Passkey salah', 'error', 2500);
     if (input) {
       input.value = '';
       input.focus();
@@ -121,7 +124,7 @@ export async function handleSuperAdminAuthSubmit(e) {
  */
 export function logoutSuperAdmin() {
   sessionStorage.removeItem(SUPERADMIN_SESSION_KEY);
-  showToast('Sesi Super Admin dikunci.', 'info');
+  showToast('Terkunci', 'info');
   if (window.KasirApp && window.KasirApp.switchView) {
     window.KasirApp.switchView('pos');
   }
@@ -131,25 +134,38 @@ export function logoutSuperAdmin() {
  * Muat data seluruh UMKM dan render dashboard monitoring
  */
 export async function renderSuperAdminDashboard() {
-  // Wajib lolos autentikasi Super Admin terlebih dahulu
   if (!isSuperAdminAuthenticated()) {
     openSuperAdminAuthModal();
     return;
   }
 
-  const container = document.getElementById('superAdminStoreList');
-  if (!container) return;
+  const gridContainer = document.getElementById('superAdminStoreList');
+  const tableBody = document.getElementById('superAdminStoreTableBody');
+  const refreshBtn = document.getElementById('saRefreshBtn');
+
+  if (refreshBtn) {
+    const icon = refreshBtn.querySelector('.material-symbols-rounded');
+    if (icon) icon.classList.add('animate-spin');
+  }
 
   isLoading = true;
-  container.innerHTML = `
-    <div class="col-span-full p-12 text-center flex flex-col items-center justify-center gap-3 text-stone-400">
-      <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center animate-spin">
-        <span class="material-symbols-rounded text-2xl">sync</span>
+  if (gridContainer) {
+    gridContainer.innerHTML = `
+      <div class="col-span-full p-10 text-center flex flex-col items-center gap-2 text-stone-400 bg-white rounded-2xl border border-stone-200">
+        <span class="material-symbols-rounded text-2xl animate-spin">sync</span>
+        <p class="text-xs font-bold text-stone-600">Memuat data toko...</p>
       </div>
-      <p class="text-xs font-black text-stone-600">Mengambil data seluruh UMKM dari Cloud Firestore...</p>
-      <span class="text-[11px] text-stone-400">Sinkronisasi real-time multi-tenant</span>
-    </div>
-  `;
+    `;
+  }
+  if (tableBody) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="8" class="p-8 text-center text-xs text-stone-500">
+          Memuat data toko...
+        </td>
+      </tr>
+    `;
+  }
 
   try {
     superAdminStores = await fetchAllStoresForSuperAdmin();
@@ -160,7 +176,7 @@ export async function renderSuperAdminDashboard() {
       name: s.name,
       ownerName: s.ownerName || 'Owner',
       phone: s.phone || '',
-      pin: '1234',
+      pin: '123456',
       todayRevenue: 0,
       todayTxCount: 0,
       productCount: 0,
@@ -168,31 +184,134 @@ export async function renderSuperAdminDashboard() {
     }));
   } finally {
     isLoading = false;
+    if (refreshBtn) {
+      const icon = refreshBtn.querySelector('.material-symbols-rounded');
+      if (icon) icon.classList.remove('animate-spin');
+    }
   }
 
   updateMetricsAndList();
 }
 
 /**
- * Update metrik agregat dan render daftar kartu toko (M3 Components)
+ * Filter status toko (All, Active Today, Current Store)
+ */
+export function setSuperAdminStatusFilter(status) {
+  playClick('tap');
+  activeStatusFilter = status || 'all';
+
+  // Update button active state
+  const buttons = document.querySelectorAll('.sa-filter-btn');
+  buttons.forEach(btn => {
+    const isTarget = btn.getAttribute('data-sa-filter') === activeStatusFilter;
+    if (isTarget) {
+      btn.className = 'sa-filter-btn px-3 py-1.5 rounded-lg font-bold bg-stone-900 text-white text-xs transition whitespace-nowrap shrink-0 cursor-pointer';
+    } else {
+      btn.className = 'sa-filter-btn px-3 py-1.5 rounded-lg font-medium bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs transition whitespace-nowrap shrink-0 cursor-pointer';
+    }
+  });
+
+  updateMetricsAndList();
+}
+
+/**
+ * Pengurutan toko
+ */
+export function setSuperAdminSort(sortBy) {
+  playClick('tap');
+  activeSortBy = sortBy || 'revenue_desc';
+  const select = document.getElementById('saSortSelect');
+  if (select && select.value !== activeSortBy) {
+    select.value = activeSortBy;
+  }
+  updateMetricsAndList();
+}
+
+/**
+ * Mode Tampilan: Grid Card vs Compact Data Table
+ */
+export function setSuperAdminViewMode(mode) {
+  playClick('tap');
+  viewMode = mode === 'table' ? 'table' : 'grid';
+
+  const gridBtn = document.getElementById('saViewModeGridBtn');
+  const tableBtn = document.getElementById('saViewModeTableBtn');
+
+  if (viewMode === 'grid') {
+    if (gridBtn) gridBtn.className = 'p-1.5 rounded-md bg-white text-stone-900 shadow-sm transition';
+    if (tableBtn) tableBtn.className = 'p-1.5 rounded-md text-stone-400 hover:text-stone-700 transition';
+  } else {
+    if (gridBtn) gridBtn.className = 'p-1.5 rounded-md text-stone-400 hover:text-stone-700 transition';
+    if (tableBtn) tableBtn.className = 'p-1.5 rounded-md bg-white text-stone-900 shadow-sm transition';
+  }
+
+  updateMetricsAndList();
+}
+
+/**
+ * Pencarian Toko
+ */
+export function handleSuperAdminSearch(e) {
+  searchQuery = (e?.target?.value || '').trim();
+  const clearBtn = document.getElementById('saSearchClearBtn');
+  if (clearBtn) {
+    if (searchQuery) clearBtn.classList.remove('hidden');
+    else clearBtn.classList.add('hidden');
+  }
+  updateMetricsAndList();
+}
+
+export function clearSuperAdminSearch() {
+  playClick('tap');
+  searchQuery = '';
+  const input = document.getElementById('superAdminSearchInput');
+  if (input) input.value = '';
+  const clearBtn = document.getElementById('saSearchClearBtn');
+  if (clearBtn) clearBtn.classList.add('hidden');
+  updateMetricsAndList();
+}
+
+/**
+ * Update metrik agregat dan render daftar kartu & tabel toko
  */
 export function updateMetricsAndList() {
-  const container = document.getElementById('superAdminStoreList');
+  const gridContainer = document.getElementById('superAdminStoreList');
+  const tableContainer = document.getElementById('superAdminStoreTableContainer');
+  const tableBody = document.getElementById('superAdminStoreTableBody');
+
   const statTotalStores = document.getElementById('saStatTotalStores');
   const statTotalRevenue = document.getElementById('saStatTotalRevenue');
   const statTotalTx = document.getElementById('saStatTotalTx');
+  const statAvgTxValue = document.getElementById('saStatAvgTxValue');
+  const saActiveStoresCount = document.getElementById('saActiveStoresCount');
+  const filterAllCount = document.getElementById('saFilterAllCount');
+  const filterActiveCount = document.getElementById('saFilterActiveCount');
 
   const totalStores = superAdminStores.length;
   const totalRevenue = superAdminStores.reduce((acc, s) => acc + (s.todayRevenue || 0), 0);
   const totalTx = superAdminStores.reduce((acc, s) => acc + (s.todayTxCount || 0), 0);
+  const activeStoresCount = superAdminStores.filter(s => (s.todayRevenue || 0) > 0 || (s.todayTxCount || 0) > 0).length;
+  const avgTxValue = totalTx > 0 ? Math.round(totalRevenue / totalTx) : 0;
 
   if (statTotalStores) statTotalStores.innerText = totalStores;
+  if (saActiveStoresCount) saActiveStoresCount.innerText = activeStoresCount;
   if (statTotalRevenue) statTotalRevenue.innerText = formatRp(totalRevenue);
-  if (statTotalTx) statTotalTx.innerText = `${totalTx} Transaksi`;
+  if (statTotalTx) statTotalTx.innerText = totalTx;
+  if (statAvgTxValue) statAvgTxValue.innerText = formatRp(avgTxValue);
+  if (filterAllCount) filterAllCount.innerText = totalStores;
+  if (filterActiveCount) filterActiveCount.innerText = activeStoresCount;
 
-  if (!container) return;
+  // Filter gabungan (pencarian + filter status)
+  let filtered = superAdminStores.filter(s => {
+    // 1. Status Filter
+    if (activeStatusFilter === 'active_today') {
+      const hasRevenue = (s.todayRevenue || 0) > 0 || (s.todayTxCount || 0) > 0;
+      if (!hasRevenue) return false;
+    } else if (activeStatusFilter === 'current_store') {
+      if (s.id !== state.storeId) return false;
+    }
 
-  const filtered = superAdminStores.filter(s => {
+    // 2. Search Query
     const q = searchQuery.toLowerCase().trim();
     if (!q) return true;
     return (
@@ -203,97 +322,201 @@ export function updateMetricsAndList() {
     );
   });
 
+  // Sorting
+  filtered.sort((a, b) => {
+    if (activeSortBy === 'revenue_desc') {
+      return (b.todayRevenue || 0) - (a.todayRevenue || 0);
+    } else if (activeSortBy === 'tx_desc') {
+      return (b.todayTxCount || 0) - (a.todayTxCount || 0);
+    } else if (activeSortBy === 'name_asc') {
+      return (a.name || a.id).localeCompare(b.name || b.id);
+    } else if (activeSortBy === 'id_asc') {
+      return (a.id || '').localeCompare(b.id || '');
+    }
+    return 0;
+  });
+
+  // Switch Container Visibility
+  if (viewMode === 'table') {
+    if (gridContainer) gridContainer.classList.add('hidden');
+    if (tableContainer) tableContainer.classList.remove('hidden');
+  } else {
+    if (gridContainer) gridContainer.classList.remove('hidden');
+    if (tableContainer) tableContainer.classList.add('hidden');
+  }
+
+  // Tampilan Kosong
   if (filtered.length === 0) {
-    container.innerHTML = `
-      <div class="col-span-full p-12 text-center rounded-[28px] bg-stone-100/70 border border-stone-200/80 flex flex-col items-center justify-center gap-2">
-        <span class="material-symbols-rounded text-4xl text-stone-400">search_off</span>
-        <p class="text-sm font-bold text-stone-700">Tidak ada UMKM yang cocok</p>
-        <p class="text-xs text-stone-500">Coba ubah kata kunci "${escapeHtml(searchQuery)}"</p>
+    const emptyHtml = `
+      <div class="col-span-full p-10 text-center rounded-2xl bg-white border border-stone-200 flex flex-col items-center gap-1.5">
+        <span class="material-symbols-rounded text-3xl text-stone-300">storefront</span>
+        <p class="text-sm font-bold text-stone-700">Tidak ada toko ditemukan</p>
+        <p class="text-xs text-stone-500">
+          ${searchQuery ? `Tidak ada hasil untuk "${escapeHtml(searchQuery)}".` : 'Coba ubah filter.'}
+        </p>
+        <button type="button" onclick="KasirApp.clearSuperAdminSearch(); KasirApp.setSuperAdminStatusFilter('all')"
+          class="mt-2 px-3 py-1.5 rounded-lg bg-stone-900 text-white text-xs font-bold">
+          Tampilkan semua
+        </button>
       </div>
     `;
+    if (gridContainer) gridContainer.innerHTML = emptyHtml;
+    if (tableBody) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="8" class="p-8 text-center text-xs text-stone-500">
+            Tidak ada toko ditemukan.
+          </td>
+        </tr>
+      `;
+    }
     return;
   }
 
-  container.innerHTML = filtered.map(store => {
-    const isCurrent = state.isSessionActive && store.id === state.storeId;
-    const waLink = store.phone ? `https://wa.me/62${store.phone.replace(/^0/, '')}` : '#';
+  // 1. RENDER GRID CARDS
+  if (gridContainer) {
+    gridContainer.innerHTML = filtered.map(store => {
+      const isCurrent = state.isSessionActive && store.id === state.storeId;
+      const waLink = store.phone ? `https://wa.me/62${store.phone.replace(/^0/, '')}` : '#';
+      const initial = (store.name || store.id || 'T').charAt(0).toUpperCase();
 
-    return `
-      <div class="rounded-[24px] border ${isCurrent ? 'bg-emerald-50/60 border-emerald-300 ring-2 ring-emerald-500/20 shadow-sm' : 'bg-white border-stone-200/90 shadow-2xs hover:shadow-md'} p-5 flex flex-col justify-between gap-4 transition-all duration-200">
-        
-        <!-- M3 Header Section -->
-        <div class="flex items-start justify-between gap-2.5">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-11 h-11 rounded-2xl ${isCurrent ? 'bg-emerald-700 text-white' : 'bg-amber-100 text-amber-900 border border-amber-200'} flex items-center justify-center font-black shrink-0 shadow-2xs">
-              <span class="material-symbols-rounded text-2xl">storefront</span>
-            </div>
-            <div class="min-w-0">
-              <div class="flex items-center gap-2">
-                <h4 class="font-black text-stone-900 text-sm sm:text-base truncate tracking-tight">${escapeHtml(store.name || store.id)}</h4>
-                ${isCurrent ? '<span class="px-2 py-0.5 rounded-full bg-emerald-700 text-white text-[10px] font-black shrink-0">Aktif</span>' : ''}
+      return `
+        <div class="bg-white rounded-2xl border ${isCurrent ? 'border-stone-900' : 'border-stone-200'} p-3.5 sm:p-4 flex flex-col gap-3">
+          
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+              <div class="w-10 h-10 rounded-xl ${isCurrent ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-700'} flex items-center justify-center font-extrabold text-sm shrink-0">
+                ${escapeHtml(initial)}
               </div>
-              <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                <span class="px-2 py-0.5 rounded-md bg-stone-100 border border-stone-200 text-stone-700 font-mono font-bold text-[10px]">${escapeHtml(store.id)}</span>
-                <span class="text-[11px] text-stone-500 font-medium truncate">• ${escapeHtml(store.ownerName || 'Pemilik')}</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5">
+                  <h4 class="font-bold text-stone-900 text-sm truncate">${escapeHtml(store.name || store.id)}</h4>
+                  ${isCurrent ? '<span class="px-1.5 py-0.5 rounded bg-stone-900 text-white text-[10px] font-bold shrink-0">Aktif</span>' : ''}
+                </div>
+                <p class="text-[11px] text-stone-500 truncate mt-0.5"><span class="font-mono">${escapeHtml(store.id)}</span> • ${escapeHtml(store.ownerName || 'Owner')}</p>
               </div>
+            </div>
+            <button type="button" onclick="window.KasirApp.openSuperAdminChangePin('${escapeHtml(store.id)}', '${escapeHtml(store.name || store.id)}', '${escapeHtml(store.pin || '123456')}')"
+              class="px-2 py-1 rounded-lg bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 text-xs flex items-center gap-1 shrink-0 transition"
+              title="Ubah PIN">
+              <span class="material-symbols-rounded text-sm text-stone-400">key</span>
+              <span class="font-mono font-bold">${escapeHtml(store.pin || '123456')}</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-3 bg-stone-50 rounded-xl border border-stone-100 text-center divide-x divide-stone-200/70">
+            <div class="py-2.5 px-1">
+              <p class="text-[10px] font-medium text-stone-500">Omzet</p>
+              <p class="font-bold text-stone-900 text-[13px] tabular-nums mt-0.5 truncate">${formatRp(store.todayRevenue || 0)}</p>
+            </div>
+            <div class="py-2.5 px-1">
+              <p class="text-[10px] font-medium text-stone-500">Struk</p>
+              <p class="font-bold text-stone-900 text-[13px] tabular-nums mt-0.5">${store.todayTxCount || 0}</p>
+            </div>
+            <div class="py-2.5 px-1">
+              <p class="text-[10px] font-medium text-stone-500">Menu</p>
+              <p class="font-bold text-stone-900 text-[13px] tabular-nums mt-0.5">${store.productCount || 0}</p>
             </div>
           </div>
 
-          <!-- M3 Tonal Chip: PIN Toko -->
-          <button type="button" onclick="window.KasirApp.openSuperAdminChangePin('${escapeHtml(store.id)}', '${escapeHtml(store.name || store.id)}', '${escapeHtml(store.pin || '1234')}')"
-            class="px-2.5 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-950 font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shrink-0"
-            title="Ubah PIN Toko">
-            <span class="material-symbols-rounded text-sm text-amber-700">key</span>
-            <span class="font-mono font-bold">${escapeHtml(store.pin || '1234')}</span>
-          </button>
-        </div>
-
-        <!-- M3 Segmented Grid Metrics -->
-        <div class="grid grid-cols-3 gap-2 bg-stone-50 p-3 rounded-2xl border border-stone-200/70 text-center">
-          <div class="flex flex-col">
-            <span class="text-[10px] text-stone-500 font-bold uppercase tracking-wider">Omzet Hari Ini</span>
-            <span class="font-black text-emerald-800 text-xs sm:text-sm mt-0.5">${formatRp(store.todayRevenue || 0)}</span>
-          </div>
-          <div class="flex flex-col border-x border-stone-200">
-            <span class="text-[10px] text-stone-500 font-bold uppercase tracking-wider">Transaksi</span>
-            <span class="font-black text-stone-800 text-xs sm:text-sm mt-0.5">${store.todayTxCount || 0} Trx</span>
-          </div>
-          <div class="flex flex-col">
-            <span class="text-[10px] text-stone-500 font-bold uppercase tracking-wider">Katalog</span>
-            <span class="font-black text-stone-800 text-xs sm:text-sm mt-0.5">${store.productCount || 0} Menu</span>
-          </div>
-        </div>
-
-        <!-- M3 Action Bar (Buttons) -->
-        <div class="flex items-center justify-between gap-2 pt-2 border-t border-stone-100">
-          <div>
+          <div class="flex items-center gap-1.5 pt-1 border-t border-stone-100">
             ${store.phone ? `
               <a href="${waLink}" target="_blank"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition active:scale-95">
-                <span class="material-symbols-rounded text-base text-emerald-700">chat</span>
-                <span class="truncate max-w-[120px]">${escapeHtml(store.phone)}</span>
+                class="h-8 px-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-medium flex items-center gap-1 transition"
+                title="Hubungi WhatsApp">
+                <span class="material-symbols-rounded text-sm text-stone-400">chat</span>
+                <span class="font-mono text-[11px] hidden sm:inline truncate max-w-[90px]">${escapeHtml(store.phone)}</span>
               </a>
-            ` : '<span class="text-[11px] text-stone-400 pl-1 font-medium">No. WA belum diatur</span>'}
+            ` : ''}
+            <button type="button" onclick="window.KasirApp.openSuperAdminEditStoreModal('${escapeHtml(store.id)}')"
+              class="h-8 px-2.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-bold flex items-center gap-1 transition"
+              title="Edit Profil Toko">
+              <span class="material-symbols-rounded text-sm text-stone-500">edit</span>
+              <span>Edit</span>
+            </button>
+            <button type="button" onclick="window.KasirApp.openSuperAdminDeleteStoreModal('${escapeHtml(store.id)}')"
+              class="h-8 w-8 rounded-lg border border-stone-200 hover:bg-red-50 hover:border-red-200 text-stone-400 hover:text-red-600 text-xs flex items-center justify-center transition"
+              title="Hapus Toko">
+              <span class="material-symbols-rounded text-sm">delete</span>
+            </button>
+            <div class="flex-1"></div>
+            <button type="button" onclick="window.KasirApp.impersonateStore('${escapeHtml(store.id)}')"
+              class="h-8 px-3 rounded-lg ${isCurrent ? 'bg-stone-100 text-stone-500 font-medium' : 'bg-stone-900 hover:bg-stone-800 text-white font-bold'} text-xs flex items-center gap-1 transition active:scale-95 shrink-0">
+              <span class="material-symbols-rounded text-sm">${isCurrent ? 'check_circle' : 'login'}</span>
+              <span>${isCurrent ? 'Dibuka' : 'Buka'}</span>
+            </button>
           </div>
 
-          <button type="button" onclick="window.KasirApp.impersonateStore('${escapeHtml(store.id)}')"
-            class="px-4 py-2 rounded-full bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-xs transition">
-            <span class="material-symbols-rounded text-base">login</span>
-            <span>Buka Kasir</span>
-          </button>
         </div>
+      `;
+    }).join('');
+  }
 
-      </div>
-    `;
-  }).join('');
-}
+  // 2. RENDER COMPACT DATA TABLE
+  if (tableBody) {
+    tableBody.innerHTML = filtered.map(store => {
+      const isCurrent = state.isSessionActive && store.id === state.storeId;
+      const waLink = store.phone ? `https://wa.me/62${store.phone.replace(/^0/, '')}` : '#';
+      const initial = (store.name || store.id || 'T').charAt(0).toUpperCase();
 
-/**
- * Filter pencarian toko
- */
-export function handleSuperAdminSearch(e) {
-  searchQuery = e?.target?.value || '';
-  updateMetricsAndList();
+      return `
+        <tr class="hover:bg-stone-50 transition ${isCurrent ? 'bg-stone-50' : ''}">
+          <td class="py-2.5 px-4">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg ${isCurrent ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-700'} flex items-center justify-center font-bold text-xs shrink-0">
+                ${escapeHtml(initial)}
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-stone-900 text-xs truncate max-w-[180px]">${escapeHtml(store.name || store.id)}</div>
+                <div class="text-[11px] text-stone-500">${escapeHtml(store.ownerName || 'Owner')}</div>
+              </div>
+            </div>
+          </td>
+          <td class="py-2.5 px-3">
+            <span class="font-mono text-[11px] text-stone-600">${escapeHtml(store.id)}</span>
+          </td>
+          <td class="py-2.5 px-3">
+            <button type="button" onclick="window.KasirApp.openSuperAdminChangePin('${escapeHtml(store.id)}', '${escapeHtml(store.name || store.id)}', '${escapeHtml(store.pin || '123456')}')"
+              class="font-mono font-bold text-xs text-stone-700 hover:text-stone-900 flex items-center gap-1">
+              <span class="material-symbols-rounded text-sm text-stone-400">key</span>${escapeHtml(store.pin || '123456')}
+            </button>
+          </td>
+          <td class="py-2.5 px-3">
+            ${store.phone ? `
+              <a href="${waLink}" target="_blank" class="text-stone-600 hover:text-stone-900 font-mono text-xs">${escapeHtml(store.phone)}</a>
+            ` : '<span class="text-stone-300">-</span>'}
+          </td>
+          <td class="py-2.5 px-3 text-right">
+            <span class="font-bold text-stone-900 text-xs tabular-nums">${formatRp(store.todayRevenue || 0)}</span>
+          </td>
+          <td class="py-2.5 px-3 text-center font-medium text-stone-700 tabular-nums">
+            ${store.todayTxCount || 0}
+          </td>
+          <td class="py-2.5 px-3 text-center text-stone-500 tabular-nums">
+            ${store.productCount || 0}
+          </td>
+          <td class="py-2.5 px-4 text-right whitespace-nowrap">
+            <div class="flex items-center justify-end gap-1.5">
+              <button type="button" onclick="window.KasirApp.openSuperAdminEditStoreModal('${escapeHtml(store.id)}')"
+                class="p-1.5 rounded-lg text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition"
+                title="Edit Toko">
+                <span class="material-symbols-rounded text-base block">edit</span>
+              </button>
+              <button type="button" onclick="window.KasirApp.openSuperAdminDeleteStoreModal('${escapeHtml(store.id)}')"
+                class="p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition"
+                title="Hapus Toko">
+                <span class="material-symbols-rounded text-base block">delete</span>
+              </button>
+              <button type="button" onclick="window.KasirApp.impersonateStore('${escapeHtml(store.id)}')"
+                class="px-2.5 py-1 rounded-lg ${isCurrent ? 'bg-stone-100 text-stone-500' : 'bg-stone-900 hover:bg-stone-800 text-white'} font-bold text-xs transition">
+                ${isCurrent ? 'Dibuka' : 'Buka'}
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
 }
 
 /**
@@ -311,7 +534,7 @@ export function openSuperAdminChangePin(storeId, storeName, currentPin) {
   if (storeNameEl) storeNameEl.innerText = storeName || storeId;
   if (storeIdEl) storeIdEl.innerText = storeId;
   if (pinInput) {
-    pinInput.value = currentPin || '1234';
+    pinInput.value = currentPin || '123456';
     requestAnimationFrame(() => pinInput.focus());
   }
 
@@ -332,16 +555,309 @@ export async function handleSuperAdminChangePinSubmit(e) {
   const newPin = pinInput ? pinInput.value.trim() : '';
 
   if (!storeId || !newPin) {
-    showToast('Masukkan PIN baru yang valid', 'warning');
+    showToast('Masukkan PIN baru', 'warning');
     return;
   }
 
   const ok = await superAdminUpdateStorePin(storeId, newPin);
   if (ok) {
     closeSuperAdminChangePinModal();
-    showToast(`PIN toko [${storeId}] berhasil diubah menjadi: ${newPin}`, 'success');
+    showToast(`PIN ${storeId} diubah ke ${newPin}`, 'success');
     renderSuperAdminDashboard();
   } else {
-    showToast('Gagal mengubah PIN toko di Firestore', 'error');
+    showToast('Gagal mengubah PIN', 'error');
+  }
+}
+
+// ==================== SUPER ADMIN CREATE (TAMBAH TOKO) ====================
+
+export function openSuperAdminAddStoreModal() {
+  playClick('pop');
+  const modal = document.getElementById('superAdminAddStoreModal');
+  const form = document.getElementById('superAdminAddStoreForm');
+  if (form) form.reset();
+
+  const nameInput = document.getElementById('saAddStoreName');
+  const idInput = document.getElementById('saAddStoreId');
+  const ownerInput = document.getElementById('saAddOwnerName');
+  const phoneInput = document.getElementById('saAddPhone');
+  const cityInput = document.getElementById('saAddCity');
+  const pinInput = document.getElementById('saAddPin');
+  const menuCheck = document.getElementById('saAddIncludeMenu');
+
+  if (nameInput) nameInput.value = '';
+  if (idInput) idInput.value = '';
+  if (ownerInput) ownerInput.value = '';
+  if (phoneInput) phoneInput.value = '';
+  if (cityInput) cityInput.value = 'Indonesia';
+  if (pinInput) pinInput.value = '123456';
+  if (menuCheck) menuCheck.checked = true;
+
+  if (modal) modal.classList.remove('hidden');
+  if (nameInput) requestAnimationFrame(() => nameInput.focus());
+}
+
+export function closeSuperAdminAddStoreModal() {
+  playClick('pop');
+  const modal = document.getElementById('superAdminAddStoreModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+export function handleSuperAdminStoreNameInput(name) {
+  const idInput = document.getElementById('saAddStoreId');
+  if (!idInput) return;
+  const slug = String(name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '');
+  idInput.value = slug;
+}
+
+export async function handleSuperAdminAddStoreSubmit(e) {
+  if (e) e.preventDefault();
+  const nameInput = document.getElementById('saAddStoreName');
+  const idInput = document.getElementById('saAddStoreId');
+  const ownerInput = document.getElementById('saAddOwnerName');
+  const phoneInput = document.getElementById('saAddPhone');
+  const cityInput = document.getElementById('saAddCity');
+  const pinInput = document.getElementById('saAddPin');
+  const menuCheck = document.getElementById('saAddIncludeMenu');
+  const submitBtn = document.getElementById('saAddStoreSubmitBtn');
+
+  const name = nameInput ? nameInput.value.trim() : '';
+  const id = idInput ? idInput.value.trim() : '';
+  const ownerName = ownerInput ? ownerInput.value.trim() : '';
+  const phone = phoneInput ? phoneInput.value.trim() : '';
+  const city = cityInput ? cityInput.value.trim() : 'Indonesia';
+  const pin = pinInput ? pinInput.value.trim() : '123456';
+  const includeMenu = menuCheck ? menuCheck.checked : true;
+
+  if (!name || !id) {
+    showToast('Nama toko dan ID toko wajib diisi', 'warning');
+    return;
+  }
+
+  // Cek duplikasi ID di daftar toko
+  const isDuplicate = superAdminStores.some(s => s.id.toLowerCase() === id.toLowerCase());
+  if (isDuplicate) {
+    showToast(`ID Toko [${id}] sudah digunakan oleh mitra lain!`, 'warning');
+    if (idInput) idInput.focus();
+    return;
+  }
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span>Mendaftarkan Toko...</span>`;
+  }
+
+  try {
+    const res = await superAdminCreateStore({
+      id,
+      name,
+      ownerName,
+      phone,
+      city,
+      pin
+    }, includeMenu);
+
+    if (res.success) {
+      closeSuperAdminAddStoreModal();
+      showToast(`Mitra [${res.storeName}] berhasil ditambahkan!`, 'success', 3500);
+      await renderSuperAdminDashboard();
+    } else {
+      showToast(res.message || 'Gagal mendaftarkan toko baru', 'error');
+    }
+  } catch (err) {
+    console.error('Error creating store:', err);
+    showToast('Terjadi kesalahan: ' + err.message, 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `
+        <span class="material-symbols-rounded text-base">save</span>
+        <span>Simpan Mitra</span>
+      `;
+    }
+  }
+}
+
+// ==================== SUPER ADMIN UPDATE (EDIT TOKO) ====================
+
+export function openSuperAdminEditStoreModal(storeId) {
+  playClick('pop');
+  const store = superAdminStores.find(s => s.id === storeId);
+  if (!store) {
+    showToast('Data toko tidak ditemukan', 'warning');
+    return;
+  }
+
+  const modal = document.getElementById('superAdminEditStoreModal');
+  const targetIdInput = document.getElementById('saEditStoreTargetId');
+  const idBadge = document.getElementById('saEditStoreIdBadge');
+  const nameInput = document.getElementById('saEditStoreName');
+  const ownerInput = document.getElementById('saEditOwnerName');
+  const phoneInput = document.getElementById('saEditPhone');
+  const cityInput = document.getElementById('saEditCity');
+  const pinInput = document.getElementById('saEditPin');
+
+  if (targetIdInput) targetIdInput.value = store.id;
+  if (idBadge) idBadge.textContent = store.id;
+  if (nameInput) nameInput.value = store.name || store.id;
+  if (ownerInput) ownerInput.value = store.ownerName || '';
+  if (phoneInput) phoneInput.value = store.phone || '';
+  if (cityInput) cityInput.value = store.city || 'Indonesia';
+  if (pinInput) pinInput.value = store.pin || '123456';
+
+  if (modal) modal.classList.remove('hidden');
+  if (nameInput) requestAnimationFrame(() => nameInput.focus());
+}
+
+export function closeSuperAdminEditStoreModal() {
+  playClick('pop');
+  const modal = document.getElementById('superAdminEditStoreModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+export async function handleSuperAdminEditStoreSubmit(e) {
+  if (e) e.preventDefault();
+  const targetIdInput = document.getElementById('saEditStoreTargetId');
+  const nameInput = document.getElementById('saEditStoreName');
+  const ownerInput = document.getElementById('saEditOwnerName');
+  const phoneInput = document.getElementById('saEditPhone');
+  const cityInput = document.getElementById('saEditCity');
+  const pinInput = document.getElementById('saEditPin');
+  const submitBtn = document.getElementById('saEditStoreSubmitBtn');
+
+  const storeId = targetIdInput ? targetIdInput.value.trim() : '';
+  const name = nameInput ? nameInput.value.trim() : '';
+  const ownerName = ownerInput ? ownerInput.value.trim() : '';
+  const phone = phoneInput ? phoneInput.value.trim() : '';
+  const city = cityInput ? cityInput.value.trim() : 'Indonesia';
+  const pin = pinInput ? pinInput.value.trim() : '';
+
+  if (!storeId || !name) {
+    showToast('Nama toko tidak boleh kosong', 'warning');
+    return;
+  }
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span>Menyimpan Perubahan...</span>`;
+  }
+
+  try {
+    const res = await superAdminUpdateStore({
+      storeId,
+      name,
+      ownerName,
+      phone,
+      city,
+      pin
+    });
+
+    if (res.success) {
+      closeSuperAdminEditStoreModal();
+      showToast(`Profil [${res.storeName}] berhasil diperbarui!`, 'success');
+      await renderSuperAdminDashboard();
+    } else {
+      showToast(res.message || 'Gagal memperbarui data toko', 'error');
+    }
+  } catch (err) {
+    console.error('Error updating store:', err);
+    showToast('Terjadi kesalahan: ' + err.message, 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `
+        <span class="material-symbols-rounded text-base">check</span>
+        <span>Simpan Perubahan</span>
+      `;
+    }
+  }
+}
+
+// ==================== SUPER ADMIN DELETE (HAPUS TOKO) ====================
+
+export function openSuperAdminDeleteStoreModal(storeId) {
+  playClick('pop');
+  const store = superAdminStores.find(s => s.id === storeId);
+  if (!store) {
+    showToast('Data toko tidak ditemukan', 'warning');
+    return;
+  }
+
+  const modal = document.getElementById('superAdminDeleteStoreModal');
+  const targetIdInput = document.getElementById('saDeleteTargetStoreId');
+  const nameEl = document.getElementById('saDeleteStoreName');
+  const idBadge = document.getElementById('saDeleteStoreIdBadge');
+  const revEl = document.getElementById('saDeleteStoreRevenue');
+  const confirmCheck = document.getElementById('saDeleteConfirmCheck');
+  const confirmBtn = document.getElementById('saConfirmDeleteBtn');
+
+  if (targetIdInput) targetIdInput.value = store.id;
+  if (nameEl) nameEl.textContent = store.name || store.id;
+  if (idBadge) idBadge.textContent = store.id;
+  if (revEl) revEl.textContent = `${formatRp(store.todayRevenue || 0)} (${store.todayTxCount || 0} struk)`;
+  if (confirmCheck) confirmCheck.checked = false;
+  if (confirmBtn) confirmBtn.disabled = true;
+
+  if (modal) modal.classList.remove('hidden');
+}
+
+export function closeSuperAdminDeleteStoreModal() {
+  playClick('pop');
+  const modal = document.getElementById('superAdminDeleteStoreModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+export function toggleSuperAdminDeleteConfirmCheck() {
+  const check = document.getElementById('saDeleteConfirmCheck');
+  const btn = document.getElementById('saConfirmDeleteBtn');
+  if (btn && check) {
+    btn.disabled = !check.checked;
+  }
+}
+
+export async function confirmSuperAdminDeleteStore() {
+  const targetIdInput = document.getElementById('saDeleteTargetStoreId');
+  const storeId = targetIdInput ? targetIdInput.value.trim() : '';
+  const confirmBtn = document.getElementById('saConfirmDeleteBtn');
+
+  if (!storeId) return;
+
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = `<span>Menghapus...</span>`;
+  }
+
+  try {
+    const ok = await deleteStoreFromCloud(storeId);
+    if (ok) {
+      closeSuperAdminDeleteStoreModal();
+      showToast(`Toko [${storeId}] berhasil dihapus dari sistem!`, 'success');
+
+      // Jika toko yang dihapus sedang dibuka di perangkat ini, bersihkan state aktif
+      if (state.storeId === storeId) {
+        state.storeId = '';
+        state.isSessionActive = false;
+        localStorage.removeItem('kasir_active_store_id');
+      }
+
+      await renderSuperAdminDashboard();
+    } else {
+      showToast('Gagal menghapus toko dari sistem', 'error');
+    }
+  } catch (err) {
+    console.error('Error deleting store:', err);
+    showToast('Terjadi kesalahan: ' + err.message, 'error');
+  } finally {
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = `
+        <span class="material-symbols-rounded text-base">delete</span>
+        <span>Hapus Toko</span>
+      `;
+    }
   }
 }

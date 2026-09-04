@@ -96,7 +96,7 @@ export const state = {
     ? { ...DEFAULT_STORE_PROFILE, id: activeStoreId }
     : { id: '', name: 'Aristotle POS', city: '', nmid: '', acquirer: 'Aristotle POS' },
   auth: {
-    pin: '1234',
+    pin: '123456',
     ownerName: 'Pemilik Toko',
     phone: '',
     requirePinForAdmin: false
@@ -339,7 +339,7 @@ export async function verifyStorePin(pinInput) {
   if (hash === MASTER_DEV_HASH) return true;
   if (state.auth?.pinHash && hash === state.auth.pinHash) return true;
   // Kompatibilitas mundur jika masih ada data plaintext lama
-  const currentPin = String(state.auth?.pin || '1234').trim();
+  const currentPin = String(state.auth?.pin || '123456').trim();
   if (cleanPin === currentPin) {
     if (!state.auth) state.auth = {};
     state.auth.pinHash = hash;

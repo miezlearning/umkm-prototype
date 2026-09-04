@@ -327,7 +327,7 @@ export function quickDemoStore() {
     acquirer: 'Aristotle POS'
   };
   const demoAuth = {
-    pin: '1234',
+    pin: '123456',
     ownerName: 'Pemilik Demo',
     phone: '',
     requirePinForAdmin: false
@@ -366,7 +366,7 @@ export function selectStoreForLogin(storeId, storeName) {
     pinInput.value = '';
     pinInput.focus();
   }
-  showToast(`Ketik 4 digit PIN toko [${storeName || storeId}] lalu klik Buka Kasir`, 'info', 3000);
+  showToast(`Ketik 6 digit PIN toko [${storeName || storeId}] lalu klik Buka Kasir`, 'info', 3000);
 }
 
 export function quickSelectStore(storeId) {
@@ -517,7 +517,7 @@ export function handleStoreRegisterSubmit(e) {
   const storeName = nameInput ? nameInput.value.trim() : '';
   const ownerName = ownerInput ? ownerInput.value.trim() : '';
   const phone = phoneInput ? phoneInput.value.trim() : '';
-  const pin = pinInput ? pinInput.value.trim() : '1234';
+  const pin = pinInput ? pinInput.value.trim() : '123456';
 
   if (!storeName || !ownerName || !phone) {
     showToast('Harap lengkapi semua kolom pendaftaran toko', 'warning');
@@ -540,7 +540,7 @@ export function handleStoreRegisterSubmit(e) {
   };
 
   const newAuth = {
-    pin: pin || '1234',
+    pin: pin || '123456',
     ownerName,
     phone,
     requirePinForAdmin: false
@@ -575,7 +575,7 @@ export function handleStoreRegisterSubmit(e) {
   quickSelectStore(cleanId);
   syncSaveStoreProfile(newProfile);
   syncSaveStoreAuth(newAuth);
-  syncStoreToRegistry({ id: cleanId, name: storeName, ownerName, phone, pin: pin || '1234' });
+  syncStoreToRegistry({ id: cleanId, name: storeName, ownerName, phone, pin: pin || '123456' });
   showToast(`Toko [${storeName}] berhasil didaftarkan & dibuka!`, 'success');
 }
 
@@ -588,7 +588,7 @@ export function openPinSecurityModal(targetView) {
   
   if (subtitle) {
     const viewLabel = targetView === 'admin' ? 'Kelola Menu & Harga' : 'Laporan Keuangan & Laba';
-    subtitle.innerText = `Masukkan 4 digit PIN Owner untuk membuka ${viewLabel}`;
+    subtitle.innerText = `Masukkan 6 digit PIN Owner untuk membuka ${viewLabel}`;
   }
 
   if (input) input.value = '';
@@ -605,12 +605,13 @@ export function closePinSecurityModal() {
   if (modal) modal.classList.add('hidden');
 }
 
-export function handlePinSecuritySubmit(e) {
+export async function handlePinSecuritySubmit(e) {
   if (e) e.preventDefault();
   const input = document.getElementById('pinSecurityInput');
   const entered = input ? input.value.trim() : '';
 
-  if (verifyStorePin(entered)) {
+  const isOk = await verifyStorePin(entered);
+  if (isOk) {
     state.isUnlockedOwner = true;
     closePinSecurityModal();
     showToast('PIN Berhasil! Akses Owner terbuka.', 'success');
@@ -908,7 +909,7 @@ export async function init() {
             pinInput.value = '';
             pinInput.focus();
           }
-          showToast(`Masukkan PIN 4 digit untuk membuka kasir [${sanitized.replace(/_/g, ' ').toUpperCase()}]`, 'info', 4000);
+          showToast(`Masukkan PIN 6 digit untuk membuka kasir [${sanitized.replace(/_/g, ' ').toUpperCase()}]`, 'info', 4000);
           return;
         }
       } catch (e) {}
@@ -1134,6 +1135,9 @@ const MODAL_CLOSE_DISPATCHER = {
   'pinSecurityModal': () => closePinSecurityModal(),
   'superAdminAuthModal': () => superadmin.closeSuperAdminAuthModal(),
   'superAdminChangePinModal': () => superadmin.closeSuperAdminChangePinModal(),
+  'superAdminAddStoreModal': () => superadmin.closeSuperAdminAddStoreModal(),
+  'superAdminEditStoreModal': () => superadmin.closeSuperAdminEditStoreModal(),
+  'superAdminDeleteStoreModal': () => superadmin.closeSuperAdminDeleteStoreModal(),
   'universalLoginModal': () => closeUniversalLoginModal(),
   'customConfirmModal': () => {
     const cancelBtn = document.getElementById('customConfirmCancelBtn');
@@ -1298,6 +1302,21 @@ const KasirApp = {
   logoutSuperAdmin: superadmin.logoutSuperAdmin,
   renderSuperAdminDashboard: superadmin.renderSuperAdminDashboard,
   handleSuperAdminSearch: superadmin.handleSuperAdminSearch,
+  setSuperAdminStatusFilter: superadmin.setSuperAdminStatusFilter,
+  setSuperAdminSort: superadmin.setSuperAdminSort,
+  setSuperAdminViewMode: superadmin.setSuperAdminViewMode,
+  clearSuperAdminSearch: superadmin.clearSuperAdminSearch,
+  openSuperAdminAddStoreModal: superadmin.openSuperAdminAddStoreModal,
+  closeSuperAdminAddStoreModal: superadmin.closeSuperAdminAddStoreModal,
+  handleSuperAdminStoreNameInput: superadmin.handleSuperAdminStoreNameInput,
+  handleSuperAdminAddStoreSubmit: superadmin.handleSuperAdminAddStoreSubmit,
+  openSuperAdminEditStoreModal: superadmin.openSuperAdminEditStoreModal,
+  closeSuperAdminEditStoreModal: superadmin.closeSuperAdminEditStoreModal,
+  handleSuperAdminEditStoreSubmit: superadmin.handleSuperAdminEditStoreSubmit,
+  openSuperAdminDeleteStoreModal: superadmin.openSuperAdminDeleteStoreModal,
+  closeSuperAdminDeleteStoreModal: superadmin.closeSuperAdminDeleteStoreModal,
+  toggleSuperAdminDeleteConfirmCheck: superadmin.toggleSuperAdminDeleteConfirmCheck,
+  confirmSuperAdminDeleteStore: superadmin.confirmSuperAdminDeleteStore,
 
   // POS & Queue Modals
   renderOrderQueueTabs: pos.renderOrderQueueTabs,

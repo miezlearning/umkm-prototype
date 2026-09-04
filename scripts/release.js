@@ -71,7 +71,7 @@ if (fs.existsSync(gradlePath)) {
 if (fs.existsSync(indexPath)) {
   let indexContent = fs.readFileSync(indexPath, 'utf-8');
   indexContent = indexContent.replace(/<span id="appVersionBadge"[^>]*>v[^<]+<\/span>/, `<span id="appVersionBadge" class="hidden">v${targetVersion}</span>`);
-  indexContent = indexContent.replace(/<p id="appVersionLabel" class="text-\[10px\] text-stone-500">v[^<]+<\/p>/, `<p id="appVersionLabel" class="text-[10px] text-stone-500">v${targetVersion} (Terkini)</p>`);
+  indexContent = indexContent.replace(/<p id="appVersionLabel"[^>]*>v[^<]+<\/p>/, `<p id="appVersionLabel" class="text-[10px] text-stone-500 truncate mt-0.5">v${targetVersion} (Terkini)</p>`);
   indexContent = indexContent.replace(/<span id="updateModalVersionBadge"[^>]*>v[^<]+<\/span>/, `<span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v${targetVersion}</span>`);
   fs.writeFileSync(indexPath, indexContent);
   console.log('Updated index.html badges');
