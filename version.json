@@ -1,12 +1,11 @@
 {
-  "versionCode": 57,
-  "versionName": "1.2.10",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.10/Aristotle-POS.apk",
+  "versionCode": 58,
+  "versionName": "1.2.11",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.11/Aristotle-POS.apk",
   "changelog": [
-    "Pemulihan cetak Wi-Fi LAN/Hotspot lokal tanpa delay (zero-delay < 50ms)",
-    "Pengembalian panel input IP Kasir, Tes Ping, dan Cari Otomatis",
-    "Penyediaan tombol tes lengkap HP Pelayan (Tes Struk, Tes Dapur, Buka Laci)",
-    "Perbaikan bug otorisasi token lokal port 8088 pada Host default"
+    "Penghapusan tombol Tes Ping yang redundan",
+    "Penyempurnaan tata letak input IP dan tombol Cari IP",
+    "Pembersihan seluruh copy UI menjadi lugas, jelas, dan informatif tanpa kata-kata berbunga"
   ],
   "releaseDate": "2026-09-04"
 }

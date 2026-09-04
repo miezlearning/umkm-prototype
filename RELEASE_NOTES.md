@@ -1,12 +1,11 @@
-# Aristotle POS v1.2.10 Release Notes
+# Aristotle POS v1.2.11 Release Notes
 
 **Tanggal Rilis:** 2026-09-04
 
 ### Catatan Pembaruan:
-- Pemulihan cetak Wi-Fi LAN/Hotspot lokal tanpa delay (zero-delay < 50ms)
-- Pengembalian panel input IP Kasir, Tes Ping, dan Cari Otomatis
-- Penyediaan tombol tes lengkap HP Pelayan (Tes Struk, Tes Dapur, Buka Laci)
-- Perbaikan bug otorisasi token lokal port 8088 pada Host default
+- Penghapusan tombol Tes Ping yang redundan
+- Penyempurnaan tata letak input IP dan tombol Cari IP
+- Pembersihan seluruh copy UI menjadi lugas, jelas, dan informatif tanpa kata-kata berbunga
 
 ---
 *Pembaruan ini dapat diunduh dan dipasang langsung dari dalam aplikasi (In-App Auto-Updater).*

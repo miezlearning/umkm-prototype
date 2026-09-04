@@ -1191,14 +1191,14 @@ export async function kickCashDrawer(directOnly = false) {
     return ok;
   }
 
-  // 2. Jalur Utama: Coba via Wi-Fi Lokal / Hotspot (Offline, Zero Delay!)
+  // 2. Jalur Utama: Coba via Wi-Fi Lokal / Hotspot
   let hostIp = state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip');
   if (!hostIp && detectHotspotConnection()) hostIp = '192.168.43.1';
   if (hostIp) {
     try {
       const localOk = await tryKickDrawerViaLocalLan(hostIp);
       if (localOk) {
-        showToast('Laci kasir dibuka via Jaringan Lokal (Zero Delay)!', 'success', 3000);
+        showToast('Laci kasir berhasil dibuka.', 'success', 2500);
         return true;
       }
     } catch (_) {}
@@ -1206,10 +1206,10 @@ export async function kickCashDrawer(directOnly = false) {
 
   // 3. Jalur Cadangan (Fallback): Cloud Drawer Relay
   try {
-    showToast('Mengirim sinyal buka laci ke Printer Kasir via Cloud...', 'info', 3000);
+    showToast('Membuka laci kasir...', 'info', 2000);
     const jobId = await dispatchRemotePrintJob({ type: 'drawer' });
     await waitForRemotePrintJob(jobId, 10000);
-    showToast('Laci kasir dibuka oleh Printer Kasir!', 'success', 3500);
+    showToast('Laci kasir berhasil dibuka.', 'success', 2500);
     return true;
   } catch (err) {
     console.warn('Remote drawer kick note:', err);
@@ -1219,9 +1219,9 @@ export async function kickCashDrawer(directOnly = false) {
 }
 
 /**
- * Cetak Transaksi Utama (Mendukung Multi-Device Hybrid LAN + Cloud Relay)
- * Jika perangkat terhubung printer -> Cetak langsung (Zero Delay).
- * Jika perangkat sekunder (HP Pelayan) -> Coba Wi-Fi Lokal dulu (Zero Delay), fallback ke Cloud Relay.
+ * Cetak Transaksi Utama
+ * Jika perangkat terhubung printer -> Cetak langsung.
+ * Jika perangkat sekunder (HP Pelayan) -> Coba Wi-Fi Lokal dulu, fallback ke Cloud Relay.
  */
 export async function printReceipt(tx, shouldKickDrawer = false, forceMethod = null) {
   playClick('pop');
@@ -1233,7 +1233,7 @@ export async function printReceipt(tx, shouldKickDrawer = false, forceMethod = n
   }
 
   // 2. HP Pelayan (Secondary Device)
-  // Jalur Utama: Coba Wi-Fi Lokal / Hotspot LAN (Zero Delay, 100% Offline)
+  // Jalur Utama: Coba Wi-Fi Lokal / Hotspot LAN
   let hostIp = state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip');
   if (!hostIp && detectHotspotConnection()) {
     hostIp = '192.168.43.1';
@@ -1244,7 +1244,7 @@ export async function printReceipt(tx, shouldKickDrawer = false, forceMethod = n
       const escPosBytes = await buildEscPosBytes(tx, shouldKickDrawer);
       const localOk = await tryPrintViaLocalLan(escPosBytes, hostIp);
       if (localOk) {
-        showToast('Struk tercetak via Jaringan Lokal (Zero Delay)!', 'success', 3000);
+        showToast('Struk berhasil dicetak.', 'success', 2500);
         return true;
       }
     } catch (err) {
@@ -1252,16 +1252,16 @@ export async function printReceipt(tx, shouldKickDrawer = false, forceMethod = n
     }
   }
 
-  // Jalur Cadangan: Cloud Relay Firebase (Internet)
+  // Jalur Cadangan: Cloud Relay Firebase
   try {
-    showToast('Mengirim struk ke printer kasir via Cloud...', 'info', 2500);
+    showToast('Mengirim struk ke printer kasir...', 'info', 2000);
     const jobId = await dispatchRemotePrintJob({
       type: 'receipt',
       tx: tx,
       forceMethod: forceMethod
     });
     await waitForRemotePrintJob(jobId, 12000);
-    showToast('Struk berhasil dicetak di printer kasir.', 'success', 3000);
+    showToast('Struk berhasil dicetak.', 'success', 2500);
     return true;
   } catch (err) {
     showToast('Gagal cetak: ' + (err.message || 'Kasir utama belum merespons.'), 'warning', 4000);
@@ -1270,7 +1270,7 @@ export async function printReceipt(tx, shouldKickDrawer = false, forceMethod = n
 }
 
 /**
- * Cetak Tiket Dapur / Kitchen Checkpoint (Mendukung Multi-Device Hybrid LAN + Cloud Relay)
+ * Cetak Tiket Dapur / Kitchen Checkpoint
  */
 export async function printKitchenTicket(tx) {
   playClick('pop');
@@ -1284,7 +1284,7 @@ export async function printKitchenTicket(tx) {
     return await executeDirectLocalKitchenTicket(tx);
   }
 
-  // 2. Jalur Utama: Coba cetak langsung via Wi-Fi Lokal / Hotspot (Offline, Zero Delay!)
+  // 2. Jalur Utama: Coba cetak langsung via Wi-Fi Lokal / Hotspot
   let hostIp = state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip');
   if (!hostIp && detectHotspotConnection()) {
     hostIp = '192.168.43.1';
@@ -1295,7 +1295,7 @@ export async function printKitchenTicket(tx) {
       const escPosBytes = buildKitchenTicketEscPosBytes(tx);
       const localOk = await tryPrintViaLocalLan(escPosBytes, hostIp);
       if (localOk) {
-        showToast('Tiket dapur tercetak via Jaringan Lokal (Zero Delay)!', 'success', 3500);
+        showToast('Tiket dapur berhasil dicetak.', 'success', 2500);
         return true;
       }
     } catch (err) {
@@ -1305,14 +1305,14 @@ export async function printKitchenTicket(tx) {
 
   // 3. Jalur Cadangan (Fallback): Cloud Print Relay Firebase
   try {
-    showToast('Mengirim tiket dapur ke Printer Kasir via Cloud...', 'info', 3000);
+    showToast('Mengirim tiket dapur...', 'info', 2000);
     const jobId = await dispatchRemotePrintJob({
       type: 'kitchen',
       tx: tx
     });
-    showToast('Menunggu Printer Kasir mencetak tiket...', 'info', 3000);
+    showToast('Menunggu pencetakan tiket...', 'info', 2000);
     await waitForRemotePrintJob(jobId, 15000);
-    showToast('Tiket dapur berhasil dicetak di Printer Kasir!', 'success', 3500);
+    showToast('Tiket dapur berhasil dicetak.', 'success', 2500);
     return true;
   } catch (err) {
     console.warn('Cloud kitchen print relay note:', err);
@@ -1432,7 +1432,7 @@ export function updatePrinterUIStatus() {
         : 'bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col gap-2.5';
     }
     if (roleDot) roleDot.className = isHotspot ? 'w-2.5 h-2.5 rounded-full bg-amber-500' : 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
-    if (roleTitle) roleTitle.textContent = 'KASIR UTAMA (PENCETAK TOKO)';
+    if (roleTitle) roleTitle.textContent = 'KASIR UTAMA';
     if (roleBadge) {
       roleBadge.textContent = isHotspot ? 'Hotspot Aktif' : 'Host Wi-Fi';
       roleBadge.className = isHotspot 
@@ -1441,8 +1441,8 @@ export function updatePrinterUIStatus() {
     }
     if (roleDesc) {
       roleDesc.textContent = isHotspot
-        ? 'Hotspot HP aktif. HP Pelayan dapat tersambung langsung tanpa internet.'
-        : `Printer fisik (${printerName || 'Bluetooth'}) terhubung. Perangkat ini aktif menerima dan mencetak pesanan dari HP pelayan.`;
+        ? 'Hotspot HP aktif. HP Pelayan dapat tersambung langsung.'
+        : `Terhubung langsung ke printer (${printerName || 'Bluetooth'}). Menerima pesanan cetak dari HP pelayan.`;
     }
     if (rolePrinterName) rolePrinterName.textContent = isHotspot ? 'Jalur: Hotspot HP (192.168.43.1)' : (printerName ? `Hardware: ${printerName}` : 'Hardware: Bluetooth Standby');
 
@@ -1505,7 +1505,7 @@ export function updatePrinterUIStatus() {
       roleBadge.className = 'px-2 py-0.5 rounded-full bg-sky-200/80 text-sky-900 font-extrabold text-[10px]';
     }
     if (roleDesc) {
-      roleDesc.textContent = 'Pesanan dan cetak struk dari HP ini otomatis dieksekusi di kasir utama.';
+      roleDesc.textContent = 'Pesanan dan cetak struk otomatis terkirim ke kasir utama.';
     }
     if (rolePrinterName) {
       rolePrinterName.textContent = 'Tersambung ke Kasir';
@@ -1563,17 +1563,17 @@ export async function testCloudRelayPrint() {
     cashier: getDeviceName() || 'Pelayan'
   };
 
-  // 1. Coba via Jaringan Lokal (Zero Delay, 100% Offline) jika ada Host IP
+  // 1. Coba via Jaringan Lokal jika ada Host IP
   let hostIp = state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip');
   if (!hostIp && detectHotspotConnection()) hostIp = '192.168.43.1';
 
   if (hostIp) {
     try {
-      showToast('Menguji cetak via Wi-Fi Lokal (Zero Delay)...', 'info', 2000);
+      showToast('Mengirim tes cetak...', 'info', 2000);
       const escPosBytes = await buildEscPosBytes(tx, false);
       const localOk = await tryPrintViaLocalLan(escPosBytes, hostIp);
       if (localOk) {
-        showToast('SUKSES! Struk tes tercetak via Wi-Fi Lokal (Zero Delay)!', 'success', 5000);
+        showToast('Struk tes berhasil dicetak.', 'success', 3000);
         return true;
       }
     } catch (e) {
@@ -1583,17 +1583,17 @@ export async function testCloudRelayPrint() {
 
   // 2. Fallback via Cloud Relay Firebase
   try {
-    showToast('Mengirim tes cetak ke Kasir Utama via Cloud Relay...', 'info', 3000);
+    showToast('Mengirim tes cetak via cloud...', 'info', 2000);
     const jobId = await dispatchRemotePrintJob({
       type: 'receipt',
       tx: tx
     });
-    showToast('Menunggu printer kasir merespons via cloud...', 'info', 3000);
+    showToast('Menunggu respon kasir utama...', 'info', 2000);
     await waitForRemotePrintJob(jobId, 12000);
-    showToast('SUKSES! Printer Kasir Utama telah mencetak struk tes via Cloud Relay.', 'success', 5000);
+    showToast('Struk tes berhasil dicetak.', 'success', 3000);
     return true;
   } catch (err) {
-    showToast('Gagal tes cetak: ' + (err.message || 'Kasir Utama tidak merespons.'), 'error', 5000);
+    showToast('Gagal tes cetak: ' + (err.message || 'Kasir utama tidak merespons.'), 'error', 4000);
     return false;
   }
 }
@@ -2313,24 +2313,24 @@ export async function autoDiscoverLocalPrinterHost(silent = false) {
     }
     return true;
   } else {
-    // Tidak ada di LAN lokal, gunakan mode Cloud Relay
+    // Tidak ada di LAN lokal, gunakan mode Cloud
     if (badge) {
       badge.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200';
-      badge.textContent = 'Cloud Relay Aktif';
+      badge.textContent = 'Mode Cloud';
     }
     if (desc) {
       desc.className = 'text-[11px] text-stone-600 leading-snug';
-      desc.textContent = 'Koneksi lokal tidak merespons. Pesanan dialihkan melalui cloud.';
+      desc.textContent = 'Koneksi lokal belum terdeteksi. Pesanan dikirim via cloud.';
     }
     if (!silent) {
-      showToast('Menggunakan jalur Cloud Relay.', 'info', 2500);
+      showToast('Tersambung via cloud.', 'info', 2000);
     }
     return false;
   }
 }
 
 /**
- * Uji Koneksi IP Wi-Fi Lokal (Offline Ping)
+ * Uji Koneksi IP Wi-Fi Lokal
  */
 export async function testLocalLanPing(silent = false, targetIp = null) {
   if (!silent) playClick('tap');
@@ -2340,7 +2340,7 @@ export async function testLocalLanPing(silent = false, targetIp = null) {
   const ip = (targetIp || (input ? input.value : '') || state.printerConfig?.localHostIp || localStorage.getItem('aristotle_local_host_ip') || '').trim();
   
   if (!ip) {
-    if (!silent) showToast('Ketikkan alamat IP Kasir terlebih dahulu', 'warning');
+    if (!silent) showToast('Ketikkan alamat IP kasir.', 'warning', 2000);
     return false;
   }
 
@@ -2350,7 +2350,7 @@ export async function testLocalLanPing(silent = false, targetIp = null) {
 
   if (badge) {
     badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 animate-pulse';
-    badge.textContent = 'Menguji koneksi...';
+    badge.textContent = 'Memeriksa...';
   }
 
   try {
@@ -2376,7 +2376,7 @@ export async function testLocalLanPing(silent = false, targetIp = null) {
         desc.className = 'text-[11px] text-emerald-900 leading-snug font-medium';
         desc.textContent = `Terhubung ke kasir via jaringan lokal.`;
       }
-      if (!silent) showToast(`Terhubung ke ${data.host || ip}`, 'success', 2500);
+      if (!silent) showToast(`Terhubung ke ${data.host || ip}`, 'success', 2000);
       return true;
     } else {
       throw new Error('Response not OK');
@@ -2384,13 +2384,13 @@ export async function testLocalLanPing(silent = false, targetIp = null) {
   } catch (err) {
     if (badge) {
       badge.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200';
-      badge.textContent = 'Cloud Relay Aktif';
+      badge.textContent = 'Mode Cloud';
     }
     if (desc) {
       desc.className = 'text-[11px] text-stone-600 leading-snug';
-      desc.textContent = `Server lokal (${ip}) tidak merespons. Pesanan dialihkan melalui cloud.`;
+      desc.textContent = `Koneksi lokal belum terdeteksi. Pesanan dikirim via cloud.`;
     }
-    if (!silent) showToast(`Server lokal tidak merespons. Dialihkan ke cloud.`, 'info', 2500);
+    if (!silent) showToast(`Koneksi lokal tidak merespons, beralih ke cloud.`, 'info', 2000);
     return false;
   }
 }
