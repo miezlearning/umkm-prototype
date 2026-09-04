@@ -41,8 +41,11 @@ export async function checkForAppUpdates(manual = false) {
       versionLabel.textContent = `v${current.name} (${current.isNative ? 'Android APK' : 'Web PWA'})`;
     }
 
-    // Ambil version.json dengan cache-busting timestamp
-    const res = await fetch(`version.json?_t=${Date.now()}`, { cache: 'no-store' });
+    // Ambil version.json dengan cache-busting timestamp (Gunakan URL cloud absolut jika berjalan di Native Android APK)
+    const updateUrl = current.isNative
+      ? `https://miezlearning.github.io/umkm-prototype/version.json?_t=${Date.now()}`
+      : `version.json?_t=${Date.now()}`;
+    const res = await fetch(updateUrl, { cache: 'no-store' });
     if (!res.ok) {
       if (manual) showToast('Gagal memeriksa pembaruan (Server tidak merespons).', 'warning');
       return;

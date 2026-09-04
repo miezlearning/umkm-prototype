@@ -6,10 +6,15 @@ import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -115,8 +120,8 @@ public class MainActivity extends AppCompatActivity {
         settings.setDatabaseEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
-        settings.setAllowFileAccessFromFileURLs(false);
-        settings.setAllowUniversalAccessFromFileURLs(false);
+        settings.setAllowFileAccessFromFileURLs(true);
+        settings.setAllowUniversalAccessFromFileURLs(true);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
@@ -217,9 +222,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
-                if (request.isForMainFrame()) {
-                    Log.w(TAG, "Gagal memuat URL cloud, beralih ke aset offline internal...");
-                    view.loadUrl(OFFLINE_FALLBACK_URL);
+                if (request != null && request.isForMainFrame()) {
+                    String reqUrl = request.getUrl() != null ? request.getUrl().toString() : "";
+                    if (!reqUrl.startsWith("file:///android_asset/")) {
+                        Log.w(TAG, "Gagal memuat URL cloud, beralih ke aset offline internal...");
+                        view.loadUrl(OFFLINE_FALLBACK_URL);
+                    }
                 }
             }
 
@@ -324,9 +332,37 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Exception ignored) {}
 
-        // Muat URL Cloud untuk update instan tanpa perlu install ulang APK.
-        // Jika offline, otomatis fallback ke aset internal!
-        webView.loadUrl(PRODUCTION_URL);
+        // Cek ketersediaan internet sebelum memuat URL cloud.
+        // Jika offline atau berada di hotspot kasir tanpa internet publik,
+        // langsung muat aset internal lokal agar startup instan dan tidak memicu reloading ganda!
+        if (isNetworkConnected()) {
+            webView.loadUrl(PRODUCTION_URL);
+        } else {
+            Log.i(TAG, "Tidak ada koneksi internet publik: langsung memuat aset internal offline.");
+            webView.loadUrl(OFFLINE_FALLBACK_URL);
+        }
+    }
+
+    /**
+     * Memeriksa apakah perangkat terhubung ke internet yang aktif
+     */
+    private boolean isNetworkConnected() {
+        try {
+            ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (cm != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    Network network = cm.getActiveNetwork();
+                    if (network != null) {
+                        NetworkCapabilities caps = cm.getNetworkCapabilities(network);
+                        return caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+                    }
+                } else {
+                    NetworkInfo info = cm.getActiveNetworkInfo();
+                    return info != null && info.isConnected();
+                }
+            }
+        } catch (Exception ignored) {}
+        return false;
     }
 
     @Override

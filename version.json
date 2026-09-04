@@ -1,11 +1,9 @@
 {
-  "versionCode": 44,
-  "versionName": "1.1.40",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.40/Aristotle-POS.apk",
+  "versionCode": 45,
+  "versionName": "1.1.41",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.41/Aristotle-POS.apk",
   "changelog": [
-    "Fitur Manajemen Shift & Rekap Tutup Kasir (Z-Report)",
-    "Fitur Diskon Transaksi (% dan Rp)",
-    "Pembaruan Cetak Thermal 58mm/80mm"
+    "Perbaikan logika startup: eliminasi loading ganda pada Service Worker dan WebView Android"
   ],
   "releaseDate": "2026-09-04"
 }

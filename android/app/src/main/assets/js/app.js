@@ -604,23 +604,29 @@ export function forceSyncCloud() {
 
 // ================= SERVICE WORKER REGISTRATION =================
 function registerSW() {
-  if ('serviceWorker' in navigator) {
+  // Hanya daftarkan Service Worker jika didukung dan berjalan di protokol HTTP/HTTPS
+  if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
     navigator.serviceWorker.register('./sw.js').then(reg => {
+      // Pantau pembaruan di latar belakang secara senyap TANPA reload otomatis saat startup
       reg.addEventListener('updatefound', () => {
         const newWorker = reg.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
-              window.location.reload();
+            if (newWorker.state === 'activated') {
+              console.log('Aristotle POS: ServiceWorker aktif & siap melayani cache di latar belakang.');
             }
           });
         }
       });
-    }).catch(() => {});
+    }).catch(err => {
+      console.debug('Aristotle POS: ServiceWorker registration note:', err);
+    });
   }
 }
 
 // ================= APP INITIALIZATION =================
+let isAppInitialized = false;
+
 function updateLoadingProgress(pct, statusText) {
   if (typeof window.updateSplashProgress === 'function') {
     window.updateSplashProgress(pct, statusText);
@@ -634,13 +640,23 @@ function dismissSplashScreen() {
     setTimeout(() => {
       splash.classList.add('opacity-0', 'pointer-events-none');
       setTimeout(() => {
-        splash.style.display = 'none';
+        try {
+          splash.remove();
+        } catch (_) {
+          splash.style.display = 'none';
+        }
       }, 450);
     }, 250);
   }
 }
 
 export async function init() {
+  // Cegah inisialisasi ganda dalam satu lifecycle halaman
+  if (isAppInitialized) {
+    console.warn('Aristotle POS: init() sudah berjalan, melewati inisialisasi duplikat.');
+    return;
+  }
+  isAppInitialized = true;
   try {
     // 1. Initial skeleton & state loading (20%)
     updateLoadingProgress(20, 'Menyiapkan basis data & konfigurasi...');
