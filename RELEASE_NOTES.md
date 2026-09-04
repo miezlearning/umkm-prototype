@@ -1,10 +1,9 @@
-# Aristotle POS v1.2.22 Release Notes
+# Aristotle POS v1.2.23 Release Notes
 
 **Tanggal Rilis:** 2026-09-04
 
 ### Catatan Pembaruan:
-- Desain minimalis indikator status online Profil Toko (tanpa badge artifisial)
-- Penyempurnaan terminologi profesional: penggantian kata 'Pelayan' menjadi 'Staf'
+- Sinkronisasi deskripsi panduan onboarding: pembaruan informasi PIN menjadi 6-digit sesuai standar sistem
 
 ---
 *Pembaruan ini dapat diunduh dan dipasang langsung dari dalam aplikasi (In-App Auto-Updater).*

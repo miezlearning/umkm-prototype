@@ -1,10 +1,9 @@
 {
-  "versionCode": 70,
-  "versionName": "1.2.22",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.22/Aristotle-POS.apk",
+  "versionCode": 71,
+  "versionName": "1.2.23",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.23/Aristotle-POS.apk",
   "changelog": [
-    "Desain minimalis indikator status online Profil Toko (tanpa badge artifisial)",
-    "Penyempurnaan terminologi profesional: penggantian kata 'Pelayan' menjadi 'Staf'"
+    "Sinkronisasi deskripsi panduan onboarding: pembaruan informasi PIN menjadi 6-digit sesuai standar sistem"
   ],
   "releaseDate": "2026-09-04"
 }

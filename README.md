@@ -60,9 +60,9 @@
 | **Manajemen Shift Kasir (Opsional)** | Catat modal awal kasir, audit rekonsiliasi uang fisik laci, dan cetak Laporan Z |
 | **Diskon Transaksi Fleksibel** | Potongan persentase (%) atau nominal (Rp) langsung terintegrasi di struk & QRIS |
 | **Cetak Thermal & Buka Laci Kasir** | Struk pelanggan, tiket dapur 🍳, dan buka laci kasir otomatis (*cash drawer kick*) |
-| **Multi-Perangkat (Kasir + Pelayan)** | Hubungkan HP pelayan ke kasir utama via scan QR Hotspot/LAN tanpa internet |
+| **Multi-Perangkat (Kasir + Staf)** | Hubungkan HP staf ke kasir utama via scan QR Hotspot/LAN tanpa internet |
 | **QRIS Dinamis Standar EMVCo** | Ubah QRIS statis toko menjadi QRIS dinamis otomatis ber-nominal pas dengan validasi CRC |
-| **Multi-Tenant & PIN Keamanan** | Satu aplikasi mendukung banyak toko/cabang terpisah dengan proteksi 4-digit PIN |
+| **Multi-Tenant & PIN Keamanan** | Satu aplikasi mendukung banyak toko/cabang terpisah dengan proteksi 6-digit PIN |
 | **Realtime Cloud Sync** | Sinkronisasi instan antar HP kasir dan laptop owner menggunakan Firebase Firestore |
 | **Offline-First Resilience** | Transaksi tetap berjalan normal 100% tanpa internet; data tersimpan lokal dan sync saat online |
 | **Laporan Finansial & Profit** | Rekap otomatis omzet, modal belanja, laba bersih, dan ekspor riwayat transaksi CSV |
