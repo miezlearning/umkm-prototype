@@ -11,8 +11,26 @@ const TOUR_STEPS = [
     fallbackSelector: 'header .cursor-pointer',
     icon: 'storefront',
     iconColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-    title: 'Info Toko & Koneksi HP',
-    desc: 'Klik ikon atau nama toko ini untuk melihat status koneksi Cloud, membagikan link kasir ke HP/tablet karyawan, atau keluar (logout).',
+    title: 'Info Toko & Hubungkan HP',
+    desc: 'Lihat profil toko, ganti cabang, amankan kasir dengan PIN 4-digit, atau bagikan kode QR / tautan untuk menghubungkan HP pelayan secara realtime.',
+    view: 'pos'
+  },
+  {
+    selector: '#headerShiftStatusBadge, #mobileHeaderShiftBtn',
+    fallbackSelector: 'header',
+    icon: 'schedule',
+    iconColor: 'bg-teal-100 text-teal-800 border-teal-300',
+    title: 'Shift Kasir & Laporan Z (Opsional)',
+    desc: 'Buka shift untuk mencatat modal kas awal di laci (opsional, tidak memblokir kasir!). Saat tutup toko, hitung uang fisik dan cetak struk audit Laporan Z.',
+    view: 'pos'
+  },
+  {
+    selector: '#headerPrinterStatusBadge, #mobileHeaderPrinterBtn',
+    fallbackSelector: 'header',
+    icon: 'print',
+    iconColor: 'bg-sky-100 text-sky-800 border-sky-300',
+    title: 'Printer Thermal & Laci Kasir',
+    desc: 'Hubungkan printer Bluetooth, USB, atau LAN untuk cetak struk pelanggan, cetak tiket pesanan dapur 🍳, dan buka laci uang otomatis saat pembayaran tunai.',
     view: 'pos'
   },
   {
@@ -21,7 +39,7 @@ const TOUR_STEPS = [
     icon: 'category',
     iconColor: 'bg-amber-100 text-amber-800 border-amber-300',
     title: 'Pilih Kategori & Cari Menu',
-    desc: 'Pilih kategori (Makanan, Minuman, Camilan) atau gunakan kolom pencarian untuk menemukan menu dengan cepat saat toko sedang ramai.',
+    desc: 'Pilih kategori (Makanan, Minuman, Camilan) atau gunakan kolom pencarian untuk menemukan menu dengan cepat saat toko sedang ramai pembeli.',
     view: 'pos'
   },
   {
@@ -30,7 +48,7 @@ const TOUR_STEPS = [
     icon: 'touch_app',
     iconColor: 'bg-blue-100 text-blue-800 border-blue-300',
     title: 'Sentuh Menu untuk Memesan',
-    desc: 'Cukup sentuh gambar menu untuk memasukkannya ke struk pesanan. Sentuh beberapa kali jika pembeli memesan lebih dari satu porsi.',
+    desc: 'Cukup sentuh gambar menu untuk memasukkannya ke struk pesanan. Gunakan tombol plus (+) atau minus (-) pada kartu menu untuk mengatur jumlah porsi.',
     view: 'pos'
   },
   {
@@ -39,7 +57,7 @@ const TOUR_STEPS = [
     icon: 'table_restaurant',
     iconColor: 'bg-indigo-100 text-indigo-800 border-indigo-300',
     title: 'Buka Antrian / Meja Baru',
-    desc: 'Jika ada pelanggan baru datang saat pesanan sebelumnya belum dibayar, klik tombol "+ Antrian Baru" agar pesanan lama tidak hilang.',
+    desc: 'Jika ada pelanggan baru datang saat pesanan sebelumnya belum selesai bayar, klik tombol "+ Antrian Baru" agar pesanan lama tersimpan aman.',
     view: 'pos'
   },
   {
@@ -47,8 +65,8 @@ const TOUR_STEPS = [
     fallbackSelector: '#cartTotalDisplay',
     icon: 'payments',
     iconColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-    title: 'Bayar Tunai & QRIS Otomatis',
-    desc: 'Klik tombol BAYAR untuk memilih metode bayar: Tunai (uang kembalian dihitung otomatis) atau QRIS (QR Code nominal pas otomatis).',
+    title: 'Bayar, Diskon & QRIS Dinamis',
+    desc: 'Klik tombol BAYAR untuk memilih Tunai atau QRIS Dinamis otomatis. Anda juga dapat memberikan diskon persentase (%) atau potongan nominal (Rp) pada tagihan.',
     view: 'pos'
   },
   {
@@ -56,8 +74,8 @@ const TOUR_STEPS = [
     fallbackSelector: 'button[onclick*="report"]',
     icon: 'account_balance_wallet',
     iconColor: 'bg-purple-100 text-purple-800 border-purple-300',
-    title: 'Laporan Omset & Laba Bersih',
-    desc: 'Buka menu Laporan setiap saat untuk melihat total uang masuk, mencatat biaya belanja pasar/operasional, dan melihat laba bersih riil toko.',
+    title: 'Laporan Omset & Rekap Shift',
+    desc: 'Buka menu Laporan setiap saat untuk melihat total uang masuk, riwayat tutup shift (Laporan Z), mencatat biaya belanja operasional, dan melihat laba bersih riil toko.',
     view: 'report'
   },
   {
@@ -66,7 +84,7 @@ const TOUR_STEPS = [
     icon: 'inventory_2',
     iconColor: 'bg-rose-100 text-rose-800 border-rose-300',
     title: 'Kelola Menu & Pasang QRIS',
-    desc: 'Buka menu ini untuk menambah makanan baru, mengganti harga, mengatur stok porsi harian, dan upload barcode QRIS toko Anda sendiri.',
+    desc: 'Buka menu Kelola untuk menambah makanan/minuman baru, mengganti harga jual, mengatur stok porsi harian, dan mengunggah barcode QRIS toko Anda sendiri.',
     view: 'admin'
   }
 ];

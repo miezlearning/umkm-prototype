@@ -1,65 +1,72 @@
-# 🎓 Aristotle POS (v1.1.3)
+# 🎓 Aristotle POS (v1.1.41)
 ### *Sistem Kasir Pintar, Modern, dan Skalabel untuk UMKM Multi-Tenant*
 
-[![Version](https://img.shields.io/badge/Release-v1.1.3-10b981?style=for-the-badge&logo=android&logoColor=white)](https://github.com/miezlearning/umkm-prototype/releases)
-[![Android APK](https://img.shields.io/badge/APK-Available-0284c7?style=for-the-badge&logo=android&logoColor=white)](file:///Aristotle-POS.apk)
-[![PWA Ready](https://img.shields.io/badge/PWA-Ready-10b981?style=for-the-badge&logo=pwa&logoColor=white)](file:///index.html)
-[![Firebase Cloud](https://img.shields.io/badge/Firebase-Firestore%20Sync-ffca28?style=for-the-badge&logo=firebase&logoColor=black)](file:///js/firebase.js)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](file:///LICENSE)
+[![Version](https://img.shields.io/badge/Release-v1.1.41-10b981?style=for-the-badge&logo=android&logoColor=white)](https://github.com/miezlearning/umkm-prototype/releases)
+[![Android APK](https://img.shields.io/badge/APK-Available-0284c7?style=for-the-badge&logo=android&logoColor=white)](Aristotle-POS.apk)
+[![PWA Ready](https://img.shields.io/badge/PWA-Ready-10b981?style=for-the-badge&logo=pwa&logoColor=white)](index.html)
+[![Firebase Cloud](https://img.shields.io/badge/Firebase-Firestore%20Sync-ffca28?style=for-the-badge&logo=firebase&logoColor=black)](js/firebase.js)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
 **Aristotle POS** adalah aplikasi kasir (*Point of Sale*) multi-platform yang dirancang khusus untuk mempermudah operasional UMKM, warung makan, kedai kopi, dan bisnis retail. Dibangun dengan pendekatan **Hybrid Modern** (Web PWA + Native Android App), aplikasi ini ringan, bekerja 100% saat offline, dan otomatis tersinkronisasi ke cloud saat online.
 
 ---
 
-## 📜 Riwayat Pembaruan (Changelog)
+## 📜 Riwayat Pembaruan Utama (Changelog)
 
-### 🍳 Versi 1.1.3 — *Kitchen Ticket Checkpoint & Smart Automation* (Terbaru)
-* **Tiket Dapur / Kitchen Checkpoint Resmi:**
-  * Menambahkan format cetak khusus lembar kerja koki / barista dengan kotak centang `[  ]` di setiap item pesanan agar koki bisa langsung mencentang menu yang sudah dimasak.
-  * Menghilangkan seluruh nominal harga di struk dapur untuk meminimalkan distraksi tim dapur dan menghemat kertas thermal 58mm.
-  * Menampilkan **Nomor Meja / Antrian Ekstra Besar** di bagian atas lembar tiket.
-* **Tombol Cepat `Tiket Dapur 🍳` di Layar Transaksi:**
-  * Kasir dapat mencetak atau mencetak ulang tiket antrian koki kapan saja dengan 1 kali klik.
-* **Otomatisasi Cetak Ganda (*Smart Double Print*):**
-  * Opsi di Pengaturan Printer untuk otomatis mencetak Tiket Dapur terlebih dahulu, lalu mencetak Struk Pelanggan secara berurutan saat transaksi selesai.
-* **Tombol Uji Coba Mandiri:** Menambahkan tombol **"Tes Dapur"** di modal pengaturan printer untuk mempermudah pratinjau fisik kertas thermal.
+### 🚀 Versi 1.1.41 — *Instant Startup & Zero Double Loading* (Terbaru)
+* **Eliminasi Loading Ganda Service Worker:** Menghapus `window.location.reload()` otomatis saat startup; pembaruan cache kini berjalan senyap di latar belakang (*silent background update*).
+* **Idempotency Guard `init()`:** Mencegah fungsi startup dieksekusi lebih dari sekali dalam satu lifecycle halaman.
+* **Deteksi Jaringan Cerdas Android WebView:** Langsung memuat aset offline lokal (`file:///android_asset/index.html`) secara instan (~30ms) saat perangkat kasir terhubung ke hotspot tanpa internet publik, tanpa menunggu timeout error.
+* **Pembaruan Panduan Interaktif (Tour Guide):** Melengkapi alur panduan langkah demi langkah mencakup fitur Shift, Printer, Diskon, dan Multi-Perangkat.
 
 ---
 
-### 🖨️ Versi 1.1.2 — *VSC Thermal Printer Recovery & Buffer Fix*
-* **Fix Lockup Mode Grafik (VSC TM-58V):** Menyuntikkan perintah `ESC @` (`0x1B, 0x40`) dan `ESC t 0` (`0x1B, 0x74, 0x00`) segera setelah data raster logo selesai dicetak, memaksa printer keluar dari mode grafik dan kembali mencetak seluruh teks transaksi.
-* **Optimalisasi Dimensi Logo (160 dot):** Memangkas ukuran logo bitmap dari 240 dot menjadi 160 dot, menghemat 70% memori buffer dan mencegah printer VSC macet (*hang*) di tengah gambar.
-* **Pacing Thermal Bluetooth 25ms:** Menyesuaikan jeda transmisi data Bluetooth per 256-byte menjadi 25ms agar jarum pemanas (*thermal print head*) memiliki waktu cukup membakar titik hitam tanpa data terpotong.
+### 🕒 Versi 1.1.40 — *Shift Management, Z-Report & Transaction Discounts*
+* **Manajemen Shift Kasir & Rekap Tutup Toko (Laporan Z):**
+  * Pencatatan modal kas awal di laci (*cash float*).
+  * Bersifat **100% opsional** dan tidak memblokir operasional kasir jika toko tidak menerapkan sistem shift.
+  * Audit rekonsiliasi kas fisik di laci vs pencatatan sistem (status Pas, Kurang, atau Lebih).
+  * Format cetak struk Laporan Z resmi untuk printer thermal 58mm/80mm dan sinkronisasi ke Firebase.
+* **Diskon Transaksi Fleksibel (% dan Rp):**
+  * Pilihan cepat diskon persentase (5%, 10%, 15%, 20%) atau potongan nominal langsung (Rp 5.000, Rp 10.000, dst.).
+  * Terintegrasi otomatis ke kalkulator kembalian uang tunai, QRIS Dinamis, dan rincian struk belanja.
 
 ---
 
-### ⚡ Versi 1.1.1 — *Zero-Delay Bluetooth & 58mm Tail Feed*
-* **Persistent Bluetooth Socket:** Menggunakan soket RFCOMM aktif yang terus terhubung di latar belakang, memangkas latensi cetak kedua dan seterusnya menjadi instan (< 10ms).
-* **Pre-Connect Warmup:** Inisialisasi koneksi Bluetooth printer otomatis saat aplikasi pertama kali dibuka.
-* **5-Line Tail Feed:** Mengganti pemotong otomatis (*auto-cut*) dengan umpan 5 baris kertas (`ESC d 5` + baris baru) khusus printer 58mm agar struk melewati pisau gerigi perobek dengan rapi tanpa terpotong teksnya.
+### 🍳 Versi 1.1.3 — *Kitchen Ticket Checkpoint & Smart Automation*
+* **Tiket Dapur / Kitchen Checkpoint:**
+  * Format cetak khusus lembar kerja koki / barista dengan kotak centang `[  ]` dan nomor antrian besar tanpa nominal harga.
+  * Tombol cepat `Tiket Dapur 🍳` dan opsi otomatisasi cetak ganda (*Smart Double Print*).
 
 ---
 
-### 🎓 Versi 1.1.0 — *Aristotle Rebranding & Native Core*
-* **Rebranding Resmi:** Mengganti identitas menjadi **Aristotle POS** (`com.aristotle.pos`) dengan maskot kucing bertoga sarjana transparan 100%.
-* **Smart External Link Interceptor:** Tautan WhatsApp (`wa.me`) otomatis meluncurkan aplikasi native WhatsApp Android resmi.
-* **Locked Keystore:** Mengunci sertifikat rilis debug Android agar update APK tidak pernah mengalami *Package Conflicting Error*.
-* **Otomatisasi CI/CD:** Auto-increment `versionCode` dan publikasi APK otomatis melalui GitHub Actions & GitHub Releases.
-* **Inline Failsafe:** Menghilangkan risiko macet (*stuck*) pada splash screen pembuka.
+### 🖨️ Versi 1.1.2 — *VSC Thermal Printer Recovery & 160-dot Buffer Fix*
+* **Fix Lockup Mode Grafik (VSC TM-58V):** Perintah `ESC @` dan `ESC t 0` pembersih buffer setelah cetak logo.
+* **Dimensi Logo Optimal (160 dot) & Pacing Bluetooth 25ms:** Mencegah printer macet di tengah pencetakan gambar logo.
 
 ---
 
-## ✨ Fitur Utama Aristotle POS
+### ⚡ Versi 1.1.1 — *Zero-Delay Bluetooth & Persistent Socket*
+* **Persistent Bluetooth Socket:** Koneksi aktif di latar belakang, memangkas latensi cetak kedua dan seterusnya menjadi instan (< 10ms).
+* **Pre-Connect Warmup & 5-Line Tail Feed:** Persiapan koneksi otomatis saat buka aplikasi dan umpan 5 baris rapi untuk printer 58mm.
+
+---
+
+## ✨ Fitur Lengkap Aristotle POS
 
 | Fitur | Deskripsi |
 | :--- | :--- |
 | **Multi-Antrian (*Order Queues*)** | Layani banyak meja/pesanan sekaligus tanpa risiko pesanan tertukar |
-| **QRIS Dinamis Standar EMVCo** | Ubah QRIS statis toko menjadi QRIS dinamis otomatis dengan nominal tepat & validasi CRC |
+| **Manajemen Shift Kasir (Opsional)** | Catat modal awal kasir, audit rekonsiliasi uang fisik laci, dan cetak Laporan Z |
+| **Diskon Transaksi Fleksibel** | Potongan persentase (%) atau nominal (Rp) langsung terintegrasi di struk & QRIS |
+| **Cetak Thermal & Buka Laci Kasir** | Struk pelanggan, tiket dapur 🍳, dan buka laci kasir otomatis (*cash drawer kick*) |
+| **Multi-Perangkat (Kasir + Pelayan)** | Hubungkan HP pelayan ke kasir utama via scan QR Hotspot/LAN tanpa internet |
+| **QRIS Dinamis Standar EMVCo** | Ubah QRIS statis toko menjadi QRIS dinamis otomatis ber-nominal pas dengan validasi CRC |
 | **Multi-Tenant & PIN Keamanan** | Satu aplikasi mendukung banyak toko/cabang terpisah dengan proteksi 4-digit PIN |
 | **Realtime Cloud Sync** | Sinkronisasi instan antar HP kasir dan laptop owner menggunakan Firebase Firestore |
-| **Offline-First Resilience** | Transaksi tetap berjalan normal tanpa internet; data tersimpan lokal dan sync saat online |
-| **Laporan Finansial & Profit** | Rekap otomatis omzet, modal belanja, laba bersih, dan ekspor riwayat transaksi |
-| **UI Lansia-Friendly** | Tombol sentuh besar, kontras tinggi, stepper porsi langsung di kartu menu, dan efek haptic audio |
+| **Offline-First Resilience** | Transaksi tetap berjalan normal 100% tanpa internet; data tersimpan lokal dan sync saat online |
+| **Laporan Finansial & Profit** | Rekap otomatis omzet, modal belanja, laba bersih, dan ekspor riwayat transaksi CSV |
+| **UI Lansia-Friendly & Tour Interaktif** | Tombol sentuh besar, kontras tinggi, haptic audio, dan panduan spotlight langkah demi langkah |
 
 ---
 
@@ -67,17 +74,19 @@
 
 ```mermaid
 graph TD
-    A[Pelanggan Memesan] --> B(Pilih Menu / Gunakan Barcode)
-    B --> C{Pilih Pembayaran}
-    C -->|Tunai / Cash| D[Hitung Kembalian Cepat]
-    C -->|QRIS Dinamis| E[Generate QRIS Sesuai Nominal Tagihan]
-    D --> F[Laci Uang Terbuka Otomatis]
-    E --> G[Verifikasi Pembayaran]
-    F --> H[Simpan Transaksi ke LocalStorage & Cloud]
-    G --> H
-    H --> I[Cetak Struk Thermal Bluetooth Instan]
-    H --> J[Nama Antrian Auto-Reset ke Pesanan #1]
-    H --> K[(Sinkronisasi Firebase Firestore)]
+    A[Buka Shift Kasir - Opsional] --> B[Pelanggan Memesan]
+    B --> C(Pilih Menu / Gunakan Barcode)
+    C --> D{Diskon Transaksi?}
+    D -->|Ya| E[Pilih Diskon % atau Rp]
+    D -->|Tidak| F[Lanjut ke Pembayaran]
+    E --> F
+    F --> G{Pilih Metode Bayar}
+    G -->|Tunai / Cash| H[Hitung Kembalian Cepat & Laci Kasir Terbuka]
+    G -->|QRIS Dinamis| I[Generate QRIS Sesuai Nominal Tagihan]
+    H --> J[Cetak Struk Thermal Pelanggan / Dapur]
+    I --> J
+    J --> K[Simpan ke LocalStorage & Sinkronisasi Cloud]
+    K --> L[Tutup Shift & Audit Kas Laporan Z - Opsional]
 ```
 
 ---
@@ -107,9 +116,13 @@ UMKM Mami/
 │   ├── utils.js                 # Format Rupiah, toast pemberitahuan, haptic audio
 │   └── modules/
 │       ├── pos.js               # Antrian pesanan, katalog produk, kalkulasi keranjang
-│       ├── payment.js           # Checkout pembayaran, dialog cetak, reset antrian
+│       ├── payment.js           # Checkout pembayaran, kalkulasi diskon, dialog cetak
+│       ├── shift.js             # Buka shift, audit uang fisik laci, dan Laporan Z
 │       ├── printer.js           # Driver Bluetooth SPP, ESC/POS generator, & cash drawer
+│       ├── tour.js              # Panduan interaktif spotlight ramah lansia
+│       ├── updater.js           # Deteksi rilis baru & auto-updater APK in-app
 │       ├── admin.js             # Pengelolaan produk, kategori menu, & kontrol stok
+│       ├── superadmin.js        # Hub pemantauan mitra toko UMKM terpusat
 │       └── report.js            # Laporan keuangan, omzet, & laba rugi
 └── .github/workflows/
     └── ci-cd.yml                # CI/CD otomatis untuk deploy Pages & build APK rilis
@@ -120,16 +133,16 @@ UMKM Mami/
 ## 📲 Cara Instalasi & Menjalankan
 
 ### Cara 1: Pasang di HP Android (Aplikasi Native)
-1. Unduh file **[Aristotle-POS.apk](file:///Aristotle-POS.apk)** langsung ke HP Android Anda.
+1. Unduh file **[Aristotle-POS.apk](Aristotle-POS.apk)** langsung ke HP Android Anda.
 2. Buka file APK dan izinkan instalasi dari sumber tidak dikenal jika diminta.
-3. Buka aplikasi **Aristotle POS** di homescreen Anda.
+3. Buka aplikasi **Aristotle POS** di layar utama HP Anda.
 
 ### Cara 2: Buka di Browser (PWA)
 Buka tautan rilis publik di browser HP / Laptop Anda:
 ```text
 https://miezlearning.github.io/umkm-prototype/
 ```
-*(Tekan **"Tambahkan ke Layar Utama" / "Install App"** di menu browser untuk menjadikan aplikasi desktop/HP)*
+*(Tekan **"Tambahkan ke Layar Utama" / "Install App"** di menu browser untuk memasang aplikasi di desktop/HP)*
 
 ### Cara 3: Menjalankan di Lokal (Development)
 Jalankan web server lokal sederhana (misal menggunakan Python):
@@ -143,7 +156,7 @@ Buka browser di `http://localhost:8000`.
 ## ⚡ Portal Super Admin (Monitoring Toko)
 
 Untuk memantau performa seluruh UMKM mitra dari satu tempat:
-* Akses URL: `https://domain.com/?view=superadmin`
+* Akses URL: `https://miezlearning.github.io/umkm-prototype/?view=superadmin`
 * **Kemampuan Portal:**
   * Memantau omzet harian & jumlah transaksi seluruh UMKM secara terpusat.
   * Reset PIN toko jika mitra lupa.
@@ -165,4 +178,4 @@ Untuk memantau performa seluruh UMKM mitra dari satu tempat:
 ## 📄 Lisensi
 
 Hak Cipta © 2026 **Aristotle POS Team**.  
-Dirilis di bawah lisensi [MIT License](file:///LICENSE). Bebas digunakan dan dikembangkan untuk memajukan UMKM Indonesia.
+Dirilis di bawah lisensi [MIT License](LICENSE). Bebas digunakan dan dikembangkan untuk memajukan UMKM Indonesia.
