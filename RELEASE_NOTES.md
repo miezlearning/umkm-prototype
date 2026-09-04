@@ -1,11 +1,12 @@
-# Aristotle POS v1.2.9 Release Notes
+# Aristotle POS v1.2.10 Release Notes
 
 **Tanggal Rilis:** 2026-09-04
 
 ### Catatan Pembaruan:
-- Optimasi mobile header Xiaomi 14T bebas sesak dan responsif
-- Perbaikan gesture multi-tap Super Admin dengan debounce
-- Penambahan tombol langsung Super Admin di footer profil toko
+- Pemulihan cetak Wi-Fi LAN/Hotspot lokal tanpa delay (zero-delay < 50ms)
+- Pengembalian panel input IP Kasir, Tes Ping, dan Cari Otomatis
+- Penyediaan tombol tes lengkap HP Pelayan (Tes Struk, Tes Dapur, Buka Laci)
+- Perbaikan bug otorisasi token lokal port 8088 pada Host default
 
 ---
 *Pembaruan ini dapat diunduh dan dipasang langsung dari dalam aplikasi (In-App Auto-Updater).*

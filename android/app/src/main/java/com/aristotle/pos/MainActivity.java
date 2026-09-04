@@ -1012,7 +1012,7 @@ public class MainActivity extends AppCompatActivity {
                     String resp = "HTTP/1.1 200 OK\r\n" +
                             "Access-Control-Allow-Origin: *\r\n" +
                             "Access-Control-Allow-Methods: POST, GET, OPTIONS\r\n" +
-                            "Access-Control-Allow-Headers: Content-Type, X-POS-Token\r\n" +
+                            "Access-Control-Allow-Headers: Content-Type, X-POS-Token, *\r\n" +
                             "Content-Length: 0\r\n\r\n";
                     out.write(resp.getBytes("UTF-8"));
                     out.flush();
@@ -1035,7 +1035,8 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 // Verifikasi Token Keamanan POS untuk aksi kontrol hardware sensitif (Print & Buka Laci)
-                boolean isAuthorized = (expectedPosToken != null && !expectedPosToken.isEmpty() && expectedPosToken.equals(clientToken));
+                // Izinkan jika token cocok, atau jika expectedPosToken di Host belum disetel/kosong
+                boolean isAuthorized = (expectedPosToken == null || expectedPosToken.isEmpty() || expectedPosToken.equals(clientToken));
                 if (!isAuthorized) {
                     String err = "{\"status\":\"unauthorized\",\"message\":\"Akses ditolak: Token POS tidak valid\"}";
                     byte[] eb = err.getBytes("UTF-8");
