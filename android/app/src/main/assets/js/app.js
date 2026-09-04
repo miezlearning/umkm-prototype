@@ -1240,6 +1240,7 @@ const KasirApp = {
   testCloudRelayPrint: printer.testCloudRelayPrint,
   testLocalLanPing: printer.testLocalLanPing,
   autoDiscoverLocalPrinterHost: printer.autoDiscoverLocalPrinterHost,
+  reconnectPrinterHost: printer.reconnectPrinterHost,
   handleLocalHostIpInput: printer.handleLocalHostIpInput,
   setupRemotePrintHostListener: printer.setupRemotePrintHostListener,
   setDevicePrinterRole: printer.setDevicePrinterMode,

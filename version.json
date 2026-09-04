@@ -1,10 +1,10 @@
 {
-  "versionCode": 59,
-  "versionName": "1.2.12",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.12/Aristotle-POS.apk",
+  "versionCode": 60,
+  "versionName": "1.2.13",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.13/Aristotle-POS.apk",
   "changelog": [
-    "Fitur upload/impor teks menu otomatis",
-    "Dukungan format teks catatan & chat WhatsApp"
+    "Perombakan alur koneksi multi-perangkat Kasir Utama & Pelayan",
+    "Penambahan tombol Hubungkan Kembali & deteksi Hotspot otomatis"
   ],
   "releaseDate": "2026-09-04"
 }

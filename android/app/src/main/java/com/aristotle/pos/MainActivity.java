@@ -1110,16 +1110,41 @@ public class MainActivity extends AppCompatActivity {
     public String getLocalIpAddress() {
         try {
             List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+            String wifiIp = null;
+            String hotspotIp = null;
+            String fallbackLanIp = null;
+
             for (NetworkInterface intf : interfaces) {
+                String name = intf.getName().toLowerCase();
+                // Abaikan interface seluler data kartu SIM (4G/5G), VPN, dan loopback
+                if (name.startsWith("rmnet") || name.startsWith("ccmni") || name.startsWith("pdp") 
+                    || name.startsWith("tun") || name.startsWith("ppp") || name.startsWith("dummy") 
+                    || name.startsWith("lo")) {
+                    continue;
+                }
+
                 List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
                 for (InetAddress addr : addrs) {
                     if (!addr.isLoopbackAddress() && addr instanceof Inet4Address) {
-                        return addr.getHostAddress();
+                        String ip = addr.getHostAddress();
+                        if (ip != null && !ip.startsWith("127.")) {
+                            if (name.startsWith("ap") || name.startsWith("softap") || name.startsWith("swlan") || name.startsWith("rndis")) {
+                                hotspotIp = ip;
+                            } else if (name.startsWith("wlan") || name.startsWith("eth")) {
+                                wifiIp = ip;
+                            } else {
+                                fallbackLanIp = ip;
+                            }
+                        }
                     }
                 }
             }
+
+            if (hotspotIp != null) return hotspotIp;
+            if (wifiIp != null) return wifiIp;
+            if (fallbackLanIp != null) return fallbackLanIp;
         } catch (Exception ignored) {}
-        return "127.0.0.1";
+        return "192.168.43.1";
     }
 
     @Override
