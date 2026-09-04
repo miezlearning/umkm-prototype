@@ -1,12 +1,10 @@
 {
-  "versionCode": 68,
-  "versionName": "1.2.20",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.20/Aristotle-POS.apk",
+  "versionCode": 69,
+  "versionName": "1.2.21",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.21/Aristotle-POS.apk",
   "changelog": [
-    "Optimalisasi responsivitas mobile Xiaomi 14T pada Super Admin",
-    "Redesign 2-baris header anti-overlap: navigasi sistem terpisah dari pencarian & tombol tambah mitra",
-    "Penyusunan ulang kartu ringkasan KPI 2x2 lebih ringkas dan hemat ruang vertikal",
-    "Penyeragaman tombol aksi profil mitra (WhatsApp, Edit, Hapus, Buka Kasir)"
+    "Perbaikan indikator status modal Profil Toko (menghilangkan duplikasi titik online)",
+    "Redesign kartu Profil Toko dan menu list menjadi lebih rapi dan responsif"
   ],
   "releaseDate": "2026-09-04"
 }

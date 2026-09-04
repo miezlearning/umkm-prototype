@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aristotle-pos-v68';
+const CACHE_NAME = 'aristotle-pos-v69';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
