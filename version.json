@@ -1,9 +1,9 @@
 {
-  "versionCode": 46,
-  "versionName": "1.1.42",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.42/Aristotle-POS.apk",
+  "versionCode": 47,
+  "versionName": "1.2.0",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.0/Aristotle-POS.apk",
   "changelog": [
-    "Pembaruan panduan interaktif kasir 9 langkah & modul edukasi ramah lansia"
+    "Rilis Resmi v1.2.0: Manajemen Shift Kasir & Rekap Tutup Toko (Laporan Z), Diskon Transaksi (% dan Rp), Cetak Tiket Dapur & Auto Kick Drawer, Multi-Perangkat via Hotspot QR, dan Panduan Edukasi Lansia"
   ],
   "releaseDate": "2026-09-04"
 }

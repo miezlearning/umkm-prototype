@@ -1,7 +1,7 @@
-# 🎓 Aristotle POS (v1.1.41)
+# 🎓 Aristotle POS (v1.2.0)
 ### *Sistem Kasir Pintar, Modern, dan Skalabel untuk UMKM Multi-Tenant*
 
-[![Version](https://img.shields.io/badge/Release-v1.1.41-10b981?style=for-the-badge&logo=android&logoColor=white)](https://github.com/miezlearning/umkm-prototype/releases)
+[![Version](https://img.shields.io/badge/Release-v1.2.0-10b981?style=for-the-badge&logo=android&logoColor=white)](https://github.com/miezlearning/umkm-prototype/releases)
 [![Android APK](https://img.shields.io/badge/APK-Available-0284c7?style=for-the-badge&logo=android&logoColor=white)](Aristotle-POS.apk)
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready-10b981?style=for-the-badge&logo=pwa&logoColor=white)](index.html)
 [![Firebase Cloud](https://img.shields.io/badge/Firebase-Firestore%20Sync-ffca28?style=for-the-badge&logo=firebase&logoColor=black)](js/firebase.js)
