@@ -1,9 +1,9 @@
 {
-  "versionCode": 45,
-  "versionName": "1.1.41",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.41/Aristotle-POS.apk",
+  "versionCode": 46,
+  "versionName": "1.1.42",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.1.42/Aristotle-POS.apk",
   "changelog": [
-    "Perbaikan logika startup: eliminasi loading ganda pada Service Worker dan WebView Android"
+    "Pembaruan panduan interaktif kasir 9 langkah & modul edukasi ramah lansia"
   ],
   "releaseDate": "2026-09-04"
 }
