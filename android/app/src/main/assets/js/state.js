@@ -364,9 +364,11 @@ export function updateUIStoreBranding() {
   const storeName = state.storeId ? (state.storeProfile?.name || state.storeId) : 'Aristotle POS';
   const nmid = state.storeId ? (state.storeProfile?.nmid || '') : '';
 
-  // Header Title
+  // Header Title (Desktop, Tablet & Mobile)
   const headerTitleEl = document.getElementById('appHeaderStoreTitle') || document.querySelector('header h1');
   if (headerTitleEl) headerTitleEl.innerText = storeName;
+  const mobileHeaderTitleEl = document.getElementById('mobileAppHeaderStoreTitle');
+  if (mobileHeaderTitleEl) mobileHeaderTitleEl.innerText = storeName;
 
   // Struk Header
   const receiptStoreNameEl = document.getElementById('receiptStoreName');

@@ -1,11 +1,9 @@
 {
-  "versionCode": 50,
-  "versionName": "1.2.3",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.3/Aristotle-POS.apk",
+  "versionCode": 51,
+  "versionName": "1.2.4",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.4/Aristotle-POS.apk",
   "changelog": [
-    "Akses Super Admin terintegrasi di mobile & desktop (Header, Cloud Modal, & Login Modal)",
-    "UI/UX Google Material Design 3 (M3) penuh dengan M3 Tonal KPI Cards, M3 Store Cards, dan Dialog Ganti PIN M3",
-    "Perbaikan otentikasi passkey mandiri & akselerasi paralel Firestore"
+    "Peningkatan responsivitas tablet & mobile: Workstation POS 2-kolom di tablet, header adaptif anti-tabrakan, dan eliminasi double-header Super Admin"
   ],
   "releaseDate": "2026-09-04"
 }

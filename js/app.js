@@ -82,13 +82,15 @@ export function switchView(viewName) {
     }
   });
 
-  const mobileNav = document.getElementById('mobileBottomNav') || document.querySelector('nav.lg\\:hidden');
+  const mobileNav = document.getElementById('mobileBottomNav') || document.querySelector('nav.lg\\:hidden') || document.querySelector('nav.md\\:hidden');
+  const mainHeader = document.getElementById('mainAppHeader');
 
   if (viewName === 'pos') {
+    if (mainHeader) mainHeader.classList.remove('hidden');
     if (mobileNav) mobileNav.classList.remove('hidden');
     if (viewPos) viewPos.classList.remove('hidden');
     if (btnPosM) btnPosM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
-    if (btnPosD) btnPosD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
+    if (btnPosD) btnPosD.className = 'px-3 xl:px-4 py-1.5 xl:py-2 rounded-xl bg-emerald-700 text-white font-black text-xs xl:text-sm flex items-center gap-1.5 xl:gap-2 transition shadow-sm';
     pos.renderOrderQueueTabs();
     pos.renderProducts();
     pos.renderCart();
@@ -96,24 +98,27 @@ export function switchView(viewName) {
       window.history.replaceState(null, '', `${window.location.pathname}?store=${encodeURIComponent(state.storeId)}`);
     }
   } else if (viewName === 'admin') {
+    if (mainHeader) mainHeader.classList.remove('hidden');
     if (mobileNav) mobileNav.classList.remove('hidden');
     if (viewAdmin) viewAdmin.classList.remove('hidden');
     if (btnAdminM) btnAdminM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
-    if (btnAdminD) btnAdminD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
+    if (btnAdminD) btnAdminD.className = 'px-3 xl:px-4 py-1.5 xl:py-2 rounded-xl bg-emerald-700 text-white font-black text-xs xl:text-sm flex items-center gap-1.5 xl:gap-2 transition shadow-sm';
     admin.renderAdminTable();
     if (state.storeId) {
       window.history.replaceState(null, '', `${window.location.pathname}?store=${encodeURIComponent(state.storeId)}`);
     }
   } else if (viewName === 'report') {
+    if (mainHeader) mainHeader.classList.remove('hidden');
     if (mobileNav) mobileNav.classList.remove('hidden');
     if (viewReport) viewReport.classList.remove('hidden');
     if (btnReportM) btnReportM.className = 'flex flex-col items-center justify-center flex-1 py-1 text-emerald-700 font-black text-[11px] touch-target-large';
-    if (btnReportD) btnReportD.className = 'px-4 py-2 rounded-xl bg-emerald-700 text-white font-black flex items-center gap-2 transition shadow-sm';
+    if (btnReportD) btnReportD.className = 'px-3 xl:px-4 py-1.5 xl:py-2 rounded-xl bg-emerald-700 text-white font-black text-xs xl:text-sm flex items-center gap-1.5 xl:gap-2 transition shadow-sm';
     report.renderFinancialReport();
     if (state.storeId) {
       window.history.replaceState(null, '', `${window.location.pathname}?store=${encodeURIComponent(state.storeId)}`);
     }
   } else if (viewName === 'superadmin') {
+    if (mainHeader) mainHeader.classList.add('hidden'); // Sembunyikan header utama toko agar tidak double header dengan M3 Top Bar
     if (mobileNav) mobileNav.classList.add('hidden'); // Sembunyikan bottom bar kasir saat mode Super Admin
     if (viewSuperAdmin) viewSuperAdmin.classList.remove('hidden');
     window.history.replaceState(null, '', `${window.location.pathname}?view=superadmin`);
