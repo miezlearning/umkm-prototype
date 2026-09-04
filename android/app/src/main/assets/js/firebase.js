@@ -201,12 +201,23 @@ export function setupRealtimeListeners() {
   const productsCol = collection(db, 'stores', currentStoreId, 'products');
   const unsubProducts = onSnapshot(productsCol, (snapshot) => {
     if (snapshot.empty) {
-      // First time initialization in cloud: seed default or local products
-      seedInitialProducts();
+      const savedProds = localStorage.getItem(currentStorageKeys.PRODUCTS);
+      // Hanya lakukan seeding jika ini adalah inisialisasi awal toko pertama kali (belum pernah ada key products)
+      if (savedProds === null) {
+        seedInitialProducts();
+      } else {
+        // Pengguna sengaja menghapus semua produk atau mengosongkan katalog
+        state.products = [];
+        localStorage.setItem(currentStorageKeys.PRODUCTS, JSON.stringify([]));
+        if (onRemoteUpdateCallback) onRemoteUpdateCallback('products');
+      }
     } else {
       const cloudProducts = [];
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
+        if (data.isDeleted === true || data.name === '[DELETED]') {
+          return; // Lewati menu yang ditandai terhapus
+        }
         cloudProducts.push({ 
           id: docSnap.id, 
           name: data.name || 'Menu',
@@ -216,6 +227,7 @@ export function setupRealtimeListeners() {
           isAvailable: data.isAvailable !== false,
           trackStock: !!data.trackStock,
           stock: data.trackStock ? (data.stock !== undefined && data.stock !== null ? Number(data.stock) : null) : null,
+          addOns: Array.isArray(data.addOns) ? data.addOns : [],
           updatedAt: data.updatedAt || new Date().toISOString()
         });
       });
@@ -774,9 +786,118 @@ export async function syncDeleteProduct(productId) {
   try {
     const currentStoreId = getStoreId();
     const docRef = doc(db, 'stores', currentStoreId, 'products', productId);
-    await deleteDoc(docRef);
+    
+    // 1. Tulis soft-delete flag (didukung oleh aturan Firestore lama & baru)
+    try {
+      await setDoc(docRef, {
+        name: '[DELETED]',
+        price: 0,
+        category: 'deleted',
+        isDeleted: true,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    } catch (softErr) {
+      console.warn('Soft-delete cloud mark error:', softErr);
+    }
+
+    // 2. Lakukan penghapusan fisik dokumen
+    try {
+      await deleteDoc(docRef);
+    } catch (delErr) {
+      // Jika aturan delete di Firebase Console belum di-update, soft-delete di atas sudah menjamin produk tidak muncul lagi
+      console.warn('Physical deleteDoc pending Firestore rules update:', delErr);
+    }
   } catch (e) {
     console.error('Failed to delete product in cloud:', e);
+  }
+}
+
+/**
+ * Batch delete products in cloud
+ */
+export async function syncBatchDeleteProducts(productIds) {
+  if (!db || !Array.isArray(productIds) || productIds.length === 0) return;
+  try {
+    const currentStoreId = getStoreId();
+    const CHUNK_SIZE = 450;
+    for (let i = 0; i < productIds.length; i += CHUNK_SIZE) {
+      const chunk = productIds.slice(i, i + CHUNK_SIZE);
+      
+      // 1. Soft-delete batch
+      const softBatch = writeBatch(db);
+      chunk.forEach(id => {
+        const docRef = doc(db, 'stores', currentStoreId, 'products', id);
+        softBatch.set(docRef, {
+          name: '[DELETED]',
+          price: 0,
+          category: 'deleted',
+          isDeleted: true,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      });
+      try {
+        await softBatch.commit();
+      } catch (e) {
+        console.warn('Soft batch delete commit error:', e);
+      }
+
+      // 2. Physical delete batch
+      const delBatch = writeBatch(db);
+      chunk.forEach(id => {
+        const docRef = doc(db, 'stores', currentStoreId, 'products', id);
+        delBatch.delete(docRef);
+      });
+      try {
+        await delBatch.commit();
+      } catch (delErr) {
+        console.warn('Physical batch delete commit error:', delErr);
+      }
+    }
+  } catch (e) {
+    console.error('Failed to batch delete products in cloud:', e);
+  }
+}
+
+/**
+ * Clear all products in cloud
+ */
+export async function syncClearAllProducts() {
+  if (!db) return;
+  try {
+    const currentStoreId = getStoreId();
+    const prodCol = collection(db, 'stores', currentStoreId, 'products');
+    const snap = await getDocs(prodCol);
+    if (snap.empty) return;
+    
+    const CHUNK_SIZE = 450;
+    const docs = snap.docs;
+    for (let i = 0; i < docs.length; i += CHUNK_SIZE) {
+      const chunk = docs.slice(i, i + CHUNK_SIZE);
+
+      // 1. Soft-delete batch
+      const softBatch = writeBatch(db);
+      chunk.forEach(d => {
+        softBatch.set(d.ref, {
+          name: '[DELETED]',
+          price: 0,
+          category: 'deleted',
+          isDeleted: true,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      });
+      try {
+        await softBatch.commit();
+      } catch (e) {}
+
+      // 2. Physical delete batch
+      const delBatch = writeBatch(db);
+      chunk.forEach(d => delBatch.delete(d.ref));
+      try {
+        await delBatch.commit();
+      } catch (e) {}
+    }
+  } catch (e) {
+    console.error('Failed to clear all products in cloud:', e);
   }
 }
 

@@ -1139,7 +1139,8 @@ const MODAL_CLOSE_DISPATCHER = {
     const cancelBtn = document.getElementById('customConfirmCancelBtn');
     if (cancelBtn) cancelBtn.click();
     else document.getElementById('customConfirmModal')?.classList.add('hidden');
-  }
+  },
+  'deleteAllMenuModal': () => admin.closeDeleteAllModal()
 };
 
 /**
@@ -1412,6 +1413,17 @@ const KasirApp = {
   addNewAddOnRow: admin.addNewAddOnRow,
   saveProduct: admin.saveProduct,
   deleteProduct: admin.deleteProduct,
+  deleteSelectedProducts: admin.deleteSelectedProducts,
+  openDeleteAllModal: admin.openDeleteAllModal,
+  closeDeleteAllModal: admin.closeDeleteAllModal,
+  toggleDeleteAllConfirmCheck: admin.toggleDeleteAllConfirmCheck,
+  confirmDeleteAllProducts: admin.confirmDeleteAllProducts,
+  handleAdminSearch: admin.handleAdminSearch,
+  clearAdminSearch: admin.clearAdminSearch,
+  setAdminCategoryFilter: admin.setAdminCategoryFilter,
+  toggleSelectAdminProduct: admin.toggleSelectAdminProduct,
+  toggleSelectAllAdminProducts: admin.toggleSelectAllAdminProducts,
+  clearAdminSelection: admin.clearAdminSelection,
   toggleProductAvailability: admin.toggleProductAvailability,
   openQrisModal: admin.openQrisModal,
   closeQrisModal: admin.closeQrisModal,

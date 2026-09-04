@@ -1,8 +1,13 @@
 import { state, saveProducts, saveQueues, saveHistory, saveExpenses, saveQrisPayload } from '../state.js';
 import { formatRp, escapeHtml, showToast, showConfirmDialog, playClick } from '../utils.js';
 import { renderProducts, renderCart } from './pos.js';
-import { syncSaveProduct, syncDeleteProduct, forceUploadAllToCloud, syncSaveQrisPayload } from '../firebase.js';
+import { syncSaveProduct, syncDeleteProduct, syncBatchDeleteProducts, syncClearAllProducts, forceUploadAllToCloud, syncSaveQrisPayload } from '../firebase.js';
 import { decodeQRFromImage, renderQRToContainer, parseQRISMetadata } from '../qris.js';
+
+// State seleksi & filter internal tabel admin
+let selectedAdminProductIds = new Set();
+let adminSearchQuery = '';
+let adminCategoryFilter = 'all';
 
 export function renderAdminSkeletons(count = 5) {
   const container = document.getElementById('adminProductCardList');
@@ -24,17 +29,195 @@ export function renderAdminSkeletons(count = 5) {
   `).join('');
 }
 
+export function getFilteredAdminProducts() {
+  let list = state.products || [];
+  if (adminCategoryFilter && adminCategoryFilter !== 'all') {
+    list = list.filter(p => (p.category || '').toLowerCase() === adminCategoryFilter.toLowerCase());
+  }
+  if (adminSearchQuery.trim()) {
+    const q = adminSearchQuery.trim().toLowerCase();
+    list = list.filter(p => 
+      (p.name || '').toLowerCase().includes(q) || 
+      (p.category || '').toLowerCase().includes(q)
+    );
+  }
+  return list;
+}
+
+export function handleAdminSearch(val) {
+  adminSearchQuery = (val || '').trim();
+  const clearBtn = document.getElementById('adminProductSearchClear');
+  if (clearBtn) {
+    if (adminSearchQuery) clearBtn.classList.remove('hidden');
+    else clearBtn.classList.add('hidden');
+  }
+  renderAdminTable();
+}
+
+export function clearAdminSearch() {
+  playClick('tap');
+  adminSearchQuery = '';
+  const input = document.getElementById('adminProductSearch');
+  if (input) input.value = '';
+  const clearBtn = document.getElementById('adminProductSearchClear');
+  if (clearBtn) clearBtn.classList.add('hidden');
+  renderAdminTable();
+}
+
+export function setAdminCategoryFilter(cat) {
+  playClick('tap');
+  adminCategoryFilter = cat || 'all';
+  const pills = document.querySelectorAll('.admin-cat-pill');
+  pills.forEach(pill => {
+    const isTarget = pill.getAttribute('data-cat') === adminCategoryFilter;
+    if (isTarget) {
+      pill.className = 'admin-cat-pill px-3 py-1.5 rounded-xl font-bold bg-emerald-700 text-white shadow-2xs transition whitespace-nowrap';
+    } else {
+      pill.className = 'admin-cat-pill px-3 py-1.5 rounded-xl font-bold bg-white text-stone-700 border border-stone-200 hover:bg-stone-100 transition whitespace-nowrap';
+    }
+  });
+  renderAdminTable();
+}
+
+export function toggleSelectAdminProduct(id) {
+  playClick('tap');
+  if (selectedAdminProductIds.has(id)) {
+    selectedAdminProductIds.delete(id);
+  } else {
+    selectedAdminProductIds.add(id);
+  }
+  renderAdminTable();
+}
+
+export function toggleSelectAllAdminProducts(forcedState) {
+  playClick('tap');
+  const filtered = getFilteredAdminProducts();
+  const checkEl = document.getElementById('selectAllAdminProductsCheck');
+  const shouldSelect = typeof forcedState === 'boolean' 
+    ? forcedState 
+    : (checkEl ? checkEl.checked : selectedAdminProductIds.size === 0);
+
+  if (shouldSelect) {
+    filtered.forEach(p => selectedAdminProductIds.add(p.id));
+  } else {
+    filtered.forEach(p => selectedAdminProductIds.delete(p.id));
+  }
+  renderAdminTable();
+}
+
+export function clearAdminSelection() {
+  playClick('tap');
+  selectedAdminProductIds.clear();
+  renderAdminTable();
+}
+
 export function renderAdminTable() {
   const container = document.getElementById('adminProductCardList');
   if (!container) return;
 
-  container.innerHTML = state.products.map(p => {
+  const filtered = getFilteredAdminProducts();
+  const totalCount = state.products.length;
+  const selectedCount = selectedAdminProductIds.size;
+
+  // Sinkronisasi status toolbar kontrol & seleksi
+  const checkAllEl = document.getElementById('selectAllAdminProductsCheck');
+  const summaryEl = document.getElementById('adminSelectionSummary');
+  const bulkContainer = document.getElementById('adminBulkActionContainer');
+  const normalContainer = document.getElementById('adminNormalActionContainer');
+  const bulkBtnText = document.getElementById('adminDeleteSelectedBtnText');
+
+  if (checkAllEl) {
+    if (filtered.length === 0) {
+      checkAllEl.checked = false;
+      checkAllEl.indeterminate = false;
+      checkAllEl.disabled = true;
+    } else {
+      checkAllEl.disabled = false;
+      const allSelected = filtered.every(p => selectedAdminProductIds.has(p.id));
+      const someSelected = filtered.some(p => selectedAdminProductIds.has(p.id));
+      checkAllEl.checked = allSelected;
+      checkAllEl.indeterminate = !allSelected && someSelected;
+    }
+  }
+
+  if (summaryEl) {
+    if (selectedCount > 0) {
+      summaryEl.innerHTML = `<strong class="text-emerald-800 font-black">${selectedCount}</strong> dari ${totalCount} dipilih`;
+    } else if (filtered.length !== totalCount) {
+      summaryEl.textContent = `${filtered.length} dari ${totalCount} Menu`;
+    } else {
+      summaryEl.textContent = `Total ${totalCount} Menu`;
+    }
+  }
+
+  if (bulkContainer && normalContainer) {
+    if (selectedCount > 0) {
+      bulkContainer.classList.remove('hidden');
+      normalContainer.classList.add('hidden');
+      if (bulkBtnText) {
+        bulkBtnText.textContent = `Hapus (${selectedCount}) Menu`;
+      }
+    } else {
+      bulkContainer.classList.add('hidden');
+      normalContainer.classList.remove('hidden');
+    }
+  }
+
+  // Tampilan jika data menu kosong total
+  if (totalCount === 0) {
+    container.innerHTML = `
+      <div class="p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-3">
+        <div class="w-16 h-16 rounded-3xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-sm">
+          <span class="material-symbols-rounded text-3xl">restaurant_menu</span>
+        </div>
+        <h3 class="text-base sm:text-lg font-black text-stone-900">Belum Ada Daftar Menu</h3>
+        <p class="text-xs sm:text-sm text-stone-500 max-w-sm">
+          Daftar menu kasir masih kosong. Tambahkan menu baru satu per satu atau gunakan Upload Teks Menu untuk memasukkan banyak menu sekaligus.
+        </p>
+        <div class="flex items-center gap-2 mt-2 flex-wrap justify-center">
+          <button onclick="window.KasirApp.openAddProductModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-stone-950 font-black text-xs sm:text-sm shadow-sm transition active:scale-95 touch-target-large">
+            + Tambah Menu Baru
+          </button>
+          <button onclick="window.KasirApp.openBulkImportModal()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs sm:text-sm shadow-sm transition active:scale-95 touch-target-large">
+            Upload Teks Menu
+          </button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Tampilan jika filter atau pencarian tidak menghasilkan menu
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="p-8 text-center flex flex-col items-center justify-center gap-2">
+        <span class="material-symbols-rounded text-3xl text-stone-400">search_off</span>
+        <p class="text-xs font-bold text-stone-600">Tidak ada menu yang sesuai dengan pencarian atau filter.</p>
+        <button onclick="window.KasirApp.clearAdminSearch()" class="text-xs font-extrabold text-emerald-700 hover:underline mt-1 cursor-pointer">
+          Reset Filter & Pencarian
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  // Render daftar baris produk dengan checkbox & highlight baris
+  container.innerHTML = filtered.map(p => {
     const isReady = p.isAvailable !== false && (!p.trackStock || (p.stock || 0) > 0);
+    const isSelected = selectedAdminProductIds.has(p.id);
+
     return `
-      <div class="p-3 sm:p-4 flex items-center justify-between gap-3 hover:bg-stone-50 transition border-b border-stone-100 last:border-0 ${!isReady ? 'bg-stone-50/60' : ''}">
-        <div class="flex items-center gap-3 min-w-0">
-          <span class="material-symbols-rounded text-xl sm:text-2xl text-stone-950 p-2.5 ${isReady ? 'bg-emerald-100/80' : 'bg-stone-200 text-stone-500'} rounded-2xl shrink-0 border border-emerald-200">${p.icon || 'lunch_dining'}</span>
-          <div class="truncate">
+      <div class="p-3 sm:p-4 flex items-center justify-between gap-2.5 sm:gap-3 hover:bg-stone-50 transition border-b border-stone-100 last:border-0 ${isSelected ? 'bg-emerald-50/70 border-l-4 border-l-emerald-600' : (!isReady ? 'bg-stone-50/60' : '')}">
+        <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+          <!-- Checkbox seleksi per baris -->
+          <label class="flex items-center justify-center p-1 cursor-pointer rounded-lg hover:bg-stone-200/60 transition touch-target-large shrink-0" onclick="event.stopPropagation()">
+            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="window.KasirApp.toggleSelectAdminProduct('${p.id}')"
+              class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-stone-300 cursor-pointer">
+          </label>
+
+          <span class="material-symbols-rounded text-xl sm:text-2xl text-stone-950 p-2 sm:p-2.5 ${isReady ? 'bg-emerald-100/80' : 'bg-stone-200 text-stone-500'} rounded-2xl shrink-0 border border-emerald-200">${p.icon || 'lunch_dining'}</span>
+          
+          <div class="truncate flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <h4 class="font-extrabold text-stone-900 text-sm sm:text-base truncate ${!isReady ? 'line-through text-stone-500' : ''}">${escapeHtml(p.name)}</h4>
               ${p.trackStock ? `
@@ -50,16 +233,17 @@ export function renderAdminTable() {
             <p class="font-black text-emerald-800 text-xs sm:text-sm mt-0.5">${formatRp(p.price)} <span class="text-[11px] text-stone-400 font-medium">(${escapeHtml(p.category)})</span></p>
           </div>
         </div>
+
         <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <!-- 1-Tap Toggle Status Ready / Habis -->
           <button onclick="window.KasirApp.toggleProductAvailability('${p.id}')" 
             class="px-2.5 sm:px-3 py-2 rounded-xl font-black text-xs transition touch-target-large flex items-center gap-1 border ${isReady ? 'bg-emerald-50 text-emerald-950 border-emerald-300 hover:bg-emerald-100' : 'bg-red-50 text-red-700 border-red-300 hover:bg-red-100'}"
             title="Klik untuk ubah status Ready/Habis">
             <span class="material-symbols-rounded text-base">${isReady ? 'check_circle' : 'cancel'}</span>
-            <span>${isReady ? 'Ready' : 'Habis'}</span>
+            <span class="hidden xs:inline">${isReady ? 'Ready' : 'Habis'}</span>
           </button>
           
-          <!-- Tombol Ubah Menu (Satu Arah & Lengkap) -->
+          <!-- Tombol Ubah Menu -->
           <button onclick="window.KasirApp.openEditProductModal('${p.id}')" 
             class="px-2.5 sm:px-3 py-2 rounded-xl bg-stone-100 text-stone-800 hover:bg-emerald-100 hover:text-emerald-900 border border-stone-200 font-black text-xs flex items-center gap-1 transition touch-target-large" 
             title="Ubah nama, harga, atau stok menu">
@@ -67,7 +251,7 @@ export function renderAdminTable() {
             <span class="hidden sm:inline">Ubah</span>
           </button>
           
-          <!-- Hapus Menu -->
+          <!-- Hapus Menu Tunggal -->
           <button onclick="window.KasirApp.deleteProduct('${p.id}')" 
             class="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 font-bold touch-target-large" 
             title="Hapus menu">
@@ -287,8 +471,11 @@ export async function deleteProduct(id) {
     icon: 'delete'
   });
   if (ok) {
-    state.products = state.products.filter(p => p.id !== id);
-    state.orderQueues.forEach(q => delete q.cart[id]);
+    selectedAdminProductIds.delete(id);
+    state.products = state.products.filter(item => item.id !== id);
+    state.orderQueues.forEach(q => {
+      if (q.cart) delete q.cart[id];
+    });
     saveProducts();
     saveQueues();
     syncDeleteProduct(id);
@@ -297,6 +484,117 @@ export async function deleteProduct(id) {
     renderCart();
     showToast(`Menu "${prodName}" telah dihapus.`, 'info');
   }
+}
+
+/**
+ * Bulk Delete Menu Terpilih
+ */
+export async function deleteSelectedProducts() {
+  playClick('pop');
+  const count = selectedAdminProductIds.size;
+  if (count === 0) {
+    showToast('Pilih setidaknya satu menu untuk dihapus', 'warning');
+    return;
+  }
+
+  const selectedProducts = state.products.filter(p => selectedAdminProductIds.has(p.id));
+  const sampleNames = selectedProducts.slice(0, 3).map(p => `"${p.name}"`).join(', ');
+  const extraCount = count - 3;
+  const listSummary = extraCount > 0 ? `${sampleNames}, dan ${extraCount} menu lainnya` : sampleNames;
+
+  const ok = await showConfirmDialog({
+    title: `Hapus ${count} Menu Terpilih?`,
+    message: `Apakah Anda yakin ingin menghapus ${count} menu (${listSummary})? Menu akan dihapus dari kasir dan sinkronisasi database cloud.`,
+    confirmText: `Ya, Hapus (${count}) Menu`,
+    confirmType: 'danger',
+    icon: 'delete_sweep'
+  });
+
+  if (ok) {
+    const idsToDelete = Array.from(selectedAdminProductIds);
+    state.products = state.products.filter(p => !selectedAdminProductIds.has(p.id));
+    state.orderQueues.forEach(q => {
+      if (q.cart) {
+        idsToDelete.forEach(id => delete q.cart[id]);
+      }
+    });
+
+    saveProducts();
+    saveQueues();
+    syncBatchDeleteProducts(idsToDelete);
+
+    selectedAdminProductIds.clear();
+    renderAdminTable();
+    renderProducts();
+    renderCart();
+
+    showToast(`${count} menu berhasil dihapus!`, 'success');
+  }
+}
+
+/**
+ * Modal & Handler: Hapus Seluruh Menu (Destructive wipe with safety lock)
+ */
+export function openDeleteAllModal() {
+  playClick('pop');
+  if (!state.products || state.products.length === 0) {
+    showToast('Daftar menu sudah kosong', 'info');
+    return;
+  }
+
+  const countText = document.getElementById('deleteAllMenuCountText');
+  if (countText) {
+    countText.textContent = `seluruh ${state.products.length} menu`;
+  }
+
+  const checkEl = document.getElementById('deleteAllConfirmCheck');
+  if (checkEl) checkEl.checked = false;
+
+  const btnConfirm = document.getElementById('btnConfirmDeleteAll');
+  if (btnConfirm) btnConfirm.disabled = true;
+
+  const modal = document.getElementById('deleteAllMenuModal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+export function closeDeleteAllModal() {
+  playClick('pop');
+  const modal = document.getElementById('deleteAllMenuModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+export function toggleDeleteAllConfirmCheck(isChecked) {
+  playClick('tap');
+  const btnConfirm = document.getElementById('btnConfirmDeleteAll');
+  if (btnConfirm) {
+    btnConfirm.disabled = !isChecked;
+  }
+}
+
+export async function confirmDeleteAllProducts() {
+  playClick('pop');
+  const count = state.products.length;
+  if (count === 0) {
+    closeDeleteAllModal();
+    return;
+  }
+
+  state.products = [];
+  state.orderQueues.forEach(q => {
+    q.cart = {};
+  });
+
+  saveProducts();
+  saveQueues();
+  await syncClearAllProducts();
+
+  selectedAdminProductIds.clear();
+  closeDeleteAllModal();
+  renderAdminTable();
+  renderProducts();
+  renderCart();
+
+  showToast(`Seluruh (${count}) menu berhasil dihapus dari kasir.`, 'info');
 }
 
 // ================= QRIS SETTINGS & IMAGE UPLOAD =================
@@ -744,6 +1042,7 @@ export function applyBulkMenuImport() {
 
   if (mode === 'replace') {
     state.products = [...bulkParsedProducts];
+    syncClearAllProducts();
   } else {
     // Append (cek duplikasi nama agar tidak ganda persis)
     const existingNames = new Set(state.products.map(p => p.name.toLowerCase()));

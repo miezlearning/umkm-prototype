@@ -1112,6 +1112,84 @@
       </div>
 
       <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+        <!-- Admin Table Search & Filter Toolbar -->
+        <div class="p-3 sm:p-4 bg-stone-50/70 border-b border-stone-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <!-- Search Bar -->
+          <div class="relative flex-1 max-w-md">
+            <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-lg">search</span>
+            <input type="text" id="adminProductSearch" oninput="window.KasirApp.handleAdminSearch(this.value)"
+              placeholder="Cari nama menu atau kategori..."
+              class="w-full pl-9 pr-8 py-2 bg-white rounded-xl border border-stone-300 text-xs font-bold text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition shadow-2xs">
+            <button type="button" id="adminProductSearchClear" onclick="window.KasirApp.clearAdminSearch()"
+              class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-0.5">
+              <span class="material-symbols-rounded text-sm">close</span>
+            </button>
+          </div>
+
+          <!-- Category Filter Pills -->
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 custom-scroll text-xs">
+            <button type="button" onclick="window.KasirApp.setAdminCategoryFilter('all')" data-cat="all"
+              class="admin-cat-pill px-3 py-1.5 rounded-xl font-bold bg-emerald-700 text-white shadow-2xs transition whitespace-nowrap">
+              Semua
+            </button>
+            <button type="button" onclick="window.KasirApp.setAdminCategoryFilter('makanan')" data-cat="makanan"
+              class="admin-cat-pill px-3 py-1.5 rounded-xl font-bold bg-white text-stone-700 border border-stone-200 hover:bg-stone-100 transition whitespace-nowrap">
+              Makanan
+            </button>
+            <button type="button" onclick="window.KasirApp.setAdminCategoryFilter('minuman')" data-cat="minuman"
+              class="admin-cat-pill px-3 py-1.5 rounded-xl font-bold bg-white text-stone-700 border border-stone-200 hover:bg-stone-100 transition whitespace-nowrap">
+              Minuman
+            </button>
+            <button type="button" onclick="window.KasirApp.setAdminCategoryFilter('camilan')" data-cat="camilan"
+              class="admin-cat-pill px-3 py-1.5 rounded-xl font-bold bg-white text-stone-700 border border-stone-200 hover:bg-stone-100 transition whitespace-nowrap">
+              Camilan
+            </button>
+          </div>
+        </div>
+
+        <!-- Bulk Selection & Action Toolbar -->
+        <div class="px-3 sm:px-4 py-2.5 bg-white border-b border-stone-200 flex items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2.5">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" id="selectAllAdminProductsCheck" onchange="window.KasirApp.toggleSelectAllAdminProducts(this.checked)"
+                class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-stone-300">
+              <span class="font-extrabold text-stone-800 text-xs">Pilih Semua</span>
+            </label>
+            <span id="adminSelectionSummary" class="text-[11px] font-bold text-stone-500 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200">
+              Memuat...
+            </span>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center gap-2">
+            <!-- Appears when >= 1 item is selected -->
+            <div id="adminBulkActionContainer" class="hidden flex items-center gap-2 animate-fadeIn">
+              <button type="button" onclick="window.KasirApp.deleteSelectedProducts()"
+                class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 touch-target-large"
+                title="Hapus semua menu yang dicentang">
+                <span class="material-symbols-rounded text-base">delete</span>
+                <span id="adminDeleteSelectedBtnText">Hapus Terpilih</span>
+              </button>
+              <button type="button" onclick="window.KasirApp.clearAdminSelection()"
+                class="px-2.5 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition"
+                title="Batalkan pilihan centang">
+                Batal
+              </button>
+            </div>
+
+            <!-- Normal state when 0 selected: option to wipe all products -->
+            <div id="adminNormalActionContainer" class="flex items-center gap-2">
+              <button type="button" onclick="window.KasirApp.openDeleteAllModal()"
+                class="px-2.5 sm:px-3 py-1.5 rounded-xl text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 font-extrabold text-xs flex items-center gap-1 transition"
+                title="Hapus seluruh daftar menu sekaligus">
+                <span class="material-symbols-rounded text-base">delete_sweep</span>
+                <span class="hidden sm:inline">Hapus Seluruh Menu</span>
+                <span class="sm:hidden">Hapus Semua</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="divide-y divide-stone-100" id="adminProductCardList">
           <!-- Rendered via JS -->
         </div>
@@ -1486,6 +1564,61 @@
           class="px-4 py-2.5 rounded-xl bg-white border border-stone-200 hover:bg-stone-100 font-bold text-stone-700 text-xs sm:text-sm touch-target-large">Batal</button>
         <button id="customConfirmOkBtn" type="button"
           class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs sm:text-sm touch-target-large shadow">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: HAPUS SELURUH MENU (HIGH-SAFETY CONFIRMATION) ==================== -->
+  <div id="deleteAllMenuModal"
+    class="fixed inset-0 z-[95] bg-black/70 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div
+      class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col animate-scaleUp">
+      <div class="p-5 sm:p-6 flex flex-col gap-3.5">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 border border-rose-200 flex items-center justify-center shrink-0">
+            <span class="material-symbols-rounded text-2xl">delete_forever</span>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black text-stone-900">Hapus Seluruh Menu?</h3>
+            <span class="inline-block text-[10px] font-black px-2 py-0.5 rounded bg-rose-100 text-rose-800 uppercase tracking-wider">Aksi Berbahaya & Permanen</span>
+          </div>
+        </div>
+        
+        <p class="text-xs sm:text-sm text-stone-600 font-medium leading-relaxed">
+          Tindakan ini akan menghapus <strong id="deleteAllMenuCountText" class="text-stone-950 font-black">seluruh menu</strong> dari memori kasir lokal dan sinkronisasi database cloud.
+        </p>
+
+        <!-- Safety Backup Recommendation Box -->
+        <div class="p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-2.5 text-xs text-amber-950 font-medium">
+          <span class="material-symbols-rounded text-base text-amber-700 shrink-0 mt-0.5">info</span>
+          <div class="flex-1">
+            <p class="font-bold">Sudahkah mencadangkan data?</p>
+            <p class="text-[11px] text-amber-900/80 mt-0.5">Unduh cadangan data sekarang jika Anda ingin memulihkan menu di kemudian hari.</p>
+            <button type="button" onclick="exportDataBackup()" class="mt-2 px-3 py-1.5 bg-amber-200/90 hover:bg-amber-300 text-amber-950 font-extrabold rounded-xl text-xs flex items-center gap-1.5 transition">
+              <span class="material-symbols-rounded text-sm">download</span> Unduh Backup Data Sekarang
+            </button>
+          </div>
+        </div>
+
+        <!-- Checkbox Safety Guard -->
+        <label class="flex items-start gap-2.5 p-3 rounded-2xl bg-rose-50/70 border border-rose-200 cursor-pointer select-none">
+          <input type="checkbox" id="deleteAllConfirmCheck" onchange="window.KasirApp.toggleDeleteAllConfirmCheck(this.checked)"
+            class="mt-0.5 w-4 h-4 rounded text-rose-600 focus:ring-rose-500 border-rose-300 cursor-pointer">
+          <span class="text-xs font-bold text-rose-950 leading-snug">
+            Saya mengerti dan setuju menghapus seluruh daftar menu kasir secara permanen.
+          </span>
+        </label>
+      </div>
+
+      <div class="p-3.5 bg-stone-50 border-t border-stone-100 flex items-center justify-end gap-2">
+        <button type="button" onclick="window.KasirApp.closeDeleteAllModal()"
+          class="px-4 py-2.5 rounded-xl bg-white border border-stone-200 hover:bg-stone-100 font-bold text-stone-700 text-xs sm:text-sm touch-target-large">
+          Batal
+        </button>
+        <button id="btnConfirmDeleteAll" type="button" onclick="window.KasirApp.confirmDeleteAllProducts()" disabled
+          class="px-5 py-2.5 rounded-xl bg-rose-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-rose-700 text-white font-black text-xs sm:text-sm touch-target-large shadow transition">
+          Hapus Seluruh Menu
+        </button>
       </div>
     </div>
   </div>
@@ -3402,7 +3535,7 @@ Kopi susu 7k"
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-black tracking-tight" id="updateModalTitle">Pembaruan Aplikasi Tersedia!</h3>
-              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.17</span>
+              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.18</span>
             </div>
             <p id="updateModalCurrentVersion" class="text-emerald-100 text-xs mt-0.5">Versi Anda saat ini: v1.1.3</p>
           </div>
@@ -3562,7 +3695,7 @@ Kopi susu 7k"
     <button id="btnNavPosDesktop"></button>
     <button id="btnNavReportDesktop"></button>
     <button id="btnNavAdminDesktop"></button>
-    <span id="appVersionBadge" class="hidden">v1.2.17</span>
+    <span id="appVersionBadge" class="hidden">v1.2.18</span>
   </div>
 
   <!-- Main JavaScript App Module -->

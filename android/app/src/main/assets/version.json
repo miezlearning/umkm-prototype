@@ -1,12 +1,11 @@
 {
-  "versionCode": 65,
-  "versionName": "1.2.17",
-  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.17/Aristotle-POS.apk",
+  "versionCode": 66,
+  "versionName": "1.2.18",
+  "apkUrl": "https://github.com/miezlearning/umkm-prototype/releases/download/v1.2.18/Aristotle-POS.apk",
   "changelog": [
-    "Fitur Add-On / Topping per menu dengan harga otomatis",
-    "Bebas batas karakter catatan pemesanan (unlimited textarea)",
-    "Pemisahan porsi pesanan (Item Splitting) sesuai standar industri POS",
-    "Pencetakan Add-On & catatan di struk belanja & tiket dapur"
+    "Fitur Bulk Delete & Hapus Seluruh Menu standar industri",
+    "Peningkatan keamanan & reliabilitas penghapusan menu Firestore (Dual-Layer Deletion)",
+    "Pembaruan kontrol pencarian dan filter kategori di kelola menu"
   ],
   "releaseDate": "2026-09-04"
 }

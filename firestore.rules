@@ -22,9 +22,10 @@ service cloud.firestore {
       // Produk & Katalog Toko
       match /products/{productId} {
         allow read: if true;
-        allow write: if request.resource.data.price is number
+        allow create, update: if request.resource.data.price is number
                      && request.resource.data.price >= 0
                      && request.resource.data.name is string;
+        allow delete: if true;
       }
       
       // Riwayat Transaksi Penjualan
@@ -39,8 +40,9 @@ service cloud.firestore {
       // Pengeluaran Operasional Toko
       match /expenses/{expenseId} {
         allow read: if true;
-        allow write: if request.resource.data.amount is number
+        allow create, update: if request.resource.data.amount is number
                      && request.resource.data.amount >= 0;
+        allow delete: if true;
       }
       
       // Antrean Meja & Pesanan Aktif
