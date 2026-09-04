@@ -1557,22 +1557,22 @@ export function updatePrinterUIStatus() {
 
     if (modalBadge) {
       modalBadge.innerHTML = isHotspot 
-        ? `<span class="text-amber-800 font-black">● Hotspot Kasir Aktif</span>`
-        : `<span class="text-emerald-700 font-black">● ${printerName || 'Terhubung (Kasir Host)'}</span>`;
+        ? `<span class="text-amber-800 font-bold text-[11px]">Hotspot Aktif</span>`
+        : `<span class="text-emerald-700 font-bold text-[11px]">${printerName || 'Terhubung (Kasir Host)'}</span>`;
     }
 
     if (roleCard) {
       roleCard.className = isHotspot
-        ? 'bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col gap-2.5'
-        : 'bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col gap-2.5';
+        ? 'bg-amber-50 border border-amber-200 rounded-2xl p-3 flex flex-col gap-2'
+        : 'bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex flex-col gap-2';
     }
-    if (roleDot) roleDot.className = isHotspot ? 'w-2.5 h-2.5 rounded-full bg-amber-500' : 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
-    if (roleTitle) roleTitle.textContent = 'KASIR UTAMA';
+    if (roleDot) roleDot.className = isHotspot ? 'w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0' : 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0';
+    if (roleTitle) roleTitle.textContent = 'Kasir Utama';
     if (roleBadge) {
       roleBadge.textContent = isHotspot ? 'Hotspot Aktif' : 'Host Wi-Fi';
       roleBadge.className = isHotspot 
-        ? 'px-2 py-0.5 rounded-full bg-amber-200 text-amber-950 font-extrabold text-[10px]'
-        : 'px-2 py-0.5 rounded-full bg-emerald-200/80 text-emerald-900 font-extrabold text-[10px]';
+        ? 'px-2 py-0.5 rounded-full bg-amber-200 text-amber-950 font-extrabold text-[10px] shrink-0'
+        : 'px-2 py-0.5 rounded-full bg-emerald-200/70 text-emerald-900 font-extrabold text-[10px] shrink-0';
     }
     if (roleDesc) {
       roleDesc.textContent = isHotspot
@@ -1608,9 +1608,16 @@ export function updatePrinterUIStatus() {
     if (btnTestRelay) btnTestRelay.classList.add('hidden');
 
     const hardwareSection = document.getElementById('hostHardwareConfigSection');
+    const previewSection = document.getElementById('printerPreviewSection');
     const submitBtn = document.getElementById('printerModalSubmitBtn');
+    const leftCol = document.getElementById('printerConfigLeftCol');
     if (hardwareSection) hardwareSection.classList.remove('hidden');
+    if (previewSection) previewSection.classList.remove('hidden');
     if (submitBtn) submitBtn.classList.remove('hidden');
+    if (leftCol) {
+      leftCol.classList.remove('md:col-span-12', 'max-w-xl', 'mx-auto', 'w-full');
+      leftCol.classList.add('md:col-span-7');
+    }
 
   } else {
     // HP STAF
@@ -1627,17 +1634,17 @@ export function updatePrinterUIStatus() {
     if (mobileDot) mobileDot.className = 'absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-sky-500';
 
     if (modalBadge) {
-      modalBadge.innerHTML = `<span class="text-sky-700 font-bold">HP Staf</span>`;
+      modalBadge.innerHTML = `<span class="text-sky-700 font-bold text-[11px]">HP Staf</span>`;
     }
 
     if (roleCard) {
-      roleCard.className = 'bg-sky-50 border border-sky-200 rounded-2xl p-4 flex flex-col gap-2.5';
+      roleCard.className = 'bg-sky-50 border border-sky-200 rounded-2xl p-3 flex flex-col gap-2';
     }
-    if (roleDot) roleDot.className = 'w-2.5 h-2.5 rounded-full bg-sky-500';
-    if (roleTitle) roleTitle.textContent = 'HP STAF';
+    if (roleDot) roleDot.className = 'w-2.5 h-2.5 rounded-full bg-sky-500 shrink-0';
+    if (roleTitle) roleTitle.textContent = 'HP Staf';
     if (roleBadge) {
       roleBadge.textContent = 'Siap';
-      roleBadge.className = 'px-2 py-0.5 rounded-full bg-sky-200/80 text-sky-900 font-extrabold text-[10px]';
+      roleBadge.className = 'px-2 py-0.5 rounded-full bg-sky-200/80 text-sky-900 font-extrabold text-[10px] shrink-0';
     }
     if (roleDesc) {
       roleDesc.textContent = 'Pesanan dan cetak struk otomatis terkirim ke kasir utama.';
@@ -1655,9 +1662,16 @@ export function updatePrinterUIStatus() {
 
     // Sembunyikan bagian pengaturan hardware printer & simpan untuk HP Pelayan
     const hardwareSection = document.getElementById('hostHardwareConfigSection');
+    const previewSection = document.getElementById('printerPreviewSection');
     const submitBtn = document.getElementById('printerModalSubmitBtn');
+    const leftCol = document.getElementById('printerConfigLeftCol');
     if (hardwareSection) hardwareSection.classList.add('hidden');
+    if (previewSection) previewSection.classList.add('hidden');
     if (submitBtn) submitBtn.classList.add('hidden');
+    if (leftCol) {
+      leftCol.classList.remove('md:col-span-7');
+      leftCol.classList.add('md:col-span-12', 'max-w-xl', 'mx-auto', 'w-full');
+    }
 
     // Pasang listener status Kasir Utama realtime
     setupHostPresenceListener();
@@ -1667,12 +1681,13 @@ export function updatePrinterUIStatus() {
   const btnHost = document.getElementById('btnRoleHost');
   const btnPelayan = document.getElementById('btnRolePelayan');
   if (btnHost && btnPelayan) {
+    const base = 'h-9 px-2 rounded-lg text-xs flex items-center justify-center gap-1 transition ';
     if (currentRole === 'host') {
-      btnHost.className = 'flex-1 py-1.5 px-2 rounded-lg font-black text-xs flex items-center justify-center gap-1 bg-emerald-700 text-white shadow-xs transition';
-      btnPelayan.className = 'flex-1 py-1.5 px-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1 text-stone-600 hover:bg-stone-100 transition';
+      btnHost.className = base + 'font-black bg-emerald-700 text-white';
+      btnPelayan.className = base + 'font-bold text-stone-600';
     } else {
-      btnHost.className = 'flex-1 py-1.5 px-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1 text-stone-600 hover:bg-stone-100 transition';
-      btnPelayan.className = 'flex-1 py-1.5 px-2 rounded-lg font-black text-xs flex items-center justify-center gap-1 bg-sky-600 text-white shadow-xs transition';
+      btnHost.className = base + 'font-bold text-stone-600';
+      btnPelayan.className = base + 'font-black bg-sky-600 text-white';
     }
   }
 }

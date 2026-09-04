@@ -4,6 +4,21 @@ Semua perubahan besar dan pembaruan fitur pada **Aristotle POS** (Multi-Tenant S
 
 Format dokumen ini mengacu pada panduan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan mematuhi aturan [Semantic Versioning](https://semver.org/).
 
+## [v1.2.24] - 2026-09-05
+
+### 🧾 Tata Letak 2 Kolom Modal Pengaturan Printer & Struk (Live Sticky Receipt Preview)
+- **Pratinjau Struk di Sisi Kanan (Side-by-Side Layout):**
+  - Mengubah struktur modal Pengaturan Printer & Struk dari sebelumnya 1 kolom memanjang vertikal menjadi 2 kolom berdampingan (`md:grid-cols-12`).
+  - **Kolom Kiri (`md:col-span-7`):** Seluruh formulir pengaturan (koneksi Bluetooth/USB, mode cetak, ukuran kertas, spasi section & divider, toggle otomatisasi, upload logo, serta identitas struk & footer).
+  - **Kolom Kanan (`md:col-span-5`):** Pratinjau struk kertas thermal nyata (`#liveReceiptPaper`) dengan posisi `sticky top-0` yang tetap melayang di sisi atas saat formulir kiri digulir (*scroll*).
+  - Perubahan identitas toko, logo, format spasi, nomor antrian, maupun ukuran kertas (58mm/80mm) langsung terpantau secara instan di sisi kanan tanpa perlu menggulir layar ke paling bawah.
+- **Responsif & Mode Adaptif:**
+  - Menyesuaikan lebar modal dialog hingga `max-w-5xl` untuk tampilan tablet dan desktop/PC kasir yang lapang.
+  - Pada layar ponsel (*mobile*), tata letak otomatis kembali 1 kolom dan dilengkapi tautan cepat `Lihat Struk ↓`.
+  - Pada mode **HP Staf**, pratinjau struk dan pengaturan hardware otomatis disembunyikan dan antarmuka beralih ke kartu sambungan kasir host yang ringkas dan terpusat.
+
+---
+
 ## [v1.2.17] - 2026-09-04
 
 ### 🍳 Add-On per Menu, Catatan Pemesanan Bebas, & Pemisahan Porsi (Item Splitting) Sesuai Standar Industri

@@ -1065,48 +1065,49 @@
 
     <!-- ==================== SCREEN 3: PRODUCT MANAGEMENT & DATA BACKUP ==================== -->
     <div id="viewAdmin" class="hidden flex-1 flex-col gap-3.5">
-      <div
-        class="bg-white p-3 sm:p-5 rounded-2xl shadow-sm border border-stone-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 flex flex-col gap-4">
         <div>
-          <h2 class="text-lg sm:text-2xl font-black text-stone-900">Kelola Menu & Pengaturan</h2>
-          <p class="text-xs text-stone-500 font-medium">Tambah menu, atur QRIS Toko, atau backup data kasir</p>
+          <h2 class="text-lg sm:text-xl font-bold text-stone-900">Menu & Pengaturan</h2>
+          <p class="text-sm text-stone-500 mt-0.5">Atur jualan Mami di sini</p>
         </div>
-        <div class="flex items-center gap-1.5 w-full sm:w-auto flex-wrap">
+        <div class="flex flex-col gap-2">
           <button onclick="openAddProductModal()"
-            class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-stone-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1 shadow-sm transition touch-target-large">
-            <span class="material-symbols-rounded text-base">add_circle</span>
+            class="w-full h-12 px-4 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-sm flex items-center justify-center gap-2 transition active:scale-[0.98]">
+            <span class="material-symbols-rounded text-xl">add</span>
             <span>Tambah Menu</span>
           </button>
-          <button onclick="openBulkImportModal()"
-            class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-1 shadow-sm transition touch-target-large"
-            title="Upload atau tempel teks daftar menu sekaligus">
-            <span class="material-symbols-rounded text-base">playlist_add</span>
-            <span>Upload Teks Menu</span>
-          </button>
-          <button onclick="openPrinterConfigModal()"
-            class="px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 font-extrabold text-xs flex items-center gap-1 transition touch-target-large shadow-sm"
-            title="Atur printer thermal 58mm & laci kasir">
-            <span class="material-symbols-rounded text-base text-amber-700">print</span>
-            <span>Printer & Struk</span>
-          </button>
-          <button onclick="openQrisModal()"
-            class="px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border border-emerald-300 font-extrabold text-xs flex items-center gap-1 transition touch-target-large shadow-sm"
-            title="Upload atau atur QRIS Toko">
-            <span class="material-symbols-rounded text-base text-emerald-700">qr_code_scanner</span>
-            <span>Pengaturan QRIS</span>
-          </button>
-          <button onclick="exportDataBackup()"
-            class="px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center gap-1 transition touch-target-large"
-            title="Simpan file cadangan data">
-            <span class="material-symbols-rounded text-base">download</span>
-            <span>Backup Data</span>
-          </button>
-          <button onclick="document.getElementById('importFileInput').click()"
-            class="px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center gap-1 transition touch-target-large"
-            title="Pulihkan data dari file backup">
-            <span class="material-symbols-rounded text-base">upload</span>
-            <span>Pulihkan</span>
-          </button>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+            <button onclick="openBulkImportModal()"
+              class="h-11 px-3 rounded-xl bg-white hover:bg-stone-50 text-stone-800 border border-stone-200 font-semibold text-sm flex items-center justify-center gap-2 transition active:scale-[0.98]"
+              title="Tambah banyak menu sekaligus">
+              <span class="material-symbols-rounded text-xl text-stone-500">playlist_add</span>
+              <span>Tambah Banyak</span>
+            </button>
+            <button onclick="openPrinterConfigModal()"
+              class="h-11 px-3 rounded-xl bg-white hover:bg-stone-50 text-stone-800 border border-stone-200 font-semibold text-sm flex items-center justify-center gap-2 transition active:scale-[0.98]"
+              title="Atur printer & struk">
+              <span class="material-symbols-rounded text-xl text-stone-500">print</span>
+              <span>Printer</span>
+            </button>
+            <button onclick="openQrisModal()"
+              class="h-11 px-3 rounded-xl bg-white hover:bg-stone-50 text-stone-800 border border-stone-200 font-semibold text-sm flex items-center justify-center gap-2 transition active:scale-[0.98]"
+              title="Atur QRIS toko">
+              <span class="material-symbols-rounded text-xl text-stone-500">qr_code_2</span>
+              <span>QRIS Toko</span>
+            </button>
+            <button onclick="exportDataBackup()"
+              class="h-11 px-3 rounded-xl bg-white hover:bg-stone-50 text-stone-800 border border-stone-200 font-semibold text-sm flex items-center justify-center gap-2 transition active:scale-[0.98]"
+              title="Simpan salinan data">
+              <span class="material-symbols-rounded text-xl text-stone-500">download</span>
+              <span>Simpan Data</span>
+            </button>
+            <button onclick="document.getElementById('importFileInput').click()"
+              class="h-11 px-3 rounded-xl bg-white hover:bg-stone-50 text-stone-800 border border-stone-200 font-semibold text-sm flex items-center justify-center gap-2 transition active:scale-[0.98] col-span-2 sm:col-span-1"
+              title="Kembalikan dari file simpanan">
+              <span class="material-symbols-rounded text-xl text-stone-500">upload</span>
+              <span>Kembalikan</span>
+            </button>
+          </div>
           <input type="file" id="importFileInput" accept=".json" onchange="importDataBackup(event)" class="hidden">
         </div>
       </div>
@@ -2358,92 +2359,96 @@ Kopi susu 7k"
   <div id="printerConfigModal"
     class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
     <div
-      class="bg-white w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[95vh] animate-in zoom-in-95">
+      class="bg-white w-full sm:max-w-2xl md:max-w-4xl lg:max-w-5xl xl:max-w-5xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[95vh] animate-in zoom-in-95">
       
-      <!-- Clean Header -->
-      <div class="p-5 pb-3 flex items-start justify-between border-b border-stone-100">
-        <div class="flex items-center gap-3">
+      <!-- Header -->
+      <div class="px-4 py-3 flex items-center justify-between border-b border-stone-100 shrink-0">
+        <div class="flex items-center gap-3 min-w-0">
           <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-800 border border-amber-200 flex items-center justify-center shrink-0">
             <span class="material-symbols-rounded text-2xl">print</span>
           </div>
-          <div>
-            <h3 class="text-base sm:text-lg font-black text-stone-900 leading-tight">Pengaturan Printer & Struk</h3>
-            <p class="text-xs text-stone-500 font-medium mt-0.5">Atur koneksi printer kasir dan format struk belanja</p>
+          <div class="min-w-0">
+            <h3 class="text-base font-black text-stone-900 leading-tight">Pengaturan Printer & Struk</h3>
+            <p class="text-xs text-stone-500 mt-0.5">Atur koneksi printer kasir dan format struk belanja</p>
           </div>
         </div>
-        <button onclick="closePrinterConfigModal()" class="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition">
-          <span class="material-symbols-rounded text-2xl">close</span>
+        <button onclick="closePrinterConfigModal()" class="w-9 h-9 flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-xl transition shrink-0">
+          <span class="material-symbols-rounded text-xl">close</span>
         </button>
       </div>
 
       <!-- Form Body -->
-      <form onsubmit="KasirApp.savePrinterSettings(event)" class="p-5 overflow-y-auto custom-scroll flex-1">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <form onsubmit="KasirApp.savePrinterSettings(event)" class="p-3 sm:p-5 overflow-y-auto custom-scroll flex-1">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
           
           <!-- Left Column: Settings Form -->
-          <div class="lg:col-span-7 flex flex-col gap-4">
+          <div id="printerConfigLeftCol" class="md:col-span-7 flex flex-col gap-3.5">
             
             <!-- Status Perangkat (Kasir Utama vs HP Pelayan) -->
-            <div id="multiDeviceRoleCard" class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col gap-2.5">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <span id="multiDeviceRoleDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <div id="multiDeviceRoleCard" class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex flex-col gap-2">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span id="multiDeviceRoleDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
                   <h4 id="multiDeviceRoleTitle" class="text-xs font-black text-emerald-950 uppercase tracking-wider">
-                    KASIR UTAMA
+                    Kasir Utama
                   </h4>
                 </div>
-                <span id="multiDeviceRoleBadge" class="px-2 py-0.5 rounded-full bg-emerald-200/70 text-emerald-900 font-extrabold text-[10px]">
-                  Host Aktif
-                </span>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <a href="#printerPreviewSection"
+                    class="md:hidden inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-200/60 hover:bg-emerald-200 px-2 py-0.5 rounded-full transition">
+                    <span>Lihat Struk</span>
+                    <span class="material-symbols-rounded text-xs">arrow_downward</span>
+                  </a>
+                  <span id="multiDeviceRoleBadge" class="px-2 py-0.5 rounded-full bg-emerald-200/70 text-emerald-900 font-extrabold text-[10px]">
+                    Host Wi-Fi
+                  </span>
+                </div>
               </div>
 
               <!-- Pilihan Mode Perangkat -->
-              <div class="flex items-center gap-1.5 p-1 rounded-xl bg-white/90 border border-stone-200/80 shadow-2xs">
+              <div class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-white/90 border border-stone-200/80">
                 <button type="button" id="btnRoleHost" onclick="KasirApp.setDevicePrinterRole('host')"
-                  class="flex-1 py-1.5 px-2 rounded-lg font-black text-xs flex items-center justify-center gap-1 bg-emerald-700 text-white shadow-xs transition">
-                  <span class="material-symbols-rounded text-sm">print</span>
+                  class="h-9 px-2 rounded-lg font-black text-xs flex items-center justify-center gap-1 bg-emerald-700 text-white transition">
+                  <span class="material-symbols-rounded text-base">print</span>
                   <span>Kasir Utama</span>
                 </button>
                 <button type="button" id="btnRolePelayan" onclick="KasirApp.setDevicePrinterRole('pelayan')"
-                  class="flex-1 py-1.5 px-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1 text-stone-600 hover:bg-stone-100 transition">
-                  <span class="material-symbols-rounded text-sm">smartphone</span>
+                  class="h-9 px-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1 text-stone-600 transition">
+                  <span class="material-symbols-rounded text-base">smartphone</span>
                   <span>HP Staf</span>
                 </button>
               </div>
 
-              <p id="multiDeviceRoleDesc" class="text-xs text-emerald-900 leading-relaxed font-medium">
-                Terhubung langsung ke printer. Menerima pesanan cetak dari HP staf.
+              <p id="multiDeviceRoleDesc" class="text-xs text-emerald-900 leading-relaxed">
+                Terhubung langsung ke printer (Bluetooth). Menerima pesanan cetak dari HP staf.
               </p>
 
               <!-- Server Cetak Lokal Info (Host Kasir Utama di APK Android) -->
-              <div id="localOfflineHostInfo" class="hidden mt-1 p-2.5 bg-emerald-100/70 rounded-xl border border-emerald-300 text-[11px] text-emerald-950 flex flex-col gap-1">
-                <div class="flex items-center justify-between font-bold">
-                  <span class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
-                    <span>Server Lokal:</span>
-                  </span>
+              <div id="localOfflineHostInfo" class="hidden p-2.5 rounded-xl bg-emerald-100/70 border border-emerald-300 flex flex-col gap-1.5">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-bold text-emerald-950">Server Lokal</span>
                   <span id="localHostIpBadge" class="px-2 py-0.5 rounded bg-emerald-800 text-white font-mono text-[10px]">Aktif</span>
                 </div>
-                <p class="text-[10px] text-emerald-800">HP staf di jaringan yang sama dapat mencetak langsung.</p>
+                <p class="text-[11px] text-emerald-800">HP staf di jaringan yang sama dapat mencetak langsung.</p>
                 <button type="button" onclick="KasirApp.openHostQrPairingModal()"
-                  class="mt-1 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition">
-                  <span class="material-symbols-rounded text-base">qr_code_scanner</span>
+                  class="h-10 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                  <span class="material-symbols-rounded text-base">qr_code_2</span>
                   <span>Sambungkan HP Staf</span>
                 </button>
               </div>
 
               <!-- Info jika Kasir Utama dibuka di Web Browser -->
-              <div id="webBrowserHostInfo" class="hidden mt-1 p-2.5 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-950 flex flex-col gap-1">
-                <div class="flex items-center gap-1.5 font-bold text-amber-900">
-                  <span class="material-symbols-rounded text-sm text-amber-700">cloud</span>
+              <div id="webBrowserHostInfo" class="hidden p-2.5 rounded-xl bg-amber-50 border border-amber-200 flex flex-col gap-1.5">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-amber-900">
+                  <span class="material-symbols-rounded text-base text-amber-700">cloud</span>
                   <span>Mode Cloud Aktif</span>
                 </div>
-                <p class="text-[10px] text-amber-800">
+                <p class="text-[11px] text-amber-800">
                   Pesanan dari staf dicetak melalui cloud.
                 </p>
                 <button type="button" onclick="KasirApp.openHostQrPairingModal()"
-                  class="mt-1 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition">
-                  <span class="material-symbols-rounded text-base">qr_code_scanner</span>
+                  class="h-10 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                  <span class="material-symbols-rounded text-base">qr_code_2</span>
                   <span>Sambungkan HP Staf</span>
                 </button>
               </div>
@@ -2536,44 +2541,44 @@ Kopi susu 7k"
             <!-- Bagian Khusus Kasir Utama (Hardware & Desain Struk) - Sembunyikan untuk Pelayan -->
             <div id="hostHardwareConfigSection" class="flex flex-col gap-4">
             <!-- Hardware Connection & Quick Test Card -->
-            <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 flex flex-col gap-3">
-              <div class="flex items-center justify-between">
+            <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-3 flex flex-col gap-2">
+              <div class="flex items-center justify-between gap-2">
                 <span class="text-xs font-bold text-amber-950 flex items-center gap-1.5">
                   <span class="material-symbols-rounded text-base text-amber-700">hardware</span>
                   Tes Printer
                 </span>
-                <span id="printerConnectionBadge" class="text-[10px] font-bold text-stone-500">
-                  Siap Digunakan
+                <span id="printerConnectionBadge" class="text-[10px] font-bold text-emerald-700">
+                  Terhubung (Kasir Host)
                 </span>
               </div>
 
-              <div class="grid grid-cols-3 gap-2">
+              <div class="grid grid-cols-3 gap-1.5">
                 <button type="button" onclick="KasirApp.testPrintReceipt()"
-                  class="py-2.5 px-2 rounded-xl bg-white hover:bg-amber-100 text-stone-900 border border-amber-300 font-bold text-xs flex items-center justify-center gap-1 transition touch-target-large shadow-sm active:scale-95">
-                  <span class="material-symbols-rounded text-sm text-stone-800">receipt</span>
+                  class="h-10 px-2 rounded-xl bg-white hover:bg-amber-100 text-stone-900 border border-amber-300 font-bold text-xs flex items-center justify-center gap-1 transition">
+                  <span class="material-symbols-rounded text-base">receipt</span>
                   <span>Tes Struk</span>
                 </button>
                 <button type="button" onclick="KasirApp.testPrintKitchenTicket()"
-                  class="py-2.5 px-2 rounded-xl bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs flex items-center justify-center gap-1 transition touch-target-large shadow-sm active:scale-95">
-                  <span class="material-symbols-rounded text-sm text-amber-700">restaurant</span>
+                  class="h-10 px-2 rounded-xl bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs flex items-center justify-center gap-1 transition">
+                  <span class="material-symbols-rounded text-base text-amber-700">restaurant</span>
                   <span>Tes Dapur</span>
                 </button>
                 <button type="button" onclick="KasirApp.kickCashDrawer(false)"
-                  class="py-2.5 px-2 rounded-xl bg-white hover:bg-amber-100 text-stone-900 border border-amber-300 font-bold text-xs flex items-center justify-center gap-1 transition touch-target-large shadow-sm active:scale-95">
-                  <span class="material-symbols-rounded text-sm text-amber-700">payments</span>
+                  class="h-10 px-2 rounded-xl bg-white hover:bg-amber-100 text-stone-900 border border-amber-300 font-bold text-xs flex items-center justify-center gap-1 transition">
+                  <span class="material-symbols-rounded text-base text-amber-700">payments</span>
                   <span>Buka Laci</span>
                 </button>
               </div>
 
-              <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-amber-200/60">
+              <div class="grid grid-cols-2 gap-1.5 pt-2 border-t border-amber-200/60">
                 <button type="button" onclick="KasirApp.connectBluetoothPrinter()"
-                  class="py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+                  class="h-10 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 font-bold text-xs flex items-center justify-center gap-1.5 transition">
                   <span class="material-symbols-rounded text-base text-blue-700">bluetooth</span>
                   <span>Sambung Bluetooth</span>
                 </button>
                 <button type="button" onclick="KasirApp.connectSerialPrinter()"
-                  class="py-2 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300 font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
-                  <span class="material-symbols-rounded text-base text-stone-700">usb</span>
+                  class="h-10 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                  <span class="material-symbols-rounded text-base">usb</span>
                   <span>Sambung USB</span>
                 </button>
               </div>
@@ -2774,22 +2779,29 @@ Kopi susu 7k"
                   class="w-full px-3.5 py-2 rounded-xl bg-stone-50 border border-stone-300 focus:bg-white focus:border-emerald-600 font-bold text-stone-900 text-xs sm:text-sm outline-none">
               </div>
             </div>
+            <!-- End Informasi Struk -->
+
           </div>
+          <!-- End hostHardwareConfigSection -->
 
-          <!-- Right Column: Realistic Paper Thermal Receipt Preview (100% Mirroring Print Area) -->
-          <div class="lg:col-span-5 flex flex-col gap-3">
-            <div class="bg-stone-100 p-4 rounded-2xl border border-stone-200 flex flex-col items-center sticky top-0">
-              <div class="flex items-center justify-between w-full mb-2.5">
-                <span class="text-[11px] font-black uppercase text-stone-600 tracking-wider flex items-center gap-1.5">
-                  <span class="material-symbols-rounded text-base text-stone-500">receipt_long</span>
-                  Pratinjau Struk (Live)
-                </span>
-                <span id="previewPaperBadge" class="px-2 py-0.5 rounded-md bg-stone-200 text-stone-700 font-black text-[10px]">
-                  58mm (Standar)
-                </span>
-              </div>
+        </div>
+        <!-- End Left Column (printerConfigLeftCol) -->
 
-              <!-- Realistic Paper Receipt Card Matching #printArea -->
+        <!-- Right Column: Realistic Paper Thermal Receipt Preview (100% Mirroring Print Area) -->
+        <div id="printerPreviewSection" class="md:col-span-5 flex flex-col gap-3 md:sticky md:top-0">
+          <div class="bg-stone-100/90 p-3.5 sm:p-4 rounded-2xl border border-stone-200/90 flex flex-col items-center shadow-xs">
+            <div class="flex items-center justify-between w-full mb-2.5 pb-2 border-b border-stone-200">
+              <span class="text-[11px] font-black uppercase text-stone-700 tracking-wider flex items-center gap-1.5">
+                <span class="material-symbols-rounded text-base text-emerald-700">receipt_long</span>
+                Pratinjau Struk (Live)
+              </span>
+              <span id="previewPaperBadge" class="px-2 py-0.5 rounded-md bg-white border border-stone-200 text-stone-800 font-black text-[10px] shadow-2xs">
+                58mm (Standar)
+              </span>
+            </div>
+
+            <!-- Realistic Paper Receipt Card Matching #printArea with Scroll Area -->
+            <div class="w-full max-h-[calc(88vh-140px)] overflow-y-auto custom-scroll flex justify-center py-1">
               <div id="liveReceiptPaper"
                 class="w-full max-w-[280px] bg-white p-3.5 shadow-md rounded-xl border border-dashed border-stone-300 text-stone-900 font-sans text-xs leading-normal flex flex-col gap-1.5 transition-all">
                 
@@ -2852,8 +2864,10 @@ Kopi susu 7k"
             </div>
           </div>
         </div>
-        </div>
-        <!-- End hostHardwareConfigSection -->
+        <!-- End Right Column -->
+
+      </div>
+      <!-- End Grid -->
 
         <!-- Submit & Close Bar -->
         <div class="flex items-center justify-end gap-3 pt-4 mt-5 border-t border-stone-200">
@@ -3282,10 +3296,10 @@ Kopi susu 7k"
             </div>
             <div class="flex-1 min-w-0">
               <p class="font-bold text-stone-800 text-xs">PIN Owner</p>
-              <p class="text-[10.5px] text-stone-400 truncate">Kunci menu admin & laporan untuk staf</p>
+              <p class="text-[10.5px] text-stone-400 truncate">Ubah perlu PIN Owner</p>
             </div>
             <button onclick="togglePinProtectionSetting()" id="btnTogglePinSetting"
-              class="px-2.5 py-1 rounded-lg font-bold text-[11px] transition shrink-0">
+              class="px-2.5 py-1 rounded-lg font-bold text-[11px] transition shrink-0 bg-stone-100 text-stone-500 border border-stone-200">
               Nonaktif
             </button>
           </div>
@@ -3842,7 +3856,7 @@ Kopi susu 7k"
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-black tracking-tight" id="updateModalTitle">Pembaruan Aplikasi Tersedia!</h3>
-              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.23</span>
+              <span id="updateModalVersionBadge" class="px-2 py-0.5 rounded-full bg-amber-400 text-stone-900 font-black text-[10px] tracking-wide shadow-sm">v1.2.24</span>
             </div>
             <p id="updateModalCurrentVersion" class="text-emerald-100 text-xs mt-0.5">Versi Anda saat ini: v1.1.3</p>
           </div>
@@ -4002,7 +4016,7 @@ Kopi susu 7k"
     <button id="btnNavPosDesktop"></button>
     <button id="btnNavReportDesktop"></button>
     <button id="btnNavAdminDesktop"></button>
-    <span id="appVersionBadge" class="hidden">v1.2.23</span>
+    <span id="appVersionBadge" class="hidden">v1.2.24</span>
   </div>
 
   <!-- Main JavaScript App Module -->

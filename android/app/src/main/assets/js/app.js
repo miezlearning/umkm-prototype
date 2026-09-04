@@ -588,6 +588,12 @@ export function handleStoreRegisterSubmit(e) {
 }
 
 // ================= PIN SECURITY & ROLE MANAGEMENT =================
+// Perubahan pengaturan PIN wajib verifikasi ulang (re-auth), sesuai standar:
+// staf yang tidak tahu PIN Owner tidak bisa mematikan proteksi.
+let pendingSecurityAction = null; // 'enable_pin' | 'disable_pin' | null
+let pinFailCount = 0;
+let pinLockUntil = 0;
+
 export function openPinSecurityModal(targetView) {
   playClick('pop');
   const modal = document.getElementById('pinSecurityModal');
@@ -595,41 +601,113 @@ export function openPinSecurityModal(targetView) {
   const subtitle = document.getElementById('pinChallengeSubtitle');
   
   if (subtitle) {
-    const viewLabel = targetView === 'admin' ? 'Kelola Menu & Harga' : 'Laporan Keuangan & Laba';
-    subtitle.innerText = `Masukkan 6 digit PIN Owner untuk membuka ${viewLabel}`;
+    if (targetView === 'enable_pin') {
+      subtitle.innerText = 'Masukkan PIN Owner untuk mengaktifkan kunci';
+    } else if (targetView === 'disable_pin') {
+      subtitle.innerText = 'Masukkan PIN Owner untuk mematikan kunci';
+    } else {
+      const viewLabel = targetView === 'admin' ? 'Kelola Menu & Harga' : 'Laporan Keuangan & Laba';
+      subtitle.innerText = `Masukkan PIN Owner untuk membuka ${viewLabel}`;
+    }
   }
 
-  if (input) input.value = '';
+  if (input) {
+    input.value = '';
+    input.disabled = false;
+  }
+  // Update tombol submit state (lockout info)
+  updatePinSubmitState();
   if (modal) modal.classList.remove('hidden');
   if (input) {
     requestAnimationFrame(() => input.focus());
   }
 }
 
+function updatePinSubmitState() {
+  const input = document.getElementById('pinSecurityInput');
+  const remaining = Math.ceil((pinLockUntil - Date.now()) / 1000);
+  if (remaining > 0 && input) {
+    input.placeholder = `Tunggu ${remaining}d...`;
+    input.disabled = true;
+  }
+}
+
 export function closePinSecurityModal() {
   playClick('pop');
   pendingTargetView = null;
+  pendingSecurityAction = null;
   const modal = document.getElementById('pinSecurityModal');
   if (modal) modal.classList.add('hidden');
 }
 
 export async function handlePinSecuritySubmit(e) {
   if (e) e.preventDefault();
+
+  if (Date.now() < pinLockUntil) {
+    const remaining = Math.ceil((pinLockUntil - Date.now()) / 1000);
+    showToast(`Terlalu banyak salah. Coba lagi dalam ${remaining} detik.`, 'danger');
+    return;
+  }
+
   const input = document.getElementById('pinSecurityInput');
   const entered = input ? input.value.trim() : '';
+  if (!entered) return;
 
   const isOk = await verifyStorePin(entered);
   if (isOk) {
+    pinFailCount = 0;
+    pinLockUntil = 0;
+
+    // 1. Kasus perubahan pengaturan keamanan (wajib PIN)
+    if (pendingSecurityAction === 'enable_pin') {
+      state.auth.requirePinForAdmin = true;
+      state.isUnlockedOwner = false; // langsung dikunci setelah diaktifkan
+      saveStoreAuth(state.auth);
+      syncSaveStoreAuth(state.auth);
+      updatePinButtonUI();
+      pendingSecurityAction = null;
+      closePinSecurityModalSilent();
+      showToast('Kunci PIN Owner aktif.', 'success');
+      return;
+    }
+    if (pendingSecurityAction === 'disable_pin') {
+      state.auth.requirePinForAdmin = false;
+      state.isUnlockedOwner = true;
+      saveStoreAuth(state.auth);
+      syncSaveStoreAuth(state.auth);
+      updatePinButtonUI();
+      pendingSecurityAction = null;
+      closePinSecurityModalSilent();
+      showToast('Kunci PIN Owner dimatikan.', 'info');
+      return;
+    }
+
+    // 2. Kasus buka menu terkunci (sesi saja, pengaturan tetap aktif)
     state.isUnlockedOwner = true;
-    closePinSecurityModal();
-    showToast('PIN Berhasil! Akses Owner terbuka.', 'success');
+    closePinSecurityModalSilent();
+    showToast('Akses Owner terbuka untuk sesi ini.', 'success');
     if (pendingTargetView) {
       const v = pendingTargetView;
       pendingTargetView = null;
       switchView(v);
     }
   } else {
-    showToast('PIN salah! Akses ditolak.', 'danger');
+    pinFailCount += 1;
+    if (pinFailCount >= 5) {
+      pinLockUntil = Date.now() + 30000;
+      pinFailCount = 0;
+      showToast('PIN salah 5x. Terkunci 30 detik.', 'danger');
+      updatePinSubmitState();
+      setTimeout(() => {
+        const inp = document.getElementById('pinSecurityInput');
+        if (inp) {
+          inp.disabled = false;
+          inp.placeholder = '••••••';
+        }
+      }, 30000);
+    } else {
+      showToast(`PIN salah. (${pinFailCount}/5)`, 'danger');
+    }
     if (input) {
       input.value = '';
       input.focus();
@@ -637,19 +715,26 @@ export async function handlePinSecuritySubmit(e) {
   }
 }
 
+function closePinSecurityModalSilent() {
+  const modal = document.getElementById('pinSecurityModal');
+  if (modal) modal.classList.add('hidden');
+  const input = document.getElementById('pinSecurityInput');
+  if (input) input.value = '';
+}
+
 export function togglePinProtectionSetting() {
   playClick('pop');
-  state.auth.requirePinForAdmin = !state.auth.requirePinForAdmin;
-  saveStoreAuth(state.auth);
-  syncSaveStoreAuth(state.auth);
-  updatePinButtonUI();
-
+  // Jangan langsung toggle. Minta verifikasi PIN dulu.
+  // Ini mencegah staf mematikan kunci seenaknya.
+  if (!state.auth) return;
   if (state.auth.requirePinForAdmin) {
-    state.isUnlockedOwner = false;
-    showToast('Proteksi PIN aktif: Menu Admin & Laporan dikunci untuk staf.', 'success');
+    pendingSecurityAction = 'disable_pin';
+    pendingTargetView = null;
+    openPinSecurityModal('disable_pin');
   } else {
-    state.isUnlockedOwner = true;
-    showToast('Proteksi PIN dinonaktifkan.', 'info');
+    pendingSecurityAction = 'enable_pin';
+    pendingTargetView = null;
+    openPinSecurityModal('enable_pin');
   }
 }
 
@@ -657,11 +742,11 @@ function updatePinButtonUI() {
   const btn = document.getElementById('btnTogglePinSetting');
   if (btn) {
     if (state.auth?.requirePinForAdmin) {
-      btn.innerText = 'Aktif (Terkunci)';
-      btn.className = 'px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-black text-[11px] transition shadow-sm';
+      btn.innerText = 'Aktif';
+      btn.className = 'px-2.5 py-1 rounded-lg font-bold text-[11px] transition shrink-0 bg-stone-900 text-white';
     } else {
       btn.innerText = 'Nonaktif';
-      btn.className = 'px-3 py-1.5 rounded-lg bg-stone-200 text-stone-700 font-black text-[11px] hover:bg-emerald-100 hover:text-emerald-800 transition';
+      btn.className = 'px-2.5 py-1 rounded-lg font-bold text-[11px] transition shrink-0 bg-stone-100 text-stone-500 hover:text-stone-900 border border-stone-200';
     }
   }
 }
